@@ -10,6 +10,9 @@ module.exports = {
     extend: {
       fontFamily: {
         inter: ['Inter'],
+        'dm-sans-regular': ['dm-sans-regular'],
+        'dm-sans-medium': ['dm-sans-medium'],
+        'dm-sans-bold': ['dm-sans-bold'],
       },
       colors,
     },

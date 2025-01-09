@@ -11,8 +11,8 @@ function CustomButton(props: TCustomButton) {
     <Button
       label={label}
       {...rest}
-      className="bg-primaryText border-primaryText  h-[55px] items-center justify-center rounded-[4px] border disabled:opacity-60"
-      textClassName="text-white text-[16px]"
+      className="h-[55px] items-center  justify-center rounded-[4px] border border-primaryText bg-primaryText disabled:opacity-60 "
+      textClassName="text-white text-[16px] font-regular"
       indicatorClassName="text-white"
     />
   );
@@ -24,7 +24,7 @@ CustomButton.Secondary = (props: TCustomButton) => {
     <Button
       label={label}
       {...rest}
-      className="border-primaryText h-[55px] items-center justify-center rounded-[4px] border bg-white disabled:opacity-60"
+      className="h-[55px] items-center justify-center rounded-[4px] border border-primaryText bg-white disabled:opacity-60"
       textClassName="text-primaryText text-[16px] items-center"
       indicatorClassName="text-primaryText"
     />

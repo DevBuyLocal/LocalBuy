@@ -18,13 +18,18 @@ export const Text = ({
   children,
   ...props
 }: Props) => {
+  const fontClass =
+    className.split(' ').find((cls) => fontFamilyMapping[cls]) ??
+    'dm-sans-regular-regular';
+
   const textStyle = React.useMemo(
     () =>
       twMerge(
-        'text-base text-black  dark:text-white  font-inter font-normal',
-        className
+        'text-base text-black  dark:text-white dm-sans-regular',
+        className,
+        fontClass ? `font-[${fontFamilyMapping[fontClass]}]` : 'dm-sans-regular'
       ),
-    [className]
+    [className, fontClass]
   );
 
   const nStyle = React.useMemo(
@@ -32,14 +37,21 @@ export const Text = ({
       StyleSheet.flatten([
         {
           writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
+          fontFamily: fontFamilyMapping[fontClass] || 'dm-sans-regular',
         },
         style,
       ]) as TextStyle,
-    [style]
+    [style, fontClass]
   );
   return (
     <NNText className={textStyle} style={nStyle} {...props}>
       {tx ? translate(tx) : children}
     </NNText>
   );
+};
+
+const fontFamilyMapping: Record<string, string> = {
+  'font-regular': 'dm-sans-regular',
+  'font-medium': 'dm-sans-medium',
+  'font-bold': 'dm-sans-bold',
 };
