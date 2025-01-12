@@ -45,9 +45,7 @@ export const Root = ({
   return (
     <Pressable
       onPress={handleChange}
-      className={`flex-row items-center ${className} ${
-        disabled ? 'opacity-50' : ''
-      }`}
+      className={`flex-row ${className} ${disabled ? 'opacity-50' : ''}`}
       accessibilityState={{ checked }}
       disabled={disabled}
       {...props}
@@ -65,7 +63,7 @@ type LabelProps = {
 
 const Label = ({ text, testID, className = '' }: LabelProps) => {
   return (
-    <Text testID={testID} className={` ${className} pl-2`}>
+    <Text testID={testID} className={` ${className}`}>
       {text}
     </Text>
   );

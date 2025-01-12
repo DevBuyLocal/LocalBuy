@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.localbuy.development'
+    namespace 'com.buylocal.development'
     defaultConfig {
-        applicationId 'com.localbuy.development'
+        applicationId 'com.buylocal.development'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -1,34 +1,32 @@
 import { ImageBackground } from 'expo-image';
 import React, { useState } from 'react';
-import { Dimensions } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 
-import { View } from '../ui';
+import { View, WIDTH } from '../ui';
 
 type Props = {
   data: any[];
 };
 
 const _Carousel = (props: Props) => {
-  const { width } = Dimensions.get('window');
   const [currentIndex, setCurrentIndex] = useState(0);
 
   return (
-    <View style={{ height: width / 2, width }}>
+    <View style={{ height: WIDTH / 2, width: WIDTH }}>
       <Carousel
         loop
-        width={width}
-        height={width / 2}
+        width={WIDTH}
+        height={WIDTH / 2}
         autoPlay={true}
         data={props.data || []}
         scrollAnimationDuration={1000}
         onSnapToItem={(index) => setCurrentIndex(index)}
         renderItem={({ index, item }) => (
           <ImageBackground
-            source={{ uri: item?.img }}
+            source={{ uri: item?.img[0] }}
             key={index.toString()}
-            className="size-full bg-primaryText object-cover"
-            style={{ height: width / 2, width }}
+            className="size-full object-cover"
+            style={{ height: WIDTH / 2, width: WIDTH }}
           ></ImageBackground>
         )}
       />

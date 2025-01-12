@@ -34,9 +34,9 @@ export default function RootLayout() {
   // const { colorScheme } = useColorScheme();
 
   const [loaded, error] = useFonts({
-    'dm-sans-regular': require('../../assets/fonts/DMSansRegular.ttf'),
-    'dm-sans-medium': require('../../assets/fonts/DMSansMedium.ttf'),
-    'dm-sans-bold': require('../../assets/fonts/DMSansBold.ttf'),
+    'dm-sans-regular': require('../../assets/fonts/DMSans-Regular.ttf'),
+    'dm-sans-medium': require('../../assets/fonts/DMSans-Medium.ttf'),
+    'dm-sans-bold': require('../../assets/fonts/DMSans-Bold.ttf'),
   });
   if (!loaded && !error) {
     return null;

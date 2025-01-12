@@ -34,9 +34,9 @@ require('dotenv').config({
 
 // TODO: Replace these values with your own
 
-const BUNDLE_ID = 'com.localbuy'; // ios bundle id
-const PACKAGE = 'com.localbuy'; // android package name
-const NAME = 'LocalBuy'; // app name
+const BUNDLE_ID = 'com.buylocal'; // ios bundle id
+const PACKAGE = 'com.buylocal'; // android package name
+const NAME = 'Buy Local'; // app name
 const EXPO_ACCOUNT_OWNER = 'expo-owner'; // expo account owner
 const EAS_PROJECT_ID = 'c3e1075b-6fe7-4686-aa49-35b46a229044'; // eas project id
 const SCHEME = 'LocalBuy'; // app scheme

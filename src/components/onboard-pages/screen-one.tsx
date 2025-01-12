@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { useSharedValue } from 'react-native-reanimated';
 
-import _Carousel from '@/components/general/carousel';
-import Container from '@/components/general/container';
-import ViewAll from '@/components/general/view-all';
-import ProductItem from '@/components/products/product-item';
-import { ScrollView, View } from '@/components/ui';
+import FlipBox from '../general/flip-box';
+import { HEIGHT, Image, Pressable, View, WIDTH } from '../ui';
+
+type Props = {};
 
 const imgs = [
   {
@@ -60,16 +59,15 @@ const imgs = [
   },
 ];
 
-// eslint-disable-next-line max-lines-per-function
-export default function Home() {
-  const [text, setText] = useState('');
+function ScreenOne(props: Props) {
+  const [text, setText] = React.useState('');
   const isFlipped = useSharedValue(false);
-  const [array, setArray] = useState(imgs);
-  const [indexToFlip, setIndexToFlip] = useState(0);
-  const [logs, setLogs] = useState([]);
+  const [array, setArray] = React.useState(imgs);
+  const [indexToFlip, setIndexToFlip] = React.useState(0);
+  const [logs, setLogs] = React.useState([]);
 
   // Run the randomize function every 5 seconds
-  useEffect(() => {
+  React.useEffect(() => {
     // const interval = setInterval(randomizeArray, 2000);
     // return () => clearInterval(interval); // Cleanup interval on unmount
   }, [array]);
@@ -79,35 +77,58 @@ export default function Home() {
       isFlipped.value = !isFlipped.value;
     }
   };
-
   return (
-    <ScrollView>
-      <Container.Page
-        className="px-0"
-        showHeader
-        headerTitle="Create an account"
-      >
-        <_Carousel data={imgs} />
-
-        <Container.Box containerClassName="bg-[#F7F7F7] py-5">
-          <ViewAll title="New Arrival" onPress={() => {}} />
-
-          <View className="flex-row">
-            {Array.from({ length: 5 }).map((e, i) => (
-              <ProductItem
-                item={{
-                  title: 'Devon Kings Vegetable Cooking Oil-25 Litres',
-                  minPurchase: 12,
-                  price: 43837.32,
-                  img: 'https://m.media-amazon.com/images/I/712tlHfthyL.jpg',
+    <View
+      className="top-10  w-full bg-green-500"
+      style={{ height: HEIGHT / 2, width: WIDTH * 0.911 }}
+    >
+      {array.map((e, i) => (
+        <FlipBox
+          key={i.toString()}
+          isFlipped={isFlipped}
+          cardStyle={{
+            height: 145,
+            width: 105,
+            borderRadius: 4,
+            backfaceVisibility: 'hidden',
+            overflow: 'hidden',
+            marginVertical: 2,
+          }}
+          RegularContent={
+            <Pressable
+              className="flex-1 rounded-sm bg-red-500"
+              onPress={() => FlipIt(i)}
+            >
+              <Image
+                source={{ uri: e.img[Math.floor(Math.random() * 4)] }}
+                style={{
+                  height: 145,
+                  width: 105,
                 }}
-                key={i.toString()}
-                containerClassname="mr-5"
+                className="size-[100px] object-cover"
               />
-            ))}
-          </View>
-        </Container.Box>
-      </Container.Page>
-    </ScrollView>
+            </Pressable>
+          }
+          FlippedContent={
+            <Pressable
+              className="flex-1 rounded-sm bg-cyan-500"
+              onPress={() => FlipIt(i)}
+            >
+              <Image
+                source={{ uri: e.img[Math.floor(Math.random() * 4)] }}
+                style={{
+                  height: 145,
+                  width: 105,
+                }}
+                className="size-[100px] object-cover"
+              />
+            </Pressable>
+          }
+          direction={'y'}
+        />
+      ))}
+    </View>
   );
 }
+
+export default ScreenOne;

@@ -27,6 +27,8 @@
         <data android:scheme="LocalBuy"/>
         <data android:scheme="com.localbuy.development"/>
         <data android:scheme="exp+obytesapp"/>
+        <data android:scheme="com.buylocal.development"/>
+        <data android:scheme="exp+local-buy"/>
       </intent-filter>
     </activity>
   </application>

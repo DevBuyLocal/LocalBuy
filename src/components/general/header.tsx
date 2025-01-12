@@ -16,27 +16,26 @@ function Header(props: HeaderProps) {
   return (
     <View
       style={{
-        shadowColor: '#000',
+        shadowColor: '#000000',
         shadowOffset: {
           width: 0,
           height: 1,
         },
-        shadowOpacity: 0.18,
+        shadowOpacity: 0.1,
         shadowRadius: 1.0,
-
         elevation: 1,
       }}
       className="h-20 w-full flex-row bg-white px-5"
     >
       <Pressable
         onPress={props.backPress || back}
-        className="absolute left-5 top-1 z-10 my-3 size-[45px] items-center justify-center rounded-full bg-[#EFF2F7]"
+        className="absolute left-5 top-1 z-10 my-3 size-[40px] items-center justify-center rounded-full bg-[#EFF2F7]"
       >
-        <Ionicons name="arrow-back-sharp" size={30} className="color-black" />
+        <Ionicons name="arrow-back-sharp" size={24} className="color-black" />
       </Pressable>
       <View className="w-full items-center justify-center ">
         {props.headerTitle ? (
-          <Text className="text-[16px] font-bold">{props.headerTitle}</Text>
+          <Text className="text-[16px] font-medium">{props.headerTitle}</Text>
         ) : (
           props.headerComponent
         )}
