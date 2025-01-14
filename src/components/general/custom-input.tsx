@@ -54,7 +54,7 @@ function CustomInput({
     opacity: interpolate(0, 1, 0, 1),
     fontSize: interpolate(0, 1, 16, 14),
     color: interpolate(0, 1, '#12121233', error ? '#E84343' : '#EC9F01BF'),
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F7F7F7',
     zIndex: 1,
   };
   const style = styles(error);
@@ -82,7 +82,7 @@ function CustomInput({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={isFocused ? '' : placeholder}
-        leftIcon={isSearch ? <Search /> : undefined}
+        leftIcon={isSearch ? <Search className="top-1" /> : undefined}
         rightIcon={
           isPassword ? (
             <Pressable
@@ -99,7 +99,7 @@ function CustomInput({
         }
         className={twMerge(
           isSearch
-            ? 'bg-[#FFFFFF] w-full rounded-[32px] h-[43px] pl-[35px] placeholder:color-[#12121280] text-[16px]'
+            ? 'bg-[#F7F7F7] w-full rounded-[32px] h-[50px] pl-[35px] placeholder:color-[#12121280] text-[16px]'
             : 'h-[48px] w-full rounded-[6px] border border-[#12121233] px-[10px] placeholder:color-[#12121280] text-[16px]'
         )}
         {...props}
@@ -126,7 +126,7 @@ const styles = (error?: string) =>
     input: {
       fontSize: 16,
       color: '#000000',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: '#F7F7F7',
     },
     inputFocused: {
       borderColor: error ? '#E84343' : '#EC9F01BF',

@@ -29,7 +29,15 @@ Container.Page = (props: ContainerProps) => {
       className={twMerge('flex-1 bg-[#FFFFFF]', props.containerClassName)}
       {...props}
     >
-      {props.showHeader && <Header headerTitle={props.headerTitle} />}
+      {props.showHeader && (
+        <Header
+          headerTitle={props.headerTitle}
+          headerComponent={props.headerComponent}
+          backPress={props.backPress}
+          showCart={props.showCart}
+          hideBackButton={props.hideBackButton}
+        />
+      )}
       {props.children}
     </View>
   );

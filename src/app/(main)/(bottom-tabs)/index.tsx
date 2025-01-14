@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useSharedValue } from 'react-native-reanimated';
+import { useEffect } from 'react';
+import { array } from 'zod';
 
 import _Carousel from '@/components/general/carousel';
 import Container from '@/components/general/container';
-import ViewAll from '@/components/general/view-all';
-import ProductItem from '@/components/products/product-item';
-import { ScrollView, View } from '@/components/ui';
+import GridProducts from '@/components/products/grid-products';
+import { ScrollView } from '@/components/ui';
+
+import dummyProducts from '../../../lib/dummy';
 
 const imgs = [
   {
@@ -62,50 +63,37 @@ const imgs = [
 
 // eslint-disable-next-line max-lines-per-function
 export default function Home() {
-  const [text, setText] = useState('');
-  const isFlipped = useSharedValue(false);
-  const [array, setArray] = useState(imgs);
-  const [indexToFlip, setIndexToFlip] = useState(0);
-  const [logs, setLogs] = useState([]);
+  // const [text, setText] = useState('');
+  // const isFlipped = useSharedValue(false);
+  // const [array, setArray] = useState(imgs);
+  // const [indexToFlip, setIndexToFlip] = useState(0);
+  // const [logs, setLogs] = useState([]);
 
   // Run the randomize function every 5 seconds
   useEffect(() => {
+    // clearCart();
     // const interval = setInterval(randomizeArray, 2000);
     // return () => clearInterval(interval); // Cleanup interval on unmount
   }, [array]);
 
-  const FlipIt = (index: number) => {
-    if (index === indexToFlip) {
-      isFlipped.value = !isFlipped.value;
-    }
-  };
+  // const FlipIt = (index: number) => {
+  //   if (index === indexToFlip) {
+  //     isFlipped.value = !isFlipped.value;
+  //   }
+  // };
 
   return (
     <ScrollView>
-      <Container.Page
-        className="px-0"
-        showHeader
-        headerTitle="Create an account"
-      >
+      <Container.Page className="px-0">
         <_Carousel data={imgs} />
 
         <Container.Box containerClassName="bg-[#F7F7F7] py-5">
-          <ViewAll title="New Arrival" onPress={() => {}} />
-
-          <View className="flex-row">
-            {Array.from({ length: 5 }).map((e, i) => (
-              <ProductItem
-                item={{
-                  title: 'Devon Kings Vegetable Cooking Oil-25 Litres',
-                  minPurchase: 12,
-                  price: 43837.32,
-                  img: 'https://m.media-amazon.com/images/I/712tlHfthyL.jpg',
-                }}
-                key={i.toString()}
-                containerClassname="mr-5"
-              />
-            ))}
-          </View>
+          <GridProducts items={dummyProducts} isLoading={false} />
+          {/* <ProductCarousel
+            items={dummyProducts}
+            title={'New Arrivals'}
+            isLoading={false}
+          /> */}
         </Container.Box>
       </Container.Page>
     </ScrollView>

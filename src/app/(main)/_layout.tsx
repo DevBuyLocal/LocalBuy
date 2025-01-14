@@ -29,6 +29,7 @@ export default function MainLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(bottom-tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="all-products" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen name="style" options={{ headerShown: false }} />
     </Stack>
