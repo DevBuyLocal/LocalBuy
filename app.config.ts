@@ -26,7 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   description: `${Env.NAME} Mobile App`,
   owner: Env.EXPO_ACCOUNT_OWNER,
   scheme: Env.SCHEME,
-  slug: 'obytesapp',
+  slug: 'buy-local',
   version: Env.VERSION.toString(),
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -58,15 +58,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#2E3C4B',
+        backgroundColor: '#0F3D30',
         image: './assets/splash-icon.png',
-        imageWidth: 150,
+        imageWidth: 315,
       },
     ],
     [
       'expo-font',
       {
-        fonts: ['./assets/fonts/Inter.ttf'],
+        fonts: [
+          './assets/fonts/DMSans-Bold.ttf',
+          './assets/fonts/DMSans-Medium.ttf',
+          './assets/fonts/DMSans-Regular.ttf',
+        ],
       },
     ],
     'expo-localization',

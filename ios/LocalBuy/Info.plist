@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>LocalBuy</string>
+    <string>Buy Local</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -28,13 +28,13 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>LocalBuy</string>
-          <string>com.localbuy.development</string>
+          <string>com.buylocal.development</string>
         </array>
       </dict>
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>exp+obytesapp</string>
+          <string>exp+local-buy</string>
         </array>
       </dict>
     </array>
@@ -58,6 +58,9 @@
     <key>UIAppFonts</key>
     <array>
       <string>Inter.ttf</string>
+      <string>DMSans-Bold.ttf</string>
+      <string>DMSans-Medium.ttf</string>
+      <string>DMSans-Regular.ttf</string>
     </array>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>

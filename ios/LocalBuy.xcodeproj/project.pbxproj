@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05D25D20E5784213B5FC5273 /* DMSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EE2580903A31405CAE6F86D6 /* DMSans-Bold.ttf */; };
 		0655181B6C1540F4B4DC056F /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 964A0895C8614430B534CF0B /* noop-file.swift */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -14,9 +15,11 @@
 		2C7F815959714D57B3ABF708 /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1E1F71B4CAAB4BE5BD3CCAE1 /* Inter.ttf */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		5BEF342A4B516727DB35E6AD /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C962A051203C4F8360ABACF3 /* PrivacyInfo.xcprivacy */; };
+		83149A7224464452924E120D /* DMSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7E8DB3CE19144ABD90C20787 /* DMSans-Medium.ttf */; };
 		96905EF65AED1B983A6B3ABC /* libPods-LocalBuy.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-LocalBuy.a */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		C8B5408584E34AB383A840A8 /* DMSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 23233FA1E6514295B5A4ADDE /* DMSans-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,14 +30,17 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LocalBuy/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = LocalBuy/main.m; sourceTree = "<group>"; };
 		1E1F71B4CAAB4BE5BD3CCAE1 /* Inter.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = Inter.ttf; path = ../assets/fonts/Inter.ttf; sourceTree = "<group>"; };
+		23233FA1E6514295B5A4ADDE /* DMSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DMSans-Regular.ttf"; path = "../assets/fonts/DMSans-Regular.ttf"; sourceTree = "<group>"; };
 		58EEBF8E8E6FB1BC6CAF49B5 /* libPods-LocalBuy.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LocalBuy.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C2E3173556A471DD304B334 /* Pods-LocalBuy.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LocalBuy.debug.xcconfig"; path = "Target Support Files/Pods-LocalBuy/Pods-LocalBuy.debug.xcconfig"; sourceTree = "<group>"; };
 		7A4D352CD337FB3A3BF06240 /* Pods-LocalBuy.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LocalBuy.release.xcconfig"; path = "Target Support Files/Pods-LocalBuy/Pods-LocalBuy.release.xcconfig"; sourceTree = "<group>"; };
+		7E8DB3CE19144ABD90C20787 /* DMSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DMSans-Medium.ttf"; path = "../assets/fonts/DMSans-Medium.ttf"; sourceTree = "<group>"; };
 		964A0895C8614430B534CF0B /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "LocalBuy/noop-file.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = LocalBuy/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		C962A051203C4F8360ABACF3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = LocalBuy/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		EE2580903A31405CAE6F86D6 /* DMSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DMSans-Bold.ttf"; path = "../assets/fonts/DMSans-Bold.ttf"; sourceTree = "<group>"; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-LocalBuy/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		FC302767E773423C8D701FBC /* LocalBuy-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "LocalBuy-Bridging-Header.h"; path = "LocalBuy/LocalBuy-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -129,6 +135,9 @@
 			isa = PBXGroup;
 			children = (
 				1E1F71B4CAAB4BE5BD3CCAE1 /* Inter.ttf */,
+				EE2580903A31405CAE6F86D6 /* DMSans-Bold.ttf */,
+				7E8DB3CE19144ABD90C20787 /* DMSans-Medium.ttf */,
+				23233FA1E6514295B5A4ADDE /* DMSans-Regular.ttf */,
 			);
 			name = Resources;
 			path = "";
@@ -217,6 +226,9 @@
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				2C7F815959714D57B3ABF708 /* Inter.ttf in Resources */,
 				5BEF342A4B516727DB35E6AD /* PrivacyInfo.xcprivacy in Resources */,
+				05D25D20E5784213B5FC5273 /* DMSans-Bold.ttf in Resources */,
+				83149A7224464452924E120D /* DMSans-Medium.ttf in Resources */,
+				C8B5408584E34AB383A840A8 /* DMSans-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,6 +322,7 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoLocalization/ExpoLocalization_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoSystemUI/ExpoSystemUI_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RCT-Folly/RCT-Folly_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/RNCAsyncStorage/RNCAsyncStorage_resources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
@@ -326,6 +339,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoLocalization_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoSystemUI_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCT-Folly_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNCAsyncStorage_resources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
@@ -379,8 +393,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.localbuy.development;
-				PRODUCT_NAME = LocalBuy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.buylocal.development;
+				PRODUCT_NAME = BuyLocal;
 				SWIFT_OBJC_BRIDGING_HEADER = "LocalBuy/LocalBuy-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -407,8 +421,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.localbuy.development;
-				PRODUCT_NAME = LocalBuy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.buylocal.development;
+				PRODUCT_NAME = BuyLocal;
 				SWIFT_OBJC_BRIDGING_HEADER = "LocalBuy/LocalBuy-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

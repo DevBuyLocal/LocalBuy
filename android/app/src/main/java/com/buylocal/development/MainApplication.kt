@@ -1,4 +1,4 @@
-package com.localbuy.development
+package com.buylocal.development
 
 import android.app.Application
 import android.content.res.Configuration

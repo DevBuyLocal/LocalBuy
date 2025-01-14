@@ -1,6 +1,7 @@
 // Import  global CSS file
 import '../../global.css';
 
+import { useFonts } from '@expo-google-fonts/dm-sans';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
@@ -24,9 +25,22 @@ SplashScreen.setOptions({
   fade: true,
 });
 
+// configureReanimatedLogger({
+//   level: ReanimatedLogLevel.warn,
+//   strict: false, // Reanimated runs in strict mode by default
+// });
 export default function RootLayout() {
   // const theme = useThemeConfig();
   // const { colorScheme } = useColorScheme();
+
+  const [loaded, error] = useFonts({
+    'dm-sans-regular': require('../../assets/fonts/DMSans-Regular.ttf'),
+    'dm-sans-medium': require('../../assets/fonts/DMSans-Medium.ttf'),
+    'dm-sans-bold': require('../../assets/fonts/DMSans-Bold.ttf'),
+  });
+  if (!loaded && !error) {
+    return null;
+  }
 
   return (
     <Providers>

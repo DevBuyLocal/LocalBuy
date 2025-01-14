@@ -1,4 +1,4 @@
-package com.localbuy.development
+package com.buylocal.development
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

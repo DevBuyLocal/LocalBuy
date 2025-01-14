@@ -1,15 +1,23 @@
 import { View } from 'moti';
 import React, { type PropsWithChildren } from 'react';
 import { type ViewProps } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
-interface ContainerProps extends Partial<ViewProps & PropsWithChildren> {
+import Header, { type HeaderProps } from './header';
+
+interface ContainerProps
+  extends Partial<ViewProps & PropsWithChildren & HeaderProps> {
   showHeader?: boolean;
   isPage?: boolean;
+  containerClassName?: string | undefined;
 }
 
 function Container(props: ContainerProps) {
   return (
-    <View className="px-5" {...props}>
+    <View
+      className={twMerge('px-5 bg-[#FFFFFF]', props.containerClassName)}
+      {...props}
+    >
       {props.children}
     </View>
   );
@@ -17,7 +25,19 @@ function Container(props: ContainerProps) {
 
 Container.Page = (props: ContainerProps) => {
   return (
-    <View className="flex-1 px-5" {...props}>
+    <View
+      className={twMerge('flex-1 bg-[#FFFFFF]', props.containerClassName)}
+      {...props}
+    >
+      {props.showHeader && (
+        <Header
+          headerTitle={props.headerTitle}
+          headerComponent={props.headerComponent}
+          backPress={props.backPress}
+          showCart={props.showCart}
+          hideBackButton={props.hideBackButton}
+        />
+      )}
       {props.children}
     </View>
   );
@@ -25,7 +45,7 @@ Container.Page = (props: ContainerProps) => {
 
 Container.Box = (props: ContainerProps) => {
   return (
-    <View className="px-5" {...props}>
+    <View className={twMerge('px-5 mt-2', props.containerClassName)} {...props}>
       {props.children}
     </View>
   );
