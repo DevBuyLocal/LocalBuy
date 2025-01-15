@@ -64,6 +64,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      'expo-build-properties',
+      {
+        android: {
+          kotlinVersion: '1.8.0', // <-- add a version here for resolution, version can be newer depending on the Expo SDK version used in the project
+        },
+      },
+    ],
+    [
       'expo-font',
       {
         fonts: [

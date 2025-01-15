@@ -47,7 +47,9 @@ function Header(props: HeaderProps) {
           props.headerComponent
         ) : (
           <View>
-            <Text className="text-[16px] font-normal">{props.headerTitle}</Text>
+            <Text className="text-[16px] font-normal capitalize">
+              {props.headerTitle}
+            </Text>
           </View>
         )}
       </View>

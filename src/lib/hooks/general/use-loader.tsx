@@ -72,7 +72,7 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
             containerClassName="items-center justify-center bg-[#12121299] px-0 flex-0"
             style={StyleSheet.absoluteFillObject}
           >
-            <View className="top-[40%] items-center rounded-[16px] bg-white px-8 py-4">
+            <View className="items-center rounded-[16px] bg-white px-8 py-4">
               <ActivityIndicator
                 animating
                 size="large"
