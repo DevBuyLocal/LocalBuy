@@ -17,8 +17,8 @@ function Referrals() {
           <Text className="mt-5 text-[16px] font-medium">Invite Friends</Text>
           <Text className="my-2 text-[14px] color-[#030C0ABF]">
             For every friend who joins and places their first order, you'll get
-            2 free deliveries. Copy and share the code and start
-            earning rewards now!
+            2 free deliveries. Copy and share the code and start earning rewards
+            now!
           </Text>
 
           <View className=" my-5 flex-row justify-between rounded-[10px] border border-[#12121233] px-5 py-3">

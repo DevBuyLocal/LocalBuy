@@ -12,13 +12,13 @@ function CustomButton(props: TCustomButton) {
   return (
     <Button
       label={label}
-      {...rest}
       className={twMerge(
         'h-[55px] items-center  justify-center rounded-[4px] border border-primaryText bg-primaryText disabled:opacity-60',
         containerClassname
       )}
       textClassName="text-white text-[16px] font-regular"
       indicatorClassName="text-white"
+      {...rest}
     />
   );
 }

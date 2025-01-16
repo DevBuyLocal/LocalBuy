@@ -5,7 +5,6 @@ import { Animated, Pressable, StyleSheet, type TextInput } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
 import { Input, type NInputProps, Text, View } from '../ui';
-import { Search } from '../ui/icons';
 
 interface CustomInputProps
   extends Partial<NInputProps & RefAttributes<TextInput>> {
@@ -20,6 +19,7 @@ interface CustomInputProps
   onPress?: () => void;
 }
 
+// eslint-disable-next-line max-lines-per-function
 function CustomInput({
   onChangeText,
   placeholder = 'Placeholder',
@@ -78,11 +78,20 @@ function CustomInput({
         value={value}
         disabled={onPress !== undefined}
         onChangeText={onChangeText}
-        secureTextEntry={isPassword && !!show}
+        secureTextEntry={isPassword && !show}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={isFocused ? '' : placeholder}
-        leftIcon={isSearch ? <Search className="top-1" /> : undefined}
+        leftIcon={
+          isSearch ? (
+            <Feather
+              name="search"
+              size={22}
+              style={{ marginTop: 3 }}
+              color="#030C0AB2"
+            />
+          ) : undefined
+        }
         rightIcon={
           isPassword ? (
             <Pressable
@@ -90,9 +99,9 @@ function CustomInput({
               className="px-2 py-1"
             >
               {show ? (
-                <Feather name="eye-off" size={24} color="#121212CC" />
-              ) : (
                 <Feather name="eye" size={24} color="#121212CC" />
+              ) : (
+                <Feather name="eye-off" size={24} color="#121212CC" />
               )}
             </Pressable>
           ) : undefined

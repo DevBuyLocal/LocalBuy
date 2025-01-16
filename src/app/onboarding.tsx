@@ -6,24 +6,36 @@ import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import ScreenOne from '@/components/onboard-pages/screen-one';
 import ScreenTwo from '@/components/onboard-pages/screen-two';
-import { Text } from '@/components/ui';
+import { Modal, Radio, Text, useModal, View } from '@/components/ui';
 import { useIsFirstTime } from '@/lib/hooks';
+
+type UserTypeProps = {
+  value: 'individual' | 'business';
+};
+const userType: { name: string; value: 'individual' | 'business' }[] = [
+  { name: 'Individual', value: 'individual' },
+  { name: 'Business Owner', value: 'business' },
+];
 
 export default function Onboarding() {
   const [_, setIsFirstTime] = useIsFirstTime();
   const { push } = useRouter();
 
+  const { ref, present, dismiss } = useModal();
+  const [selectedRole, setSelectedRole] =
+    React.useState<UserTypeProps['value']>('individual');
+
   const screens = [
     {
       Screen: ScreenOne,
-      duration: 7, // Display time in sec
+      duration: 5, // Display time in sec
       props: {
         /* Custom props for FirstScreen */
       },
     },
     {
       Screen: ScreenTwo,
-      duration: 7,
+      duration: 5,
       // If duration not defined then no progress bar, wait for user action
       props: {
         /* Custom props for SecondScreen */
@@ -39,11 +51,17 @@ export default function Onboarding() {
 
   return (
     <Container.Page>
-      <Container.Box containerClassName="h-3/4">
+      <Container.Box containerClassName="h-[75%]">
         <StoryCarousel style={style} screens={screens} />
       </Container.Box>
       <Container.Box containerClassName="px">
-        <CustomButton label={'Sign me up'} onPress={() => push('/sign-up')} />
+        <CustomButton
+          label={'Sign me up'}
+          onPress={() => {
+            present();
+            // push('/sign-up');
+          }}
+        />
         <CustomButton.Secondary
           label={'I already have an account '}
           onPress={() => push('/login')}
@@ -51,13 +69,39 @@ export default function Onboarding() {
         <Text
           className="self-center px-10 font-bold color-primaryText"
           onPress={() => {
-            // setIsFirstTime(false);
+            setIsFirstTime(false);
             push('/(main)');
           }}
         >
           Skip
         </Text>
       </Container.Box>
+
+      <Modal ref={ref} title="Select your account type">
+        <View className="mt-10 px-5">
+          {userType.map((e, i) => (
+            <View key={i.toString()} className="py-5">
+              <Radio.Root
+                checked={e.value === selectedRole}
+                onChange={() => setSelectedRole(e.value)}
+                accessibilityLabel="radio button"
+                className="justify-between  pb-2"
+              >
+                <Radio.Label text={e.name} className="text-[16px]" />
+                <Radio.Icon checked={selectedRole === e.value} />
+              </Radio.Root>
+              {i === 0 && <View className="top-4 h-px bg-[#1212121A]" />}
+            </View>
+          ))}
+          <CustomButton
+            label={'Continue'}
+            onPress={() => {
+              push(`/sign-up?role=${selectedRole}`);
+              dismiss();
+            }}
+          />
+        </View>
+      </Modal>
     </Container.Page>
   );
 }
