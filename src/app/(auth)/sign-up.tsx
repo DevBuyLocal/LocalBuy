@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AnimatePresence, MotiView } from 'moti';
 import React from 'react';
 
@@ -9,12 +9,13 @@ import InputView from '@/components/general/input-view';
 import { Text, View } from '@/components/ui';
 
 export default function SignUp() {
-  // const { role } = useLocalSearchParams();
+  const { role } = useLocalSearchParams();
   const { push } = useRouter();
   // const signIn = useAuth.use.signIn();
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [refer, setRefer] = React.useState('');
 
   return (
     <Container.Page showHeader headerTitle="Create an account">
@@ -27,7 +28,9 @@ export default function SignUp() {
         </Text>
 
         <CustomInput
-          placeholder="Email address"
+          placeholder={
+            role === 'individual' ? 'Email address' : 'Business email'
+          }
           containerClass="mt-10"
           keyboardType="email-address"
           value={email}
@@ -35,7 +38,7 @@ export default function SignUp() {
         />
         <CustomInput
           isPassword
-          placeholder="Enter password"
+          placeholder="Password"
           value={password}
           onChangeText={setPassword}
         />
@@ -50,14 +53,24 @@ export default function SignUp() {
               }}
               transition={{ type: 'timing', duration: 350 }}
             >
-              <CustomInput isPassword placeholder="Confirm password" />
+              <CustomInput
+                isPassword
+                placeholder="Confirm password"
+                description="Must contain at least 6 characters, include uppercase, lowercase letters, and a number."
+              />
+              <CustomInput
+                placeholder="Referral code (optional)"
+                value={refer}
+                onChangeText={setRefer}
+                containerClass="mt-5"
+              />
             </MotiView>
           )}
         </AnimatePresence>
 
         <View className="absolute bottom-[120px] w-full">
           <CustomButton
-            label="Continue"
+            label="Create account"
             disabled={!email || !password}
             onPress={() => push(`/verify?email=${email}`)}
           />

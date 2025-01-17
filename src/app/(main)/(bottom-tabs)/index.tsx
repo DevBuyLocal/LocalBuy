@@ -7,7 +7,7 @@ import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
 import { AnimatePresence, MotiText, MotiView } from 'moti';
 import React from 'react';
-import { FlatList } from 'react-native';
+import { Animated, FlatList } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
 import _Carousel from '@/components/general/carousel';
@@ -26,6 +26,7 @@ import {
   useModal,
   View,
 } from '@/components/ui';
+import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
 
 import dummyProducts from '../../../lib/dummy';
 const imgs = [
@@ -99,6 +100,7 @@ const opts = [
   },
 ];
 
+// eslint-disable-next-line max-lines-per-function
 export default function Home() {
   // const hasWalkthrough = false;
   // if (!hasWalkthrough) {
@@ -107,51 +109,65 @@ export default function Home() {
   const { push } = useRouter();
   const { present, ref } = useModal();
 
+  const { headerTranslateY, onScroll } = useScrollBehavior();
+
   const notificationUnread = false;
 
   return (
     <>
-      <Container.Box>
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-[14px] opacity-65">Delivery location</Text>
+      <Animated.View
+        style={{
+          transform: [{ translateY: headerTranslateY }],
+        }}
+        className="absolute inset-x-0 top-0 z-50 bg-white pb-2"
+      >
+        <Container.Box>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-[14px] opacity-65">Delivery location</Text>
+              <Pressable
+                className="mt-2 flex-row items-center gap-2"
+                onPress={present}
+              >
+                <FontAwesome6
+                  name="location-dot"
+                  size={18}
+                  color={colors.primaryText}
+                />
+                <Text className="text-[14px] font-medium">
+                  Ojo, abeokuta road
+                </Text>
+                <FontAwesome5 name="chevron-down" size={10} color="black" />
+              </Pressable>
+            </View>
+
             <Pressable
-              className="mt-2 flex-row items-center gap-2"
-              onPress={present}
+              className="rounded-full bg-[#F7F7F7] p-2"
+              onPress={() => push('/notifications')}
             >
-              <FontAwesome6
-                name="location-dot"
-                size={18}
-                color={colors.primaryText}
+              <MaterialCommunityIcons
+                name="bell-outline"
+                size={28}
+                color="black"
               />
-              <Text className="text-[14px] font-medium">
-                Ojo, abeokuta road
-              </Text>
-              <FontAwesome5 name="chevron-down" size={10} color="black" />
+
+              {notificationUnread && (
+                <Text className="absolute right-3 top-1 text-[16px] color-[#E84343]">
+                  ●
+                </Text>
+              )}
             </Pressable>
           </View>
+        </Container.Box>
+      </Animated.View>
 
-          <Pressable
-            className="rounded-full bg-[#F7F7F7] p-2"
-            onPress={() => push('/notifications')}
-          >
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={28}
-              color="black"
-            />
-
-            {notificationUnread && (
-              <Text className="absolute right-3 top-1 text-[16px] color-[#E84343]">
-                ●
-              </Text>
-            )}
-          </Pressable>
-        </View>
-      </Container.Box>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <Container.Page className="px-0">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        bounces={false}
+      >
+        <Container.Page className="mt-16 px-0">
           <Container.Box>
             <CustomInput
               isSearch

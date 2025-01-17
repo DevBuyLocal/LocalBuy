@@ -104,6 +104,7 @@ export const Modal = React.forwardRef(
         enableDynamicSizing={false}
         style={{ borderRadius: 0, backgroundColor: 'white' }}
         handleComponent={renderHandleComponent}
+        keyboardBehavior="interactive"
       />
     );
   }

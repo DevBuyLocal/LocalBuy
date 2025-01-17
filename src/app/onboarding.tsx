@@ -6,7 +6,7 @@ import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import ScreenOne from '@/components/onboard-pages/screen-one';
 import ScreenTwo from '@/components/onboard-pages/screen-two';
-import { Modal, Radio, Text, useModal, View } from '@/components/ui';
+import { Modal, Radio, useModal, View } from '@/components/ui';
 import { useIsFirstTime } from '@/lib/hooks';
 
 type UserTypeProps = {
@@ -56,17 +56,21 @@ export default function Onboarding() {
       </Container.Box>
       <Container.Box containerClassName="px">
         <CustomButton
-          label={'Sign me up'}
+          label={'Get started'}
           onPress={() => {
             present();
             // push('/sign-up');
           }}
         />
         <CustomButton.Secondary
-          label={'I already have an account '}
-          onPress={() => push('/login')}
+          label={'Continue as guest'}
+          onPress={() => {
+            setIsFirstTime(false);
+            push('/(main)');
+          }}
+          // onPress={() => push('/login')}
         />
-        <Text
+        {/* <Text
           className="self-center px-10 font-bold color-primaryText"
           onPress={() => {
             setIsFirstTime(false);
@@ -74,11 +78,11 @@ export default function Onboarding() {
           }}
         >
           Skip
-        </Text>
+        </Text> */}
       </Container.Box>
 
-      <Modal ref={ref} title="Select your account type">
-        <View className="mt-10 px-5">
+      <Modal ref={ref} title="Are you an individual or a business owner?">
+        <View className="mt-2 px-5">
           {userType.map((e, i) => (
             <View key={i.toString()} className="py-5">
               <Radio.Root
