@@ -140,6 +140,9 @@ importers:
       react-native-screens:
         specifier: ^4.4.0
         version: 4.4.0(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
+      react-native-share:
+        specifier: ^12.0.3
+        version: 12.0.3
       react-native-stories-view:
         specifier: ^1.0.9
         version: 1.0.9(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
@@ -6067,6 +6070,10 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  react-native-share@12.0.3:
+    resolution: {integrity: sha512-Bg96AjouSbcpdlI/AzWXMBwpjyWcm4NvGr49mSF1cz8aw8E1sMXwpsHa6I841SJML8Im6sRN3aXnK+/QManrtQ==}
+    engines: {node: '>=16'}
 
   react-native-stories-view@1.0.9:
     resolution: {integrity: sha512-xvQTW3Ge1+44mB/yzJOdz/pP01Lv8bEGz+p7mDs0HVWz0tlJhhrZSL3+f0temeteJy2DYjKtFeaZ/SUaU81/vQ==}
@@ -14856,6 +14863,8 @@ snapshots:
       react-freeze: 1.0.4(react@18.3.1)
       react-native: 0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1)
       warn-once: 0.1.1
+
+  react-native-share@12.0.3: {}
 
   react-native-stories-view@1.0.9(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1):
     dependencies:

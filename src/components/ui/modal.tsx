@@ -41,6 +41,7 @@ import { Text } from './text';
 
 type ModalProps = BottomSheetModalProps & {
   title?: string;
+  customHeader?: React.JSX.Element;
 };
 
 type ModalRef = React.ForwardedRef<BottomSheetModal>;
@@ -66,6 +67,7 @@ export const Modal = React.forwardRef(
     {
       snapPoints: _snapPoints = ['40%'],
       title,
+      customHeader,
       detached = false,
       ...props
     }: ModalProps,
@@ -86,7 +88,7 @@ export const Modal = React.forwardRef(
     const renderHandleComponent = React.useCallback(
       () => (
         <>
-          <View className="rounded-0 mb-8 mt-2 h-1 w-12 self-center bg-gray-400 dark:bg-gray-700" />
+          {/* <View className="rounded-0 mb-8 mt-2 h-1 w-12 self-center bg-gray-400 dark:bg-gray-700" /> */}
           <ModalHeader title={title} dismiss={modal.dismiss} />
         </>
       ),
@@ -95,7 +97,6 @@ export const Modal = React.forwardRef(
 
     return (
       <BottomSheetModal
-        {...props}
         {...detachedProps}
         ref={modal.ref}
         index={0}
@@ -103,8 +104,11 @@ export const Modal = React.forwardRef(
         backdropComponent={props.backdropComponent || renderBackdrop}
         enableDynamicSizing={false}
         style={{ borderRadius: 0, backgroundColor: 'white' }}
-        handleComponent={renderHandleComponent}
+        handleComponent={
+          customHeader ? () => customHeader : renderHandleComponent
+        }
         keyboardBehavior="interactive"
+        {...props}
       />
     );
   }

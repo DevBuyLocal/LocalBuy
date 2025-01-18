@@ -129,8 +129,11 @@ export const removeFromCart = (itemId: string) =>
 export const increaseQuantity = (itemId: string) =>
   _useCart.getState().increaseQuantity(itemId);
 
-export const decreaseQuantity = (itemId: string) =>
-  _useCart.getState().decreaseQuantity(itemId);
+export const decreaseQuantity = (itemId: string, removeOnZero?: boolean) =>
+  _useCart.getState().decreaseQuantity(itemId, removeOnZero);
+
+export const addNote = (itemId: string, note: string) =>
+  _useCart.getState().addNote(itemId, note);
 
 export const calculateTotalPrice = (item: any[]) =>
   _useCart.getState().calculateTotalPrice(item);

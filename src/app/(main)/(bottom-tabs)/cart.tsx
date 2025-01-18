@@ -1,5 +1,6 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { FlatList } from 'react-native';
+import { Alert, FlatList, Pressable } from 'react-native';
 
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
@@ -21,6 +22,23 @@ export default function Cart() {
       hideBackButton
       headerTitle="My Cart"
       containerClassName="flex-1"
+      rightHeaderIcon={
+        <Pressable
+          onPress={() =>
+            Alert.alert(
+              'Empty cart',
+              'Are you sure you want to clear your cart?',
+              [
+                { text: 'Yes', onPress: () => clearCart() },
+                { text: 'Cancel', style: 'destructive' },
+              ]
+            )
+          }
+          className="absolute right-5 top-2 z-10 my-3 size-[40px] items-center justify-center rounded-full bg-[#F7F7F7]"
+        >
+          <Ionicons name="trash-outline" size={24} color="black" />
+        </Pressable>
+      }
     >
       <Container.Box containerClassName="">
         <FlatList

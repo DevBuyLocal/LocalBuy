@@ -172,7 +172,7 @@ export default function Home() {
             <CustomInput
               isSearch
               placeholder="Search for a product..."
-              onPress={() => {}}
+              onPress={() => push('/search')}
             />
             <View className="mt-2 flex-row items-center justify-between">
               {opts.map((e, i) => (

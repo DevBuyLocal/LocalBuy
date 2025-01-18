@@ -14,6 +14,7 @@ export type HeaderProps = {
   headerComponent?: JSX.Element;
   showCart?: boolean;
   hideBackButton?: boolean;
+  rightHeaderIcon?: JSX.Element;
 };
 
 function Header(props: HeaderProps) {
@@ -80,6 +81,9 @@ function Header(props: HeaderProps) {
           </AnimatePresence>
         </Pressable>
       )}
+
+      {Boolean(props.rightHeaderIcon && !props.showCart) &&
+        props.rightHeaderIcon}
     </View>
   );
 }

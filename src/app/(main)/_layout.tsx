@@ -38,6 +38,10 @@ export default function MainLayout() {
       <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen name="walkthrough" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="search"
+        options={{ headerShown: false, presentation: 'containedModal' }}
+      />
       <Stack.Screen name="style" options={{ headerShown: false }} />
     </Stack>
   );
