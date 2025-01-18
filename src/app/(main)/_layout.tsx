@@ -1,12 +1,12 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { SplashScreen, Stack } from 'expo-router';
+import { Redirect, SplashScreen, Stack } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 
-import { useAuth } from '@/lib';
+import { useAuth, useIsFirstTime } from '@/lib';
 
 export default function MainLayout() {
   const status = useAuth.use.status();
-  // const [isFirstTime] = useIsFirstTime();
+  const [isFirstTime] = useIsFirstTime();
   const hideSplash = useCallback(async () => {
     await SplashScreen.hideAsync();
   }, []);
@@ -18,9 +18,10 @@ export default function MainLayout() {
     }
   }, [hideSplash, status]);
 
-  // if (isFirstTime) {
-  //   return <Redirect href="/onboarding" />;
-  // }
+  if (isFirstTime) {
+    return <Redirect href="/onboarding" />;
+  }
+
   // if (status === 'signOut') {
   //   return <Redirect href="/login" />;
   // }
@@ -30,7 +31,17 @@ export default function MainLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(bottom-tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="all-products" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="(account-pages)/main-account-page"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
+      <Stack.Screen name="walkthrough" options={{ headerShown: false }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="search"
+        options={{ headerShown: false, presentation: 'containedModal' }}
+      />
       <Stack.Screen name="style" options={{ headerShown: false }} />
     </Stack>
   );

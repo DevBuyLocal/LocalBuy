@@ -12,10 +12,18 @@ const _Carousel = (props: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   return (
-    <View style={{ height: WIDTH / 2, width: WIDTH }}>
+    <View
+      style={{
+        height: WIDTH / 2,
+        width: WIDTH * 0.911,
+        marginVertical: 10,
+        borderRadius: 10,
+        overflow: 'hidden',
+      }}
+    >
       <Carousel
         loop
-        width={WIDTH}
+        width={WIDTH * 0.911}
         height={WIDTH / 2}
         autoPlay={true}
         data={props.data || []}

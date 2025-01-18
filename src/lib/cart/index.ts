@@ -10,10 +10,12 @@ interface CartState {
   totalPrice: number;
   quantity: number;
   cart_loaded: false;
+  note: string;
   addToCart: (payload: any) => void;
   removeFromCart: (itemId: string) => void;
   increaseQuantity: (itemId: string) => void;
-  decreaseQuantity: (itemId: string) => void;
+  decreaseQuantity: (itemId: string, removeOnZero?: boolean) => void;
+  addNote: (itemId: string, note: string) => void;
   clearCart: () => void;
   calculateTotalPrice: (item: any[]) => void;
 }
@@ -25,6 +27,7 @@ const _useCart = create<CartState>()(
         quantity: 1,
         products_in_cart: [],
         cart_loaded: false,
+        note: '',
         total: 0,
         totalPrice: 0,
         addToCart: (payload: any) => {
@@ -67,16 +70,34 @@ const _useCart = create<CartState>()(
             ),
           });
         },
-        decreaseQuantity: (itemId: string) => {
+        decreaseQuantity: (itemId: string, removeOnZero = true) => {
           const { products_in_cart } = get();
           get().calculateTotalPrice(products_in_cart);
           const newProduct = products_in_cart.map((item: any) =>
-            item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item
+            item.id === itemId
+              ? {
+                  ...item,
+                  quantity: removeOnZero
+                    ? item.quantity - 1
+                    : Math.max(1, item.quantity - 1),
+                }
+              : item
           );
           set({
             products_in_cart: newProduct.filter(
               (item: any) => item.quantity > 0
             ), // Remove items with quantity <= 0
+          });
+        },
+        addNote: (itemId: string, note: string) => {
+          const { products_in_cart } = get();
+          const newProduct = products_in_cart.map((item: any) =>
+            item.id === itemId ? { ...item, note } : item
+          );
+          set({
+            products_in_cart: newProduct.filter(
+              (item: any) => item.quantity > 0
+            ),
           });
         },
         calculateTotalPrice: (products_in_cart: any[]) => {
@@ -108,8 +129,11 @@ export const removeFromCart = (itemId: string) =>
 export const increaseQuantity = (itemId: string) =>
   _useCart.getState().increaseQuantity(itemId);
 
-export const decreaseQuantity = (itemId: string) =>
-  _useCart.getState().decreaseQuantity(itemId);
+export const decreaseQuantity = (itemId: string, removeOnZero?: boolean) =>
+  _useCart.getState().decreaseQuantity(itemId, removeOnZero);
+
+export const addNote = (itemId: string, note: string) =>
+  _useCart.getState().addNote(itemId, note);
 
 export const calculateTotalPrice = (item: any[]) =>
   _useCart.getState().calculateTotalPrice(item);

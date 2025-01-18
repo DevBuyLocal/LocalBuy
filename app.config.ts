@@ -64,6 +64,26 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      'react-native-share',
+      {
+        ios: ['fb', 'instagram', 'twitter', 'tiktoksharesdk'],
+        android: [
+          'com.facebook.katana',
+          'com.instagram.android',
+          'com.twitter.android',
+          'com.zhiliaoapp.musically',
+        ],
+      },
+    ],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          kotlinVersion: '1.8.0', // <-- add a version here for resolution, version can be newer depending on the Expo SDK version used in the project
+        },
+      },
+    ],
+    [
       'expo-font',
       {
         fonts: [

@@ -5,7 +5,6 @@ import { Animated, Pressable, StyleSheet, type TextInput } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
 import { Input, type NInputProps, Text, View } from '../ui';
-import { Search } from '../ui/icons';
 
 interface CustomInputProps
   extends Partial<NInputProps & RefAttributes<TextInput>> {
@@ -20,6 +19,7 @@ interface CustomInputProps
   onPress?: () => void;
 }
 
+// eslint-disable-next-line max-lines-per-function
 function CustomInput({
   onChangeText,
   placeholder = 'Placeholder',
@@ -54,7 +54,7 @@ function CustomInput({
     opacity: interpolate(0, 1, 0, 1),
     fontSize: interpolate(0, 1, 16, 14),
     color: interpolate(0, 1, '#12121233', error ? '#E84343' : '#EC9F01BF'),
-    backgroundColor: '#F7F7F7',
+    backgroundColor: '#FFFFFF',
     zIndex: 1,
   };
   const style = styles(error);
@@ -78,11 +78,20 @@ function CustomInput({
         value={value}
         disabled={onPress !== undefined}
         onChangeText={onChangeText}
-        secureTextEntry={isPassword && !!show}
+        secureTextEntry={isPassword && !show}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={isFocused ? '' : placeholder}
-        leftIcon={isSearch ? <Search className="top-1" /> : undefined}
+        leftIcon={
+          isSearch ? (
+            <Feather
+              name="search"
+              size={22}
+              style={{ marginTop: 3 }}
+              color="#030C0AB2"
+            />
+          ) : undefined
+        }
         rightIcon={
           isPassword ? (
             <Pressable
@@ -90,9 +99,9 @@ function CustomInput({
               className="px-2 py-1"
             >
               {show ? (
-                <Feather name="eye-off" size={24} color="#121212CC" />
+                <Feather name="eye" size={20} color="#121212CC" />
               ) : (
-                <Feather name="eye" size={24} color="#121212CC" />
+                <Feather name="eye-off" size={20} color="#121212CC" />
               )}
             </Pressable>
           ) : undefined
@@ -112,7 +121,7 @@ function CustomInput({
       )}
       {description && !error && (
         <View>
-          <Text className="text-[12px]">{description}</Text>
+          <Text className="text-[12px] opacity-65">{description}</Text>
         </View>
       )}
     </View>
@@ -126,7 +135,7 @@ const styles = (error?: string) =>
     input: {
       fontSize: 16,
       color: '#000000',
-      backgroundColor: '#F7F7F7',
+      backgroundColor: '#FFFFFF',
     },
     inputFocused: {
       borderColor: error ? '#E84343' : '#EC9F01BF',

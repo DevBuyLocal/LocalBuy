@@ -14,6 +14,7 @@ export type HeaderProps = {
   headerComponent?: JSX.Element;
   showCart?: boolean;
   hideBackButton?: boolean;
+  rightHeaderIcon?: JSX.Element;
 };
 
 function Header(props: HeaderProps) {
@@ -47,7 +48,9 @@ function Header(props: HeaderProps) {
           props.headerComponent
         ) : (
           <View>
-            <Text className="text-[16px] font-normal">{props.headerTitle}</Text>
+            <Text className="text-[16px] font-normal capitalize">
+              {props.headerTitle}
+            </Text>
           </View>
         )}
       </View>
@@ -78,6 +81,9 @@ function Header(props: HeaderProps) {
           </AnimatePresence>
         </Pressable>
       )}
+
+      {Boolean(props.rightHeaderIcon && !props.showCart) &&
+        props.rightHeaderIcon}
     </View>
   );
 }

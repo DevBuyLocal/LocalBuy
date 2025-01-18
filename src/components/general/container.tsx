@@ -36,6 +36,7 @@ Container.Page = (props: ContainerProps) => {
           backPress={props.backPress}
           showCart={props.showCart}
           hideBackButton={props.hideBackButton}
+          rightHeaderIcon={props.rightHeaderIcon}
         />
       )}
       {props.children}

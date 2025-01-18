@@ -11,6 +11,7 @@ import { CartSelector, useCart } from '@/lib/cart';
 
 export default function BottomTabsLayout() {
   const { total } = useCart(CartSelector);
+
   return (
     <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen

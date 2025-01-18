@@ -1,12 +1,16 @@
 import React from 'react';
+import { type ViewProps } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
 import { CartSelector, useCart } from '@/lib/cart';
 
 import { Pressable, Text, View } from '../ui';
 
-type QuantitySelectProps = {
+interface QuantitySelectProps extends Partial<ViewProps> {
   itemId: string;
-};
+  containerClass?: string | undefined;
+  removeOnZero?: boolean;
+}
 
 function QuantitySelect(props: QuantitySelectProps) {
   const { increaseQuantity, decreaseQuantity, products_in_cart } =
@@ -16,9 +20,15 @@ function QuantitySelect(props: QuantitySelectProps) {
   if (!foundItem) return null;
 
   return (
-    <View className="flex-row items-center justify-between overflow-hidden rounded-[4px] border">
+    <View
+      className={twMerge(
+        'flex-row items-center justify-between overflow-hidden rounded-[4px] border',
+        props.containerClass
+      )}
+      {...props}
+    >
       <Pressable
-        onPress={() => decreaseQuantity(props.itemId)}
+        onPress={() => decreaseQuantity(props.itemId, props.removeOnZero)}
         className="px-[25px]"
       >
         <Text className="text-[20px] font-bold">-</Text>
