@@ -23,21 +23,23 @@ export default function Cart() {
       headerTitle="My Cart"
       containerClassName="flex-1"
       rightHeaderIcon={
-        <Pressable
-          onPress={() =>
-            Alert.alert(
-              'Empty cart',
-              'Are you sure you want to clear your cart?',
-              [
-                { text: 'Yes', onPress: () => clearCart() },
-                { text: 'Cancel', style: 'destructive' },
-              ]
-            )
-          }
-          className="absolute right-5 top-2 z-10 my-3 size-[40px] items-center justify-center rounded-full bg-[#F7F7F7]"
-        >
-          <Ionicons name="trash-outline" size={24} color="black" />
-        </Pressable>
+        products_in_cart.length ? (
+          <Pressable
+            onPress={() =>
+              Alert.alert(
+                'Empty cart',
+                'Are you sure you want to clear your cart?',
+                [
+                  { text: 'Yes', onPress: () => clearCart() },
+                  { text: 'Cancel', style: 'destructive' },
+                ]
+              )
+            }
+            className="absolute right-5 top-2 z-10 my-3 size-[40px] items-center justify-center rounded-full bg-[#F7F7F7]"
+          >
+            <Ionicons name="trash-outline" size={24} color="black" />
+          </Pressable>
+        ) : undefined
       }
     >
       <Container.Box containerClassName="">

@@ -1,15 +1,15 @@
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, type FlatListProps } from 'react-native';
 
 import { View } from '../ui';
 import ProductItem from './product-item';
 
-type GridProductsProps = {
+interface GridProductsProps<T> extends Partial<FlatListProps<T>> {
   items: any[];
   isLoading: boolean;
-};
+}
 
-function GridProducts(props: GridProductsProps) {
+function GridProducts<T>({ props }: { props: GridProductsProps<T> }) {
   if (!props.isLoading && !Boolean(props?.items?.length)) return null;
 
   return (
@@ -26,7 +26,10 @@ function GridProducts(props: GridProductsProps) {
           justifyContent: 'space-between',
           marginBottom: 15,
         }}
+        // ListFooterComponent={<View className="pb-10" />}
+        {...props}
       />
+      <View className="pb-10" />
     </View>
   );
 }
