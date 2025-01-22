@@ -15,6 +15,7 @@ import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import ViewAll from '@/components/general/view-all';
+import FilterModal from '@/components/products/filter-modal';
 import ProductCarousel from '@/components/products/product-carousel';
 import {
   colors,
@@ -29,6 +30,7 @@ import {
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
 
 import dummyProducts from '../../../lib/dummy';
+import LocationModal from '@/components/products/location-modal';
 const imgs = [
   {
     id: 1,
@@ -82,24 +84,6 @@ const imgs = [
   },
 ];
 
-const opts = [
-  {
-    name: 'Filter',
-    icon: <Ionicons name="filter-sharp" size={20} color="#12121270" />,
-    onPress: () => {},
-  },
-  {
-    name: 'Saved item',
-    icon: <Octicons name="heart" size={20} color="#12121270" />,
-    onPress: () => {},
-  },
-  {
-    name: 'Deals',
-    icon: <SimpleLineIcons name="energy" size={20} color="#12121270" />,
-    onPress: () => {},
-  },
-];
-
 // eslint-disable-next-line max-lines-per-function
 export default function Home() {
   // const hasWalkthrough = false;
@@ -107,11 +91,34 @@ export default function Home() {
   //   return <Redirect href="/walkthrough" />;
   // }
   const { push } = useRouter();
-  const { present, ref } = useModal();
+  const { present, ref, dismiss } = useModal();
+  const {
+    present: locationPresent,
+    ref: locationRef,
+    dismiss: locationDismiss,
+  } = useModal();
 
   const { headerTranslateY, onScroll } = useScrollBehavior();
 
   const notificationUnread = false;
+
+  const opts = [
+    {
+      name: 'Filter',
+      icon: <Ionicons name="filter-sharp" size={20} color="#12121270" />,
+      onPress: present,
+    },
+    {
+      name: 'Saved item',
+      icon: <Octicons name="heart" size={20} color="#12121270" />,
+      onPress: () => {},
+    },
+    {
+      name: 'Deals',
+      icon: <SimpleLineIcons name="energy" size={20} color="#12121270" />,
+      onPress: () => {},
+    },
+  ];
 
   return (
     <>
@@ -127,7 +134,7 @@ export default function Home() {
               <Text className="text-[14px] opacity-65">Delivery location</Text>
               <Pressable
                 className="mt-2 flex-row items-center gap-2"
-                onPress={present}
+                onPress={locationPresent}
               >
                 <FontAwesome6
                   name="location-dot"
@@ -176,13 +183,14 @@ export default function Home() {
             />
             <View className="mt-2 flex-row items-center justify-between">
               {opts.map((e, i) => (
-                <View
+                <Pressable
                   key={i.toString()}
+                  onPress={e.onPress}
                   className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-6 py-3"
                 >
                   {e.icon}
                   <Text className="color-[#1212127B2]">{e.name}</Text>
-                </View>
+                </Pressable>
               ))}
             </View>
             <AdsBanner imgs={imgs} />
@@ -201,21 +209,12 @@ export default function Home() {
             />
           </Container.Box>
         </Container.Page>
-        <FilterModal ref={ref} />
+        <FilterModal ref={ref} dismiss={dismiss} />
+        <LocationModal ref={locationRef} dismiss={locationDismiss} />
       </ScrollView>
     </>
   );
 }
-
-const FilterModal = React.forwardRef<any>((props, ref) => {
-  return (
-    <Modal ref={ref} snapPoints={['100%']}>
-      <Container.Page containerClassName="p-5">
-        <Text>ssh</Text>
-      </Container.Page>
-    </Modal>
-  );
-});
 
 const AdsBanner = ({ imgs }: { imgs: any }) => {
   const [index, setIndex] = React.useState<0 | 1>(0);
