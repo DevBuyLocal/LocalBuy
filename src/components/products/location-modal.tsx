@@ -1,8 +1,6 @@
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React from 'react';
 
-import { useUtility, UtilitySelector } from '@/lib/utility';
-
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
 import { Modal, Text, View } from '../ui';
@@ -12,23 +10,6 @@ type Props = {
 };
 
 const LocationModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
-  const [brandIndex, setBrandIndex] = React.useState<number | null>(null);
-  const [catIndex, setCatIndex] = React.useState<number | null>(null);
-  const { clearFilters } = useUtility(UtilitySelector);
-  const brandsFilters = [
-    { id: 'hhsgwnw', name: 'UAC' },
-    { id: 'siwjwks', name: 'Erisco' },
-    { id: 'djdkjss', name: 'Dangote' },
-    { id: 'dkieiee', name: 'Marina' },
-  ];
-  const catFilters = [
-    { id: 'sksks', name: 'All categories' },
-    { id: 'siejie', name: 'Home' },
-    { id: 'rdvcdv', name: 'Food' },
-    { id: 'vfyyrr', name: 'Furniture' },
-    { id: 'pppaom', name: 'Clothing' },
-  ];
-
   return (
     <Modal ref={ref} snapPoints={['100%']}>
       <BottomSheetScrollView showsVerticalScrollIndicator={false}>
