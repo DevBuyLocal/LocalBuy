@@ -31,6 +31,7 @@ export default function MainLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(bottom-tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="all-products" options={{ headerShown: false }} />
+      <Stack.Screen name="all-brands" options={{ headerShown: false }} />
       <Stack.Screen
         name="(account-pages)/main-account-page"
         options={{ headerShown: false }}
@@ -38,6 +39,7 @@ export default function MainLayout() {
       <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen name="walkthrough" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
+      <Stack.Screen name="checkout" options={{ headerShown: false }} />
       <Stack.Screen
         name="search"
         options={{ headerShown: false, presentation: 'containedModal' }}

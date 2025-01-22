@@ -16,11 +16,11 @@ import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import ViewAll from '@/components/general/view-all';
 import FilterModal from '@/components/products/filter-modal';
+import LocationModal from '@/components/products/location-modal';
 import ProductCarousel from '@/components/products/product-carousel';
 import {
   colors,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -30,7 +30,6 @@ import {
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
 
 import dummyProducts from '../../../lib/dummy';
-import LocationModal from '@/components/products/location-modal';
 const imgs = [
   {
     id: 1,
@@ -292,11 +291,13 @@ const AdsBanner = ({ imgs }: { imgs: any }) => {
 };
 
 const FeaturedBrands = (dummyProducts: any[]) => {
+  const { push } = useRouter();
+
   return (
     <View>
       <ViewAll
         title={'Featured Stores'}
-        onPress={() => {}}
+        onPress={() => push('/all-brands')}
         seeAllBg="#F7F7F7"
       />
       <FlatList

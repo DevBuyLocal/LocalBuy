@@ -81,7 +81,11 @@ export default function Cart() {
                     {total?.toLocaleString()}
                   </Text>
                 </View>
-                <CustomButton label={'Checkout'} containerClassname="mt-10" />
+                <CustomButton
+                  label={'Checkout'}
+                  containerClassname="mt-10"
+                  onPress={() => push('/checkout')}
+                />
                 <CustomButton.Secondary label={'Schedule order'} />
                 <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-40">
                   <ProductCarousel
