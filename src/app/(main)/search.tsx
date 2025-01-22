@@ -3,6 +3,8 @@ import React from 'react';
 
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
+import GridProducts from '@/components/products/grid-products';
+import ProductCarousel from '@/components/products/product-carousel';
 import { Pressable, Text, View } from '@/components/ui';
 import { useUtility, UtilitySelector } from '@/lib/utility';
 
@@ -14,6 +16,19 @@ function Search() {
     useUtility(UtilitySelector);
   console.log('🚀 ~ Search ~ recent_search:', recent_search);
   const resultAvailable = Boolean(dummyProducts.length && search);
+
+  const ListFooterComponent = (
+    <View>
+      <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-10">
+        <ProductCarousel
+          items={dummyProducts}
+          title={'Suggested Products'}
+          isLoading={false}
+        />
+      </Container.Box>
+      <View className="mb-20" />
+    </View>
+  );
 
   return (
     <Container.Page
@@ -58,13 +73,20 @@ function Search() {
       )}
       {resultAvailable && (
         <Container.Box containerClassName="flex-1 bg-[#F7F7F7]">
-          <View className="mt-5 flex-row items-center justify-between">
+          <View className="my-5 flex-row items-center justify-between">
             <Text className="text-[18px] font-medium">65 results</Text>
             <Pressable className=" flex-row items-center justify-between gap-2">
               <Ionicons name="filter-sharp" size={20} color="#black" />
               <Text className="opacity-65">Filter</Text>
             </Pressable>
           </View>
+          <GridProducts
+            props={{
+              items: dummyProducts,
+              isLoading: false,
+              ListFooterComponent,
+            }}
+          />
         </Container.Box>
       )}
     </Container.Page>

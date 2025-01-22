@@ -8,8 +8,8 @@ export default [
       'Designed for both casual users and professionals, this ergonomic wireless mouse offers a seamless experience across various devices with customizable buttons and extended battery life. The ergonomic shape reduces strain during prolonged use, making it ideal for both work and gaming setups.',
     images: [
       'https://m.media-amazon.com/images/I/61LtuGzXeaL._AC_SL1500_.jpg',
-      'https://m.media-amazon.com/images/I/81FyR--CqaL._AC_SL1500_.jpg',
-      'https://m.media-amazon.com/images/I/61ujfGZ-GgL._AC_SL1500_.jpg',
+      'https://assets.aboutamazon.com/dims4/default/3593adc/2147483647/strip/true/crop/1600x900+0+0/resize/1320x743!/quality/90/?url=https%3A%2F%2Famazon-blogs-brightspot.s3.amazonaws.com%2F43%2Fd5%2F950fa18048a19df706c95707ee1a%2Fechodot-inline.jpeg',
+      'https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/peripherals/alienware/peripherals/alienware-320m-mouse/assets/mouse-alienware-aw320m-black-gallery-5.psd?fmt=png-alpha&pscan=auto&scl=1&hei=804&wid=1127&qlt=100,1&resMode=sharp2&size=1127,804&chrss=full',
     ],
     createdAt: '2025-01-12T11:41:06.265095',
     updatedAt: '2025-01-12T11:41:06.265095',

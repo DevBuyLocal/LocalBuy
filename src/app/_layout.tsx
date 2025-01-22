@@ -1,5 +1,6 @@
 // Import  global CSS file
 import '../../global.css';
+import 'react-native-get-random-values';
 
 import { useFonts } from '@expo-google-fonts/dm-sans';
 import { Stack } from 'expo-router';
@@ -8,6 +9,7 @@ import React from 'react';
 
 import Providers from '@/components/providers';
 import { hydrateAuth, loadSelectedTheme } from '@/lib';
+// import { v4 as uuidv4 } from 'uuid';
 
 export { ErrorBoundary } from 'expo-router';
 
