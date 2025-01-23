@@ -6,6 +6,7 @@ import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import { ScrollView, Text, View } from '@/components/ui';
 
+/* REFERRALS COMPONENT - HANDLES REFERRAL CODE GENERATION AND REDEMPTION */
 function Referrals() {
   return (
     <Container.Page showHeader headerTitle="Referrals">

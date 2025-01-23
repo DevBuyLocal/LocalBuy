@@ -11,9 +11,11 @@ import PreferenceSettings from './preference-settings';
 import Referrals from './referrals';
 import Support from './support';
 
+/* MAIN ACCOUNT PAGE COMPONENT - HANDLES ROUTING BETWEEN DIFFERENT ACCOUNT SECTIONS */
 function MainAccountPage() {
   const { page } = useLocalSearchParams();
 
+  /* PAGES ROUTER - RENDERS APPROPRIATE COMPONENT BASED ON URL PARAMETERS */
   function Pages() {
     switch (page) {
       case 'account-information':

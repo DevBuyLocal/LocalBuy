@@ -11,6 +11,7 @@ import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import { ScrollView, Text, View } from '@/components/ui';
 
+/* MAIN ACCOUNT INFORMATION COMPONENT - HANDLES USER PROFILE, PASSWORD, PAYMENT AND SHIPPING DETAILS */
 function AccountInfo() {
   const { back } = useRouter();
   const [page, setPage] = React.useState<
@@ -51,6 +52,7 @@ function AccountInfo() {
   );
 }
 
+/* DEFAULT VIEW - DISPLAYS LIST OF ACCOUNT MANAGEMENT OPTIONS */
 const Default = ({
   setPage,
 }: {
@@ -103,6 +105,8 @@ const Default = ({
     </Container.Box>
   );
 };
+
+/* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
   // const { loading, setLoading } = useLoader();
 
@@ -130,6 +134,7 @@ const Edit = () => {
   );
 };
 
+/* PASSWORD MANAGEMENT SECTION - HANDLES PASSWORD UPDATES */
 const Password = () => {
   return (
     <AvoidSoftInputView>
@@ -154,6 +159,8 @@ const Password = () => {
     </AvoidSoftInputView>
   );
 };
+
+/* PAYMENT METHODS SECTION - MANAGES USER PAYMENT OPTIONS */
 const Payment = () => {
   return (
     <Container.Box>
@@ -161,6 +168,8 @@ const Payment = () => {
     </Container.Box>
   );
 };
+
+/* SHIPPING ADDRESS SECTION - HANDLES USER DELIVERY INFORMATION */
 const Shipping = () => {
   return (
     <AvoidSoftInputView>

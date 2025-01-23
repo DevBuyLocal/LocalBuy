@@ -5,22 +5,18 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
-import { AnimatePresence, MotiText, MotiView } from 'moti';
 import React from 'react';
-import { Animated, FlatList } from 'react-native';
-import { twMerge } from 'tailwind-merge';
+import { Animated } from 'react-native';
 
-import _Carousel from '@/components/general/carousel';
 import Container from '@/components/general/container';
-import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
-import ViewAll from '@/components/general/view-all';
+import { AdsBanner } from '@/components/home/ads-banner';
+import { FeaturedBrands } from '@/components/home/featured-brands';
 import FilterModal from '@/components/products/filter-modal';
 import LocationModal from '@/components/products/location-modal';
 import ProductCarousel from '@/components/products/product-carousel';
 import {
   colors,
-  Image,
   Pressable,
   ScrollView,
   Text,
@@ -214,112 +210,3 @@ export default function Home() {
     </>
   );
 }
-
-const AdsBanner = ({ imgs }: { imgs: any }) => {
-  const [index, setIndex] = React.useState<0 | 1>(0);
-  const defaultBanners = [
-    {
-      label: 'Easy Shopping',
-      desc: 'Order groceries effortlessly, get them delivered right to your door',
-      bgColor: '#FFF5E1',
-      id: 'jsjiwi',
-    },
-    {
-      label: 'Daily Delights',
-      desc: 'Get everything you need for your daily meals right at your fingertips.',
-      bgColor: '#C9FCE9',
-      id: 'sjejejj',
-    },
-  ];
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      if (index === 0) {
-        setIndex(1);
-      } else {
-        setIndex(0);
-      }
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [index]);
-  return !Boolean(imgs.length) ? (
-    <_Carousel data={imgs || []} />
-  ) : (
-    <>
-      <AnimatePresence>
-        <MotiView
-          from={{ backgroundColor: defaultBanners[index].bgColor }}
-          animate={{ backgroundColor: defaultBanners[index].bgColor }}
-          transition={{ type: 'timing', duration: 650 }}
-          className="mt-5 h-[130px] w-full flex-row items-center overflow-hidden rounded-[13px] p-5"
-        >
-          <View className="h-full w-3/5 justify-between">
-            <View>
-              <MotiText className="text-[16px] font-bold">
-                {defaultBanners[index].label}
-              </MotiText>
-              <Text className="mt-1 text-[12px] opacity-75">
-                {defaultBanners[index].desc}
-              </Text>
-            </View>
-            <CustomButton
-              label="SHOP NOW"
-              containerClassname="h-[27px] rounded-full mb-0 text-[12px]"
-              textClassName="text-[12px]"
-            />
-          </View>
-
-          <Image
-            source={require('../../../../assets/images/banner-icon.png')}
-            className="absolute right-0 size-[128px]"
-          />
-        </MotiView>
-      </AnimatePresence>
-      <View className="mt-2 flex-row gap-2 self-center">
-        {defaultBanners.map((e, i) => (
-          <View
-            key={e.id}
-            className={twMerge(
-              'h-[2px] w-14 ',
-              i === index ? 'bg-black' : 'bg-[#030C0A1F]'
-            )}
-          />
-        ))}
-      </View>
-    </>
-  );
-};
-
-const FeaturedBrands = (dummyProducts: any[]) => {
-  const { push } = useRouter();
-
-  return (
-    <View>
-      <ViewAll
-        title={'Featured Stores'}
-        onPress={() => push('/all-brands')}
-        seeAllBg="#F7F7F7"
-      />
-      <FlatList
-        data={dummyProducts}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="my-5"
-        keyExtractor={(e) => e.id}
-        renderItem={() => (
-          <View className="mr-5 items-center justify-center ">
-            <View className="size-[58px] overflow-hidden rounded-full bg-[#F7F7F7]">
-              <Image
-                source={{
-                  uri: 'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-                }}
-                className="size-full rounded-full object-contain"
-              />
-            </View>
-            <Text className="mt-2 text-[12px]">20 items</Text>
-          </View>
-        )}
-      />
-    </View>
-  );
-};
