@@ -86,7 +86,10 @@ export default function Cart() {
                   containerClassname="mt-10"
                   onPress={() => push('/checkout')}
                 />
-                <CustomButton.Secondary label={'Schedule order'} />
+                <CustomButton.Secondary
+                  label={'Schedule order'}
+                  onPress={() => push('/schedule-order')}
+                />
                 <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-40">
                   <ProductCarousel
                     items={dummyProducts}

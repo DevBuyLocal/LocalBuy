@@ -77,6 +77,7 @@
     "react-native": "0.76.5",
     "react-native-avoid-softinput": "^7.0.0",
     "react-native-collapsible": "^1.6.2",
+    "react-native-date-picker": "^5.0.8",
     "react-native-edge-to-edge": "^1.1.2",
     "react-native-flash-message": "^0.4.2",
     "react-native-gesture-handler": "~2.20.2",

@@ -40,6 +40,7 @@ export default function MainLayout() {
       <Stack.Screen name="walkthrough" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="checkout" options={{ headerShown: false }} />
+      <Stack.Screen name="schedule-order" options={{ headerShown: false }} />
       <Stack.Screen
         name="search"
         options={{ headerShown: false, presentation: 'containedModal' }}

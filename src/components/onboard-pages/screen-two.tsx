@@ -23,6 +23,7 @@ function ScreenTwo({ onPrevious, isLastStep }: IScreenProps) {
         numColumns={3}
         columnWrapperClassName="justify-around"
         contentContainerClassName="mt-20"
+        showsVerticalScrollIndicator={false}
       />
       <Text className="mt-10 w-4/5 self-center text-center text-[24px] leading-[36px] text-[#121212E5]">
         Your favorite brands are already on board

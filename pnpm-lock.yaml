@@ -116,6 +116,9 @@ importers:
       react-native-collapsible:
         specifier: ^1.6.2
         version: 1.6.2(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
+      react-native-date-picker:
+        specifier: ^5.0.8
+        version: 5.0.8(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
       react-native-edge-to-edge:
         specifier: ^1.1.2
         version: 1.1.2(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
@@ -6024,6 +6027,12 @@ packages:
         optional: true
       react-native-svg:
         optional: true
+
+  react-native-date-picker@5.0.8:
+    resolution: {integrity: sha512-1l4w4+iLuhOZUSyQrt5DclXnNx3RwEyp+wUrSaBfaHr/3FWtRWjLjS0E9FL4FWuq6vn09Hy9hn8lZJ1DmPc9YQ==}
+    peerDependencies:
+      react: '>= 17.0.1'
+      react-native: '>= 0.64.3'
 
   react-native-edge-to-edge@1.1.2:
     resolution: {integrity: sha512-tbDNQ+MsYHVbaxLEAu4Up6bPktqBP+DdwdM2MVwkO+uVe2TOB6a+57k3i+UJt426dZnL1ccOrzOg2HQ4Oeh3RA==}
@@ -14841,6 +14850,11 @@ snapshots:
       react-native-svg: 15.8.0(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - supports-color
+
+  react-native-date-picker@5.0.8(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-native: 0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1)
 
   react-native-edge-to-edge@1.1.2(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1):
     dependencies:
