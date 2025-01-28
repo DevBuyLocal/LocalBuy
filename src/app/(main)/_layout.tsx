@@ -45,6 +45,10 @@ export default function MainLayout() {
         name="search"
         options={{ headerShown: false, presentation: 'containedModal' }}
       />
+      <Stack.Screen
+        name="add-product"
+        options={{ headerShown: false, presentation: 'containedModal' }}
+      />
       <Stack.Screen name="style" options={{ headerShown: false }} />
     </Stack>
   );
