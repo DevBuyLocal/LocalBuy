@@ -142,7 +142,7 @@ const Products = () => {
             style={{ borderColor: product.color }}
             key={product.title}
             className={twMerge(
-              'h-full w-[33%] justify-between border-l-2 px-3'
+              'h-full w-[34%] justify-between border-l-2 px-3'
             )}
           >
             <Text className="text-[12px] opacity-65">{product?.title}</Text>

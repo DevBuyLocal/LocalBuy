@@ -13,11 +13,11 @@ function CustomButton(props: TCustomButton) {
     <Button
       label={label}
       className={twMerge(
-        'h-[55px] items-center  justify-center rounded-[4px] border border-primaryText bg-primaryText disabled:opacity-60',
+        'h-[55px] items-center  justify-center rounded-[4px] border border-primaryText dark:bg-primaryText bg-primaryText disabled:opacity-60',
         containerClassname
       )}
-      textClassName="text-white text-[16px] font-regular"
-      indicatorClassName="text-white"
+      textClassName="text-white dark:text-[#fff] text-[16px] font-regular"
+      indicatorClassName="text-white dark:text-[#fff]"
       {...rest}
     />
   );
@@ -30,10 +30,10 @@ CustomButton.Secondary = (props: TCustomButton) => {
     <Button
       label={label}
       className={twMerge(
-        'h-[55px] items-center justify-center rounded-[4px] border border-primaryText bg-white disabled:opacity-60',
+        'h-[55px] items-center justify-center rounded-[4px] border border-black bg-white disabled:opacity-60',
         containerClassname
       )}
-      textClassName="text-primaryText text-[16px] items-center"
+      textClassName="text-black text-[16px] items-center"
       indicatorClassName="text-primaryText"
       {...rest}
     />

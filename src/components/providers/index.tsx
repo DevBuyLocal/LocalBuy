@@ -1,7 +1,7 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider } from '@react-navigation/native';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
 import FlashMessage from 'react-native-flash-message';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -16,6 +16,7 @@ function Providers({ children }: { children: React.ReactNode }) {
   return (
     <GestureHandlerRootView
       style={styles.container}
+      // className={undefined}
       className={theme.dark ? `dark` : undefined}
     >
       <FocusAwareStatusBar />
@@ -25,6 +26,11 @@ function Providers({ children }: { children: React.ReactNode }) {
             <BottomSheetModalProvider>
               <LoaderProvider>
                 <SafeAreaView edges={['top']} />
+                <StatusBar
+                  barStyle={'dark-content'}
+                  backgroundColor={'white'}
+                />
+
                 {children}
               </LoaderProvider>
               <FlashMessage position="top" />

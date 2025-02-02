@@ -38,7 +38,7 @@ function ProductItem(props: ProductItemProps) {
     <>
       <Pressable
         className={twMerge(
-          'w-[158px] rounded-[2px] bg-[#FFFFFF] px-[10px] py-[5px] justify-between',
+          'w-[158px] rounded-[2px] bg-[#FFFFFF] dark:bg-[#000000] px-[10px] py-[8px] justify-between',
           props.containerClassname
         )}
         onPress={present}

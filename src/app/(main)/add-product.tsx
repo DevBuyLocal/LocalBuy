@@ -89,6 +89,8 @@ const CameraView = ({
     codeTypes: ['qr', 'ean-13'],
     onCodeScanned: (codes) => {
       console.log(`Scanned ${codes.length} codes!`);
+      console.log(`Scanned ${JSON.stringify(codes[0].value)} codes!`);
+      setShowCamera(false);
       setProduct({ ...product, productId: codes[0].value });
     },
   });

@@ -121,7 +121,7 @@ export default function Home() {
         style={{
           transform: [{ translateY: headerTranslateY }],
         }}
-        className="absolute inset-x-0 top-0 z-50 bg-white pb-2"
+        className="absolute inset-x-0 top-0 z-50 pb-2"
       >
         <Container.Box>
           <View className="flex-row items-center justify-between">
@@ -176,22 +176,22 @@ export default function Home() {
               placeholder="Search for a product..."
               onPress={() => push('/search')}
             />
-            <View className="mt-2 flex-row items-center justify-between">
+            <View className="mt-2 flex-row items-center justify-between gap-1">
               {opts.map((e, i) => (
                 <Pressable
                   key={i.toString()}
                   onPress={e.onPress}
-                  className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-6 py-3"
+                  className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-5 py-3"
                 >
                   {e.icon}
-                  <Text className="color-[#1212127B2]">{e.name}</Text>
+                  <Text className="dark:text-[#121227B2]">{e.name}</Text>
                 </Pressable>
               ))}
             </View>
             <AdsBanner imgs={imgs} />
             {FeaturedBrands(dummyProducts)}
           </Container.Box>
-          <Container.Box containerClassName="bg-[#F7F7F7] pb-5">
+          <Container.Box containerClassName="bg-[#F7F7F7] dark:bg-[#282828] pb-5">
             <ProductCarousel
               items={dummyProducts}
               title={'New Arrivals'}

@@ -30,7 +30,7 @@ function OrderItem({ item, handleDelete, onPress }: Props) {
     >
       <Pressable
         onPress={onPress}
-        className="flex-row items-center justify-between border-b border-gray-200 bg-white py-4"
+        className="flex-row items-center justify-between border-b border-gray-200  py-4"
       >
         <View className="flex-row items-center gap-5">
           <Image

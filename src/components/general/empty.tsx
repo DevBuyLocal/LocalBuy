@@ -20,7 +20,7 @@ function Empty(props: EmptyProps) {
     >
       <Image
         source={props.image || require('../../../assets/images/empty-cart.png')}
-        className="size-[180px]"
+        className="size-[120px]"
       />
       {props.title && (
         <Text className="text-center text-[18px] font-medium">

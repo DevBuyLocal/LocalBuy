@@ -16,7 +16,7 @@ function ViewAll(props: Props) {
         className="flex-row items-center py-1 pl-5"
       >
         <Text
-          className="rounded-full bg-[#FFFFFF] p-2 px-4 text-[16px] font-medium"
+          className="rounded-full bg-[#FFFFFF] p-2 px-4 text-[16px] font-medium dark:text-black"
           style={{ backgroundColor: props.seeAllBg || '#FFFFFF' }}
         >
           See all

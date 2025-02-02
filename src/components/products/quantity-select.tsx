@@ -22,23 +22,23 @@ function QuantitySelect(props: QuantitySelectProps) {
   return (
     <View
       className={twMerge(
-        'flex-row items-center justify-between overflow-hidden rounded-[4px] border',
+        'flex-row items-center justify-between overflow-hidden rounded-[4px] px-4 py-1 border dark:border-[#fff]',
         props.containerClass
       )}
       {...props}
     >
       <Pressable
         onPress={() => decreaseQuantity(props.itemId, props.removeOnZero)}
-        className="px-[25px]"
+        // className="px-[25px]"
       >
         <Text className="text-[20px] font-bold">-</Text>
       </Pressable>
-      <Text className="text-[20px] font-medium">
+      <Text className="text-[20px] font-medium text-black">
         {foundItem?.quantity || 0}
       </Text>
       <Pressable
         onPress={() => increaseQuantity(props.itemId)}
-        className="px-[25px] py-px"
+        // className="px-[25px] py-px"
       >
         <Text className="text-[20px] font-bold">+</Text>
       </Pressable>

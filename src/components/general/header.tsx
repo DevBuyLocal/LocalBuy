@@ -33,7 +33,7 @@ function Header(props: HeaderProps) {
         shadowRadius: 1.0,
         elevation: 1,
       }}
-      className="h-20 w-full flex-row bg-white px-5"
+      className="h-20 w-full flex-row  px-5"
     >
       {!props.hideBackButton && (
         <Pressable

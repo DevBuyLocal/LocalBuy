@@ -57,7 +57,7 @@ export const AdsBanner = ({ imgs }: AdsBannerProps) => {
               <MotiText className="text-[16px] font-bold">
                 {defaultBanners[index].label}
               </MotiText>
-              <Text className="mt-1 text-[12px] opacity-75">
+              <Text className="mt-1 text-[12px] opacity-75 dark:text-black">
                 {defaultBanners[index].desc}
               </Text>
             </View>
