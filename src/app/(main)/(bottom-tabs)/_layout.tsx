@@ -1,16 +1,19 @@
 import Fontisto from '@expo/vector-icons/Fontisto';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { AnimatePresence, MotiView } from 'moti';
 import React from 'react';
 
 import { Text, View } from '@/components/ui';
 import { Inventory } from '@/components/ui/icons/inventory';
+import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 
 export default function BottomTabsLayout() {
   const { total } = useCart(CartSelector);
+  const { token } = useAuth();
+  const { push } = useRouter();
 
   return (
     <Tabs screenOptions={{ headerShown: false }}>
@@ -76,6 +79,14 @@ export default function BottomTabsLayout() {
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="account-circle" size={28} color={color} />
           ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            if (!token?.access) {
+              push('/login');
+              e.preventDefault();
+            }
+          },
         }}
       />
     </Tabs>

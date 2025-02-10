@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Alert, FlatList, Pressable } from 'react-native';
 
 import Container from '@/components/general/container';
@@ -8,14 +8,24 @@ import Empty from '@/components/general/empty';
 import CartItem from '@/components/products/cart-item';
 import ProductCarousel from '@/components/products/product-carousel';
 import { Text, View } from '@/components/ui';
+import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 
 import dummyProducts from '../../../lib/dummy';
 
 export default function Cart() {
   const { push } = useRouter();
+  const { token } = useAuth();
   const { clearCart, total, totalPrice, products_in_cart } =
     useCart(CartSelector);
+
+  function redirectToLoginAndBack(path: Href) {
+    if (!token?.access) {
+      push('/login?from=cart');
+    } else {
+      push(path);
+    }
+  }
   return (
     <Container.Page
       showHeader
@@ -57,7 +67,9 @@ export default function Cart() {
                 <CustomButton.Secondary
                   label={'Browse products'}
                   containerClassname="w-full mt-16"
-                  onPress={() => push('/')}
+                  onPress={() => {
+                    push('/');
+                  }}
                 />
               }
             />
@@ -84,11 +96,11 @@ export default function Cart() {
                 <CustomButton
                   label={'Checkout'}
                   containerClassname="mt-10"
-                  onPress={() => push('/checkout')}
+                  onPress={() => redirectToLoginAndBack('/checkout')}
                 />
                 <CustomButton.Secondary
                   label={'Schedule order'}
-                  onPress={() => push('/schedule-order')}
+                  onPress={() => redirectToLoginAndBack('/schedule-order')}
                 />
                 <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-40">
                   <ProductCarousel

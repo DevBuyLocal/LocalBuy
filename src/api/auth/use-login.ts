@@ -5,38 +5,26 @@ import { client } from '../common';
 
 type Variables = {
   email: string;
-  type: 'individual' | 'business';
-  phone?: string;
-  referal_code: string | undefined;
   password: string;
 };
 
-export interface TRegisterResponse {
+export interface TLoginResponse {
   message: string;
-  response: RegResponse;
+  user: LoginResponse;
 }
 
-export interface RegResponse {
+export interface LoginResponse {
   id: number;
   email: string;
   isVerified: boolean;
   type: string;
-  code: string;
   token: string;
 }
 
-// type Response = {
-//   data: TRegisterResponse;
-// };
-
-export const useRegister = createMutation<
-  TRegisterResponse,
-  Variables,
-  AxiosError
->({
+export const useLogin = createMutation<TLoginResponse, Variables, AxiosError>({
   mutationFn: async (variables) =>
     client({
-      url: 'api/auth/register',
+      url: 'api/auth/login',
       method: 'POST',
       data: variables,
     }).then((response) => response.data),

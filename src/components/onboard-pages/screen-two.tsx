@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList } from 'react-native';
 import { type IScreenProps } from 'react-native-story-carousel';
 
-import { Text, View, WIDTH } from '../ui';
+import { Image, Text, View, WIDTH } from '../ui';
 
 function ScreenTwo({ onPrevious, isLastStep }: IScreenProps) {
   React.useEffect(() => {
@@ -12,13 +12,27 @@ function ScreenTwo({ onPrevious, isLastStep }: IScreenProps) {
     }
   }, [isLastStep, onPrevious]);
 
+  const pngs = [
+    { path: require('../../../assets/images/onboard-icons/onb-1.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-2.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-3.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-4.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-5.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-6.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-7.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-8.png') },
+    { path: require('../../../assets/images/onboard-icons/onb-9.png') },
+  ];
+
   return (
     <View className="top-10 justify-center" style={{ width: WIDTH * 0.911 }}>
       <FlatList
-        data={Array.from({ length: 9 })}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={() => (
-          <View className="mb-10 size-[78px] rounded-full bg-[#EFF2F7]" />
+        data={pngs}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View className="mb-10 size-[78px] rounded-full bg-[#EFF2F7]">
+            <Image source={item.path} className="size-[78px]" />
+          </View>
         )}
         numColumns={3}
         columnWrapperClassName="justify-around"

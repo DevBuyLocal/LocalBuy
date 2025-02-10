@@ -5,18 +5,14 @@ import { client } from '../common';
 
 type Variables = {
   email: string;
-  type: 'individual' | 'business';
-  phone?: string;
-  referal_code: string | undefined;
-  password: string;
 };
 
-export interface TRegisterResponse {
+export interface TResendCodeResponse {
   message: string;
-  response: RegResponse;
+  response: ResendCodeResponse;
 }
 
-export interface RegResponse {
+export interface ResendCodeResponse {
   id: number;
   email: string;
   isVerified: boolean;
@@ -25,18 +21,10 @@ export interface RegResponse {
   token: string;
 }
 
-// type Response = {
-//   data: TRegisterResponse;
-// };
-
-export const useRegister = createMutation<
-  TRegisterResponse,
-  Variables,
-  AxiosError
->({
+export const useResendCode = createMutation<any, Variables, AxiosError>({
   mutationFn: async (variables) =>
     client({
-      url: 'api/auth/register',
+      url: '/api/auth/resend',
       method: 'POST',
       data: variables,
     }).then((response) => response.data),

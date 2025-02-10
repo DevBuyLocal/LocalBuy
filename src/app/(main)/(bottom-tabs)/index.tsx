@@ -85,6 +85,9 @@ export default function Home() {
   // if (!hasWalkthrough) {
   //   return <Redirect href="/walkthrough" />;
   // }
+  // const [_, setIsFirstTime] = useIsFirstTime();
+  // setIsFirstTime(true);
+
   const { push } = useRouter();
   const { present, ref, dismiss } = useModal();
   const {
@@ -96,7 +99,6 @@ export default function Home() {
   const { headerTranslateY, onScroll } = useScrollBehavior();
 
   const notificationUnread = false;
-
   const opts = [
     {
       name: 'Filter',

@@ -4,19 +4,16 @@ import { createMutation } from 'react-query-kit';
 import { client } from '../common';
 
 type Variables = {
+  code: string;
   email: string;
-  type: 'individual' | 'business';
-  phone?: string;
-  referal_code: string | undefined;
-  password: string;
 };
 
-export interface TRegisterResponse {
+export interface TVerifyResponse {
   message: string;
-  response: RegResponse;
+  response: VerifyResponse;
 }
 
-export interface RegResponse {
+export interface VerifyResponse {
   id: number;
   email: string;
   isVerified: boolean;
@@ -25,18 +22,10 @@ export interface RegResponse {
   token: string;
 }
 
-// type Response = {
-//   data: TRegisterResponse;
-// };
-
-export const useRegister = createMutation<
-  TRegisterResponse,
-  Variables,
-  AxiosError
->({
+export const useVerify = createMutation<any, Variables, AxiosError>({
   mutationFn: async (variables) =>
     client({
-      url: 'api/auth/register',
+      url: 'api/auth/verify',
       method: 'POST',
       data: variables,
     }).then((response) => response.data),

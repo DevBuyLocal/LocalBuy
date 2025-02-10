@@ -9,18 +9,10 @@ import CustomButton from '@/components/general/custom-button';
 import ScreenOne from '@/components/onboard-pages/screen-one';
 import ScreenTwo from '@/components/onboard-pages/screen-two';
 import { Modal, Radio, useModal, View } from '@/components/ui';
+import { userType, type UserTypeProps } from '@/lib/constants';
 import { useIsFirstTime } from '@/lib/hooks';
 
 // DEFINE TYPES FOR USER ROLES
-type UserTypeProps = {
-  value: 'individual' | 'business';
-};
-
-// DEFINE AVAILABLE USER TYPES
-const userType: { name: string; value: 'individual' | 'business' }[] = [
-  { name: 'Individual', value: 'individual' },
-  { name: 'Business Owner', value: 'business' },
-];
 
 /**
  * ONBOARDING COMPONENT THAT HANDLES THE INITIAL USER FLOW
@@ -29,7 +21,7 @@ const userType: { name: string; value: 'individual' | 'business' }[] = [
 export default function Onboarding() {
   // HOOKS FOR MANAGING APP STATE AND NAVIGATION
   const [_, setIsFirstTime] = useIsFirstTime();
-  const { push } = useRouter();
+  const { replace } = useRouter();
   const { ref, present, dismiss } = useModal();
   // STATE FOR MANAGING SELECTED USER ROLE
   const [selectedRole, setSelectedRole] =
@@ -81,7 +73,7 @@ export default function Onboarding() {
           label={'Continue as guest'}
           onPress={() => {
             setIsFirstTime(false);
-            push('/(main)');
+            replace('/(main)');
           }}
           // ONPRESS={() => PUSH('/LOGIN')}
         />
@@ -95,7 +87,6 @@ export default function Onboarding() {
           SKIP
         </TEXT> */}
       </Container.Box>
-
       {/* USER TYPE SELECTION MODAL */}
       <Modal ref={ref} title="Are you an individual or a business owner?">
         <View className="mt-2 px-5">
@@ -117,7 +108,8 @@ export default function Onboarding() {
           <CustomButton
             label={'Continue'}
             onPress={() => {
-              push(`/sign-up?role=${selectedRole}`);
+              setIsFirstTime(false);
+              replace(`/sign-up?role=${selectedRole}`);
               dismiss();
             }}
           />

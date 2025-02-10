@@ -7,10 +7,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { type Href, useRouter } from 'expo-router';
 import { type NavigationOptions } from 'expo-router/build/global-state/routing';
 import React from 'react';
+import { Alert } from 'react-native';
 
 import AccountItem from '@/components/account/account-item';
 import Container from '@/components/general/container';
 import { View } from '@/components/ui';
+import { signOut } from '@/lib';
 const accountItems = (
   push: (href: Href, options?: NavigationOptions) => void
 ) => [
@@ -49,7 +51,21 @@ const accountItems = (
   {
     label: 'Logout',
     icon: <Ionicons name="exit" size={24} color="black" />,
-    onPress: () => {},
+    onPress: () => {
+      Alert.alert('Logout', 'Are you sure you want to logout?', [
+        {
+          text: 'Cancel',
+          style: 'destructive',
+        },
+        {
+          text: 'Logout',
+          onPress: () => {
+            signOut();
+            push('/');
+          },
+        },
+      ]);
+    },
   },
 ];
 

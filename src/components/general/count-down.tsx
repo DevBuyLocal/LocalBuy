@@ -6,11 +6,13 @@ import { Pressable, Text } from '../ui';
 interface CountdownProps {
   countFrom: number;
   onCountdownComplete: () => void;
+  resend: () => void;
 }
 
 const CountdownTimer: FC<CountdownProps> = ({
   countFrom,
   onCountdownComplete,
+  resend,
 }) => {
   const [countdown, setCountdown] = useState(countFrom);
   const [isActive, setIsActive] = useState(true); // New state for countdown activity
@@ -37,6 +39,7 @@ const CountdownTimer: FC<CountdownProps> = ({
     if (countdown > 0) return;
     setCountdown(countFrom);
     setIsActive(true);
+    resend();
   };
 
   return (
