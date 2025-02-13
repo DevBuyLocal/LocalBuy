@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 
-import { type TUser } from '@/api/auth/types';
+import { type User } from '@/api/user/types';
 
 import { createSelectors } from '../utils';
 import type { TokenType } from './utils';
@@ -14,8 +14,8 @@ interface AuthState {
   signIn: (data: TokenType) => void;
   signOut: () => void;
   hydrate: () => void;
-  user: TUser | null;
-  setUser: (user: TUser | null) => void;
+  user: User | null;
+  setUser: (user: User | null) => void;
 }
 
 const _useAuth = create<AuthState>()(
@@ -60,3 +60,4 @@ export const useAuth = createSelectors(_useAuth);
 export const signOut = () => _useAuth.getState().signOut();
 export const signIn = (token: TokenType) => _useAuth.getState().signIn(token);
 export const hydrateAuth = () => _useAuth.getState().hydrate();
+export const accessToken = () => _useAuth.getState().token;

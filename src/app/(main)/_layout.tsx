@@ -5,11 +5,14 @@ import React, { useCallback, useEffect } from 'react';
 import { useAuth, useIsFirstTime } from '@/lib';
 
 export default function MainLayout() {
-  const status = useAuth.use.status();
+  const { status } = useAuth();
   const [isFirstTime] = useIsFirstTime();
   const hideSplash = useCallback(async () => {
     await SplashScreen.hideAsync();
   }, []);
+
+  // const { data } = useGetUser();
+
   useEffect(() => {
     if (status !== 'idle') {
       setTimeout(() => {
@@ -41,6 +44,10 @@ export default function MainLayout() {
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="checkout" options={{ headerShown: false }} />
       <Stack.Screen name="schedule-order" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="complete-profile"
+        options={{ headerShown: false, presentation: 'containedModal' }}
+      />
       <Stack.Screen
         name="search"
         options={{ headerShown: false, presentation: 'containedModal' }}

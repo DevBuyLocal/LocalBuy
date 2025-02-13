@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 
-import { useLogin } from '@/api/auth/use-login';
+import { useLogin } from '@/api';
 import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
@@ -33,11 +33,7 @@ export default function Login() {
   const { mutate } = useLogin();
   const { signIn } = useAuth();
   const { setLoading, setError, setSuccess, setLoadingText } = useLoader();
-  const {
-    handleSubmit,
-    control,
-    // formState: { isValid },
-  } = useForm<LoginFormType>({
+  const { handleSubmit, control } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',

@@ -15,9 +15,18 @@ export function getQueryKey<T extends KeyParams>(key: string, params?: T) {
 }
 
 // for infinite query pages  to flatList data
+// export function normalizePages<T>(pages?: PaginateQuery<T>[]): T[] {
+//   if (!Array.isArray(pages) || pages.length === 0) return [];
+
+//   return pages.reduce((prev: T[], current) => {
+//     if (!current || !Array.isArray(current.results)) return prev; // Ensure `results` is an array
+//     return [...prev, ...current.results];
+//   }, []);
+// }
+
 export function normalizePages<T>(pages?: PaginateQuery<T>[]): T[] {
-  return pages
-    ? pages.reduce((prev: T[], current) => [...prev, ...current.results], [])
+  return pages && pages?.length > 0
+    ? pages?.reduce((prev: T[], current) => [...prev, ...current?.results], [])
     : [];
 }
 
@@ -43,9 +52,9 @@ export function getUrlParameters(
 export const getPreviousPageParam: GetNextPageParamFunction<
   unknown,
   PaginateQuery<unknown>
-> = (page) => getUrlParameters(page.previous)?.offset ?? null;
+> = (page) => getUrlParameters(page.previous) ?? null;
 
 export const getNextPageParam: GetPreviousPageParamFunction<
   unknown,
   PaginateQuery<unknown>
-> = (page) => getUrlParameters(page.next)?.offset ?? null;
+> = (page) => getUrlParameters(page.next) ?? null;

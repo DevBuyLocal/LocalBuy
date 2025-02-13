@@ -50,5 +50,6 @@
     "titleBar.inactiveBackground": "#bb01af99",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.color": "#bb01aff0"
+  "peacock.color": "#bb01aff0",
+  "CodeGPT.apiKey": "Mistral"
 }

@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 
+import { useVerify } from '@/api';
 import { useResendCode } from '@/api/auth/use-resend-code';
-import { useVerify } from '@/api/auth/use-verify';
 import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';

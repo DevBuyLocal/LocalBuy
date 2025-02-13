@@ -4,7 +4,7 @@ import { AnimatePresence, MotiView } from 'moti';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 
-import { useRegister } from '@/api/auth/use-register';
+import { useRegister } from '@/api';
 import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';

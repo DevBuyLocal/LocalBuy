@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,6 +8,7 @@ import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Animated } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
@@ -23,6 +25,7 @@ import {
   useModal,
   View,
 } from '@/components/ui';
+import { useAuth } from '@/lib';
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
 
 import dummyProducts from '../../../lib/dummy';
@@ -88,6 +91,14 @@ export default function Home() {
   // const [_, setIsFirstTime] = useIsFirstTime();
   // setIsFirstTime(true);
 
+  const { token } = useAuth();
+
+  // const { data } = useGetProducts({ type: 'trending' })();
+  // console.log('🚀 ~ file: index.tsx:93 ~ error:', JSON.stringify(error));
+  // console.log('🚀 ~ file: index.tsx:93 ~ data:', data?.pages);
+  // const products = normalizePages(data?.pages);
+  // console.log('🚀 ~ file: index.tsx:96 ~ products:', products);
+
   const { push } = useRouter();
   const { present, ref, dismiss } = useModal();
   const {
@@ -96,6 +107,27 @@ export default function Home() {
     dismiss: locationDismiss,
   } = useModal();
 
+  const phoneNumberAvailable = true;
+  const detailsProvided = true;
+  const preferencesProvided = false;
+
+  const currentStep = () => {
+    if (phoneNumberAvailable && detailsProvided && preferencesProvided) {
+      return;
+    }
+    if (detailsProvided) {
+      return 2;
+    }
+    if (phoneNumberAvailable) {
+      return 1;
+    }
+    return 1;
+  };
+
+  const step = currentStep();
+  // console.log('🚀 ~ file: index.tsx:126 ~ step:', step);
+
+  // const [completeIndex] = React.useState<number | undefined>(step);
   const { headerTranslateY, onScroll } = useScrollBehavior();
 
   const notificationUnread = false;
@@ -173,6 +205,37 @@ export default function Home() {
       >
         <Container.Page className="mt-16 px-0">
           <Container.Box>
+            {token && Boolean(step) && (
+              <Pressable
+                onPress={() => {
+                  push('/complete-profile');
+                }}
+                className="w-full flex-row items-center justify-between rounded-xl border border-[#E9EAEC] p-4"
+              >
+                <View className="w-[90%] gap-5">
+                  <Text className=" text-[18px] font-bold">
+                    Complete your account setup, shall we?
+                  </Text>
+                  <View>
+                    <View className="flex-row gap-2">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <View
+                          key={i.toString()}
+                          className={twMerge(
+                            'h-1 w-20 rounded-full bg-[#EC9F0140]',
+                            i + 1 <= Number(step) && 'bg-primaryText'
+                          )}
+                        />
+                      ))}
+                    </View>
+                    <Text className="mt-2 opacity-70">
+                      2 steps remaining to complete
+                    </Text>
+                  </View>
+                </View>
+                <MaterialIcons name="chevron-right" size={25} />
+              </Pressable>
+            )}
             <CustomInput
               isSearch
               placeholder="Search for a product..."
