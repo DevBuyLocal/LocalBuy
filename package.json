@@ -38,7 +38,10 @@
     "test:ci": "pnpm run test --coverage",
     "test:watch": "pnpm run test --watch",
     "install-maestro": "curl -Ls 'https://get.maestro.mobile.dev' | bash",
-    "e2e-test": "maestro test .maestro/ -e APP_ID=com.obytes.development"
+    "e2e-test": "maestro test .maestro/ -e APP_ID=com.obytes.development",
+    "sha": "cd android && ./gradlew signingReport",
+    "release": "react-native run-android --mode=release",
+    "release-aab": "react-native build-android --mode=release"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.2.3",
@@ -109,6 +112,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@commitlint/cli": "^19.2.2",
+    "@react-native-community/cli": "latest",
     "@commitlint/config-conventional": "^19.2.2",
     "@dev-plugins/react-query": "^0.0.7",
     "@expo/config": "~10.0.3",

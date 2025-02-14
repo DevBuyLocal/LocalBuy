@@ -82,7 +82,7 @@ function ControlledCustomInput<T extends FieldValues>({
       '#12121233',
       error ? '#E84343' : '#EC9F01BF'
     ),
-    backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
+    backgroundColor: colorScheme === 'dark' ? '#282828' : '#FFFFFF',
     zIndex: 1,
   };
   const style = styles(error, colorScheme);

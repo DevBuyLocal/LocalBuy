@@ -5,31 +5,30 @@ import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import React from 'react';
-import { useWindowDimensions } from 'react-native';
-import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 import { twMerge } from 'tailwind-merge';
 
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import Empty from '@/components/general/empty';
-import { colors, Pressable, Text, View } from '@/components/ui';
+import { colors, Pressable, Text, View, WIDTH } from '@/components/ui';
 
 type Route = {
   key: string;
   title: string;
   icon: React.ReactNode;
+  view: JSX.Element;
 };
 
 export default function Inventory() {
-  const layout = useWindowDimensions();
+  // const layout = useWindowDimensions();
   const [index, setIndex] = React.useState(0);
   const { colorScheme } = useColorScheme();
 
-  const renderScene = SceneMap({
-    dashboard: Dashboard,
-    products: Products,
-    'low-stock': LowStock,
-  });
+  // const renderScene = SceneMap({
+  //   dashboard: Dashboard,
+  //   products: Products,
+  //   'low-stock': LowStock,
+  // });
 
   const routes: Route[] = [
     {
@@ -42,6 +41,7 @@ export default function Inventory() {
           color={colorScheme === 'dark' ? '#fff' : 'black'}
         />
       ),
+      view: <Dashboard />,
     },
     {
       key: 'products',
@@ -53,6 +53,7 @@ export default function Inventory() {
           color={colorScheme === 'dark' ? '#fff' : 'black'}
         />
       ),
+      view: <Products />,
     },
     {
       key: 'low-stock',
@@ -64,12 +65,37 @@ export default function Inventory() {
           color={colorScheme === 'dark' ? '#fff' : 'black'}
         />
       ),
+      view: <LowStock />,
     },
   ];
 
   return (
     <Container.Page showHeader headerTitle="Inventory" hideBackButton>
-      <TabView
+      <View
+        className="mt-5 flex-row items-center justify-between"
+        style={{ width: WIDTH }}
+      >
+        {routes.map((e, i) => (
+          <Pressable
+            key={e.key}
+            className={twMerge(
+              'flex-row items-center justify-around gap-3  px-7 py-2',
+              index === i && 'border-b-2 border-primaryText'
+            )}
+            onPress={() => setIndex(i)}
+          >
+            {e.icon}
+            <Text className="text-[16px] font-semibold">{e.title}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <View className="relative mt-5 flex-1">{routes[index].view}</View>
+    </Container.Page>
+  );
+
+  return (
+    <Container.Page showHeader headerTitle="Inventory" hideBackButton>
+      {/* <TabView
         lazy
         navigationState={{ index, routes }}
         renderScene={renderScene}
@@ -105,7 +131,7 @@ export default function Inventory() {
             )}
           />
         )}
-      />
+      /> */}
     </Container.Page>
   );
 }
@@ -149,7 +175,7 @@ const Products = () => {
     },
   ];
   return (
-    <Container.Page containerClassName="flex-1">
+    <Container.Page containerClassName="flex-1 relative">
       <View className="mt-3 h-[90px] w-[90%] flex-row items-center justify-between self-center overflow-hidden rounded-[12px] border border-[#12121226] p-5">
         {productsOverview.map((product) => (
           <View

@@ -78,11 +78,10 @@ function ScreenOne() {
         className="mt-12 w-full self-center"
         style={{ height: HEIGHT * 0.57, width: WIDTH, resizeMode: 'contain' }}
       />
-      <View className="absolute -bottom-1 z-40 h-[160px] w-[110%] rotate-3 bg-white">
-        <Text className="mt-10 w-4/5 -rotate-3 self-center text-center text-[24px] leading-[36px] text-[#121212E5]">
-          Enjoy easy online shopping for bulk food items and other essentials.
-        </Text>
-      </View>
+      <View className="absolute -bottom-1 z-40 h-[160px] w-[110%] rotate-3 bg-white dark:bg-black" />
+      <Text className=" absolute bottom-2 z-50 w-[90%] self-center text-center text-[24px] leading-[36px] text-[#121212E5]">
+        Enjoy easy online shopping for bulk food items and other essentials.
+      </Text>
     </View>
   );
 

@@ -30,9 +30,9 @@ function Providers({ children }: { children: React.ReactNode }) {
                 <SafeAreaView edges={['top']} />
                 <StatusBar
                   barStyle={
-                    colorScheme === 'dark' ? 'dark-content' : 'light-content'
+                    colorScheme === 'light' ? 'dark-content' : 'light-content'
                   }
-                  backgroundColor={'white'}
+                  backgroundColor={colorScheme === 'dark' ? 'black' : 'white'}
                 />
 
                 {children}

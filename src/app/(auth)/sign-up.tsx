@@ -18,7 +18,7 @@ import { type RegFormType, regSchema } from './types';
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();
   const { setLoading, setError, setSuccess } = useLoader();
-  const { push, replace } = useRouter();
+  const { push, replace, canGoBack, back } = useRouter();
   const { mutate: Register } = useRegister();
   const {
     handleSubmit,
@@ -59,7 +59,17 @@ export default function SignUp() {
     );
   };
   return (
-    <Container.Page showHeader headerTitle="Create an account">
+    <Container.Page
+      showHeader
+      headerTitle="Create an account"
+      backPress={() => {
+        if (canGoBack()) {
+          back();
+        } else {
+          replace('/');
+        }
+      }}
+    >
       <InputView>
         <Text className="w-4/5 text-[25px] font-bold">
           Let’s get you signed up and shopping.

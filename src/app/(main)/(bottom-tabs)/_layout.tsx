@@ -81,6 +81,7 @@ export default function BottomTabsLayout() {
           title: 'Inventory',
           tabBarIcon: ({ color }) => <Inventory color={color} />,
           href: user?.type === UserType.Business ? undefined : null,
+          lazy: true,
         }}
       />
       {/* )} */}

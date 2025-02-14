@@ -24,7 +24,7 @@ import { useLoader } from '@/lib/hooks/general/use-loader';
 import { type LoginFormType, loginSchema } from './types';
 
 export default function Login() {
-  const { replace, push } = useRouter();
+  const { replace, push, canGoBack, back } = useRouter();
   const { from } = useLocalSearchParams();
   const { ref, present, dismiss } = useModal();
   const [selectedRole, setSelectedRole] = React.useState<UserType>(
@@ -70,7 +70,17 @@ export default function Login() {
   // setLoading(false);
 
   return (
-    <Container.Page showHeader headerTitle="Log in">
+    <Container.Page
+      showHeader
+      headerTitle="Log in"
+      backPress={() => {
+        if (canGoBack()) {
+          back();
+        } else {
+          replace('/');
+        }
+      }}
+    >
       <Container.Box>
         <Text className="mt-5 w-4/5 text-[25px] font-bold">Welcome back</Text>
         <Text className="mt-2 text-[16px] opacity-75">
