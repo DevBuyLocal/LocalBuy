@@ -4,12 +4,15 @@ import { View } from 'moti';
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
 
+import { useUpdateUser } from '@/api';
 import { useSavePreference } from '@/api/user/use-save-preferences';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import InputView from '@/components/general/input-view';
-import { Pressable, Text } from '@/components/ui';
+import { extractError, Pressable, Text } from '@/components/ui';
+import { useAuth } from '@/lib';
+import { UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 const prefs = [
@@ -30,9 +33,26 @@ const prefs = [
 // eslint-disable-next-line max-lines-per-function
 function CompleteProfile() {
   const { back } = useRouter();
+
+  const { user } = useAuth();
+  const isBusiness = user?.type === UserType.Business;
   const { setSuccess, setError, setLoading } = useLoader();
   const [page, setPage] = React.useState<number>(0);
+  const [phone, setPhone] = React.useState<string>(user?.phoneNumber || '');
   const [selectedPref, setSelectedPref] = React.useState<string[]>([]);
+
+  const { mutate: mutateUpdate } = useUpdateUser({
+    onSuccess: () => {
+      setPage(page + 1);
+      setSuccess('Phone number updated');
+    },
+    onError: (error) => {
+      setError(extractError(error?.response?.data));
+    },
+    onSettled() {
+      setLoading(false);
+    },
+  });
 
   const { mutate } = useSavePreference({
     onSuccess: () => {
@@ -47,6 +67,7 @@ function CompleteProfile() {
     },
   });
 
+  // eslint-disable-next-line max-lines-per-function
   function Pages() {
     switch (page) {
       case 0:
@@ -58,18 +79,37 @@ function CompleteProfile() {
             <Text className="mt-2 text-[16px] opacity-75">
               Provide your mobile number
             </Text>
-            <CustomInput placeholder="Phone number" />
+            <CustomInput
+              placeholder="Phone number"
+              keyboardType="number-pad"
+              maxLength={11}
+              value={phone}
+              onChangeText={setPhone}
+            />
             <View className="absolute bottom-[120px] w-full">
               <CustomButton
+                disabled={!phone}
                 label="Continue"
                 onPress={() => {
-                  setPage(page + 1);
+                  setLoading(true);
+                  mutateUpdate({
+                    phoneNumber: phone,
+                    fullName: '',
+                    businessName: '',
+                    address: '',
+                    dob: '02-07-2002',
+                    cac: '',
+                    howDidYouFindUs: '',
+                  });
                 }}
               />
             </View>
           </InputView>
         );
       case 1:
+        if (!isBusiness) {
+          setPage(page + 1);
+        }
         return (
           <InputView>
             <Text className="mt-2 text-[25px] font-bold">Business Details</Text>
@@ -190,6 +230,10 @@ function CompleteProfile() {
         if (page < 1) {
           back();
         } else {
+          if (!isBusiness) {
+            setPage(page - 2);
+            return;
+          }
           setPage(page - 1);
         }
       }}

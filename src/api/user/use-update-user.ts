@@ -3,12 +3,13 @@ import { createMutation } from 'react-query-kit';
 
 import { accessToken } from '@/lib';
 
+import { type TPutUser } from '../auth';
 import { client, queryClient } from '../common';
 import { QueryKey } from '../types';
-import { type User } from './types';
+import { type TUser } from './types';
 
-type Variables = User;
-type Response = User;
+type Variables = Partial<TUser & TPutUser>;
+type Response = TUser;
 
 export const useUpdateUser = createMutation<Response, Variables, AxiosError>({
   mutationFn: async (variables) =>
@@ -19,11 +20,16 @@ export const useUpdateUser = createMutation<Response, Variables, AxiosError>({
       headers: {
         Authorization: `Bearer ${accessToken()?.access}`,
       },
-    }).then((response) => response.data),
-  onSuccess: async () => {
-    //Refetch user data
-    await queryClient.refetchQueries({
-      queryKey: [QueryKey.USER],
-    });
-  },
+    })
+      .then(async (response) => {
+        console.log('🚀 ~ file: use:', response?.data);
+        await queryClient.refetchQueries({
+          queryKey: [QueryKey.USER],
+        });
+        return response.data;
+      })
+      .catch((err) => {
+        console.log('🚀 ~ file: use-update-user.ts:16 ~ err:', err);
+        throw err;
+      }),
 });

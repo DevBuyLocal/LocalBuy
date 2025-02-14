@@ -69,10 +69,10 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
         {children}
         {loading && (
           <Container.Page
-            containerClassName="items-center justify-center bg-[#12121299] px-0 flex-0"
+            containerClassName="items-center justify-center bg-[#12121299] dark:bg-[#28282880] px-0 flex-0"
             style={StyleSheet.absoluteFillObject}
           >
-            <View className="items-center rounded-[16px] bg-white px-8 py-4">
+            <View className="items-center rounded-[16px] bg-white px-8 py-4 dark:bg-[#282828]">
               <ActivityIndicator
                 animating
                 size="large"

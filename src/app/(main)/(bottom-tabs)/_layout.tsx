@@ -9,10 +9,11 @@ import { Text, View } from '@/components/ui';
 import { Inventory } from '@/components/ui/icons/inventory';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
+import { UserType } from '@/lib/constants';
 
 export default function BottomTabsLayout() {
   const { total } = useCart(CartSelector);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { push } = useRouter();
 
   return (
@@ -64,14 +65,25 @@ export default function BottomTabsLayout() {
             <Ionicons name="calendar" size={24} color={color} />
           ),
         }}
+        listeners={{
+          tabPress: (e) => {
+            if (!token?.access) {
+              push('/login');
+              e.preventDefault();
+            }
+          },
+        }}
       />
+      {/* {user?.type === UserType.Business && ( */}
       <Tabs.Screen
         name="inventory"
         options={{
           title: 'Inventory',
           tabBarIcon: ({ color }) => <Inventory color={color} />,
+          href: user?.type === UserType.Business ? undefined : null,
         }}
       />
+      {/* )} */}
       <Tabs.Screen
         name="account"
         options={{

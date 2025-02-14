@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 
-import { useLogin } from '@/api';
+import { queryClient, QueryKey, useLogin } from '@/api';
 import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
@@ -18,7 +18,7 @@ import {
   View,
 } from '@/components/ui';
 import { useAuth } from '@/lib';
-import { userType, type UserTypeProps } from '@/lib/constants';
+import { UserType, userType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import { type LoginFormType, loginSchema } from './types';
@@ -27,8 +27,9 @@ export default function Login() {
   const { replace, push } = useRouter();
   const { from } = useLocalSearchParams();
   const { ref, present, dismiss } = useModal();
-  const [selectedRole, setSelectedRole] =
-    React.useState<UserTypeProps['value']>('individual');
+  const [selectedRole, setSelectedRole] = React.useState<UserType>(
+    UserType.Individual
+  );
 
   const { mutate } = useLogin();
   const { signIn } = useAuth();
@@ -49,8 +50,9 @@ export default function Login() {
         password: data.password,
       },
       {
-        onSuccess(data) {
+        async onSuccess(data) {
           signIn({ access: data?.user?.token, refresh: '' });
+          await queryClient.fetchQuery({ queryKey: [QueryKey.USER] });
           //TODO: FETCH USER DATA AND STORE IT IN CONTEXT
           setSuccess('Login successful');
           replace(from === 'cart' ? '/(bottom-tabs)/cart' : `/`);
@@ -112,7 +114,7 @@ export default function Login() {
             <View key={i.toString()} className="py-5">
               <Radio.Root
                 checked={e.value === selectedRole}
-                onChange={() => setSelectedRole(e.value)}
+                onChange={() => setSelectedRole(e.value as UserType)}
                 accessibilityLabel="radio button"
                 className="justify-between  pb-2"
               >

@@ -9,7 +9,7 @@ import CustomButton from '@/components/general/custom-button';
 import ScreenOne from '@/components/onboard-pages/screen-one';
 import ScreenTwo from '@/components/onboard-pages/screen-two';
 import { Modal, Radio, useModal, View } from '@/components/ui';
-import { userType, type UserTypeProps } from '@/lib/constants';
+import { UserType, userType } from '@/lib/constants';
 import { useIsFirstTime } from '@/lib/hooks';
 
 // DEFINE TYPES FOR USER ROLES
@@ -24,8 +24,9 @@ export default function Onboarding() {
   const { replace } = useRouter();
   const { ref, present, dismiss } = useModal();
   // STATE FOR MANAGING SELECTED USER ROLE
-  const [selectedRole, setSelectedRole] =
-    React.useState<UserTypeProps['value']>('individual');
+  const [selectedRole, setSelectedRole] = React.useState<UserType>(
+    UserType.Individual
+  );
 
   // CONFIGURATION FOR ONBOARDING SCREEN CAROUSEL
   const screens = [
@@ -94,7 +95,7 @@ export default function Onboarding() {
             <View key={i.toString()} className="py-5">
               <Radio.Root
                 checked={e.value === selectedRole}
-                onChange={() => setSelectedRole(e.value)}
+                onChange={() => setSelectedRole(e.value as UserType)}
                 accessibilityLabel="radio button"
                 className="justify-between  pb-2"
               >

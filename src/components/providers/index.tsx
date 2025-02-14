@@ -1,5 +1,6 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider } from '@react-navigation/native';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
 import FlashMessage from 'react-native-flash-message';
@@ -13,6 +14,7 @@ import { useThemeConfig } from '@/lib/use-theme-config';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const theme = useThemeConfig();
+  const { colorScheme } = useColorScheme();
   return (
     <GestureHandlerRootView
       style={styles.container}
@@ -27,7 +29,9 @@ function Providers({ children }: { children: React.ReactNode }) {
               <LoaderProvider>
                 <SafeAreaView edges={['top']} />
                 <StatusBar
-                  barStyle={'dark-content'}
+                  barStyle={
+                    colorScheme === 'dark' ? 'dark-content' : 'light-content'
+                  }
                   backgroundColor={'white'}
                 />
 

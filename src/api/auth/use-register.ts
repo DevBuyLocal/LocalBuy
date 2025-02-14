@@ -1,11 +1,13 @@
 import type { AxiosError } from 'axios';
 import { createMutation } from 'react-query-kit';
 
+import { type UserType } from '@/lib/constants';
+
 import { client } from '../common';
 
 type Variables = {
   email: string;
-  type: 'individual' | 'business';
+  type: UserType;
   phone?: string;
   referal_code: string | undefined;
   password: string;

@@ -2,24 +2,28 @@
 import { Redirect, SplashScreen, Stack } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 
+import { queryClient, QueryKey, useGetUser } from '@/api';
 import { useAuth, useIsFirstTime } from '@/lib';
 
 export default function MainLayout() {
-  const { status } = useAuth();
+  const { status, token } = useAuth();
   const [isFirstTime] = useIsFirstTime();
   const hideSplash = useCallback(async () => {
     await SplashScreen.hideAsync();
   }, []);
 
-  // const { data } = useGetUser();
+  useGetUser();
 
   useEffect(() => {
     if (status !== 'idle') {
       setTimeout(() => {
         hideSplash();
+        if (token) {
+          queryClient.fetchQuery({ queryKey: [QueryKey.USER] });
+        }
       }, 1000);
     }
-  }, [hideSplash, status]);
+  }, [hideSplash, status, token]);
 
   if (isFirstTime) {
     return <Redirect href="/onboarding" />;

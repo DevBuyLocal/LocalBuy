@@ -6,6 +6,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { Animated } from 'react-native';
 import { twMerge } from 'tailwind-merge';
@@ -26,6 +27,7 @@ import {
   View,
 } from '@/components/ui';
 import { useAuth } from '@/lib';
+import { UserType } from '@/lib/constants';
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
 
 import dummyProducts from '../../../lib/dummy';
@@ -100,6 +102,10 @@ export default function Home() {
   // console.log('🚀 ~ file: index.tsx:96 ~ products:', products);
 
   const { push } = useRouter();
+  const { user } = useAuth();
+  const { colorScheme } = useColorScheme();
+  // const { data } = useGetUser();
+  // const isBusiness = user?.type === UserType.Business;
   const { present, ref, dismiss } = useModal();
   const {
     present: locationPresent,
@@ -107,15 +113,25 @@ export default function Home() {
     dismiss: locationDismiss,
   } = useModal();
 
-  const phoneNumberAvailable = true;
-  const detailsProvided = true;
+  const phoneNumberAvailable = Boolean(user?.phoneNumber);
+  const detailsProvided = () => {
+    if (user?.type === UserType.Business) {
+      return Boolean(user?.businessProfile);
+    }
+    if (user?.type === UserType.Individual) {
+      return Boolean(
+        user?.profile?.fullName && user?.profile?.address && user?.profile
+      );
+    }
+    return false;
+  };
   const preferencesProvided = false;
 
   const currentStep = () => {
-    if (phoneNumberAvailable && detailsProvided && preferencesProvided) {
+    if (phoneNumberAvailable && detailsProvided() && preferencesProvided) {
       return;
     }
-    if (detailsProvided) {
+    if (detailsProvided()) {
       return 2;
     }
     if (phoneNumberAvailable) {
@@ -134,17 +150,35 @@ export default function Home() {
   const opts = [
     {
       name: 'Filter',
-      icon: <Ionicons name="filter-sharp" size={20} color="#12121270" />,
+      icon: (
+        <Ionicons
+          name="filter-sharp"
+          size={20}
+          color={colorScheme === 'dark' ? 'white' : '#12121270'}
+        />
+      ),
       onPress: present,
     },
     {
       name: 'Saved item',
-      icon: <Octicons name="heart" size={20} color="#12121270" />,
+      icon: (
+        <Octicons
+          name="heart"
+          size={20}
+          color={colorScheme === 'dark' ? 'white' : '#12121270'}
+        />
+      ),
       onPress: () => {},
     },
     {
       name: 'Deals',
-      icon: <SimpleLineIcons name="energy" size={20} color="#12121270" />,
+      icon: (
+        <SimpleLineIcons
+          name="energy"
+          size={20}
+          color={colorScheme === 'dark' ? 'white' : '#12121270'}
+        />
+      ),
       onPress: () => {},
     },
   ];
@@ -155,7 +189,7 @@ export default function Home() {
         style={{
           transform: [{ translateY: headerTranslateY }],
         }}
-        className="absolute inset-x-0 top-0 z-50 pb-2"
+        className="absolute inset-x-0 top-0 z-50 pb-2 dark:bg-black"
       >
         <Container.Box>
           <View className="flex-row items-center justify-between">
@@ -203,14 +237,14 @@ export default function Home() {
         scrollEventThrottle={16}
         bounces={false}
       >
-        <Container.Page className="mt-16 px-0">
+        <Container.Page className="mt-16 px-0 dark:bg-black">
           <Container.Box>
             {token && Boolean(step) && (
               <Pressable
                 onPress={() => {
                   push('/complete-profile');
                 }}
-                className="w-full flex-row items-center justify-between rounded-xl border border-[#E9EAEC] p-4"
+                className="my-3 w-full flex-row items-center justify-between rounded-xl border border-[#E9EAEC] p-4"
               >
                 <View className="w-[90%] gap-5">
                   <Text className=" text-[18px] font-bold">
@@ -229,11 +263,15 @@ export default function Home() {
                       ))}
                     </View>
                     <Text className="mt-2 opacity-70">
-                      2 steps remaining to complete
+                      Few steps remaining to complete
                     </Text>
                   </View>
                 </View>
-                <MaterialIcons name="chevron-right" size={25} />
+                <MaterialIcons
+                  name="chevron-right"
+                  size={25}
+                  color={colorScheme === 'dark' ? '#fff' : 'black'}
+                />
               </Pressable>
             )}
             <CustomInput
@@ -246,10 +284,12 @@ export default function Home() {
                 <Pressable
                   key={i.toString()}
                   onPress={e.onPress}
-                  className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-5 py-3"
+                  className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-5 py-3 dark:bg-[#282828]"
                 >
                   {e.icon}
-                  <Text className="dark:text-[#121227B2]">{e.name}</Text>
+                  <Text className="text-[#121227B2] dark:text-[#fff]">
+                    {e.name}
+                  </Text>
                 </Pressable>
               ))}
             </View>

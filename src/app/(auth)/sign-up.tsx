@@ -10,12 +10,13 @@ import ControlledCustomInput from '@/components/general/controlled-custom-input'
 import CustomButton from '@/components/general/custom-button';
 import InputView from '@/components/general/input-view';
 import { extractError, Pressable, Text, View } from '@/components/ui';
+import { type UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import { type RegFormType, regSchema } from './types';
 
 export default function SignUp() {
-  const { role }: { role: 'individual' | 'business' } = useLocalSearchParams();
+  const { role }: { role: UserType } = useLocalSearchParams();
   const { setLoading, setError, setSuccess } = useLoader();
   const { push, replace } = useRouter();
   const { mutate: Register } = useRegister();
@@ -60,7 +61,7 @@ export default function SignUp() {
   return (
     <Container.Page showHeader headerTitle="Create an account">
       <InputView>
-        <Text className="mt-5 w-4/5 text-[25px] font-bold">
+        <Text className="w-4/5 text-[25px] font-bold">
           Let’s get you signed up and shopping.
         </Text>
         <Text className="mt-2  text-[16px] opacity-75">

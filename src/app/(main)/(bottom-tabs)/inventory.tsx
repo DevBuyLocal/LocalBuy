@@ -3,6 +3,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
@@ -22,6 +23,7 @@ type Route = {
 export default function Inventory() {
   const layout = useWindowDimensions();
   const [index, setIndex] = React.useState(0);
+  const { colorScheme } = useColorScheme();
 
   const renderScene = SceneMap({
     dashboard: Dashboard,
@@ -33,12 +35,24 @@ export default function Inventory() {
     {
       key: 'dashboard',
       title: 'Dashboard',
-      icon: <SimpleLineIcons name="speedometer" size={20} color="black" />,
+      icon: (
+        <SimpleLineIcons
+          name="speedometer"
+          size={20}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
+      ),
     },
     {
       key: 'products',
       title: 'Products',
-      icon: <FontAwesome5 name="prescription-bottle" size={18} color="black" />,
+      icon: (
+        <FontAwesome5
+          name="prescription-bottle"
+          size={18}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
+      ),
     },
     {
       key: 'low-stock',
@@ -47,7 +61,7 @@ export default function Inventory() {
         <MaterialCommunityIcons
           name="signal-cellular-1"
           size={20}
-          color="black"
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
         />
       ),
     },
@@ -66,7 +80,7 @@ export default function Inventory() {
             {...props}
             indicatorStyle={{ backgroundColor: colors.primaryText }}
             style={{
-              backgroundColor: 'white',
+              backgroundColor: colorScheme === 'dark' ? 'black' : 'white',
               marginTop: 14,
             }}
             contentContainerStyle={{

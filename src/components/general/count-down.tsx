@@ -7,12 +7,18 @@ interface CountdownProps {
   countFrom: number;
   onCountdownComplete: () => void;
   resend: () => void;
+  text1?: string;
+  text2?: string;
+  disabled?: boolean;
 }
 
 const CountdownTimer: FC<CountdownProps> = ({
   countFrom,
   onCountdownComplete,
   resend,
+  text1,
+  text2,
+  disabled,
 }) => {
   const [countdown, setCountdown] = useState(countFrom);
   const [isActive, setIsActive] = useState(true); // New state for countdown activity
@@ -36,6 +42,7 @@ const CountdownTimer: FC<CountdownProps> = ({
   };
 
   const handleResetClick = () => {
+    if (disabled) return;
     if (countdown > 0) return;
     setCountdown(countFrom);
     setIsActive(true);
@@ -45,7 +52,7 @@ const CountdownTimer: FC<CountdownProps> = ({
   return (
     <Pressable onPress={handleResetClick} className="flex-row items-center">
       <Text className="text-[14px] font-medium opacity-70">
-        Not getting code?{' '}
+        {text1 || 'Not getting code?'}{' '}
       </Text>
       {countdown > 0 ? (
         <Text
@@ -58,7 +65,7 @@ const CountdownTimer: FC<CountdownProps> = ({
         </Text>
       ) : (
         <Text className="text-[14px] font-medium color-primaryText">
-          Resend
+          {text2 || 'Resend'}
         </Text>
       )}
     </Pressable>

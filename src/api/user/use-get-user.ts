@@ -1,65 +1,35 @@
-import { useQuery } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
+import { type AxiosError } from 'axios';
+import { createQuery } from 'react-query-kit';
 
-import { accessToken, useAuth } from '@/lib';
+import { accessToken, setUser, signOut } from '@/lib';
 
 import { client } from '../common';
 import { QueryKey } from '../types';
-import { type User } from './types';
+import { type TUser } from './types';
 
-type Response = {
-  data: User;
-};
-
-// export const useGetUseri = createMutation<Response, void, AxiosError>({
-//   mutationFn: async () =>
-//     client
-//       .get('api/auth/me', {
-//         headers: {
-//           Authorization: `Bearer ${accessToken()?.access}`,
-//         },
-//       })
-//       .then((response) => response.data),
-//   onSuccess(data) {
-//     const setUser = useAuth.use.setUser();
-//     setUser(data?.data);
-//   },
-// });
-
-export const useGetUser = () => {
-  const token = accessToken()?.access;
-  return useQuery<Response, void, AxiosError>({
-    queryKey: [QueryKey.USER],
-    queryFn: () =>
-      client({
-        url: 'api/auth/me',
-        method: 'GET',
+type Response = TUser;
+export const useGetUser = createQuery<Response, void, AxiosError>({
+  queryKey: [QueryKey.USER],
+  fetcher: () =>
+    client
+      .get('api/auth/me', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken()?.access}`,
         },
-      }).then((response) => {
+      })
+      .then((response) => {
         if (response.status === 200) {
-          const setUser = useAuth.use.setUser();
-          setUser(response?.data);
+          setUser(response?.data?.data);
         }
-        return response.data;
+
+        return response?.data?.data;
+      })
+      .catch((error: any) => {
+        //SiGN USER OUT IF UNAUTHORIZED
+        if (error.status >= 400 && error?.status < 500) {
+          signOut();
+        }
+        return error;
       }),
-    // if (!token) throw new Error('No access token available');
-    // return await client
-    //   .get('/api/auth/me', {
-    //     headers: { Authorization: `Bearer ${token}` },
-    //   })
-    //   .then((response) => {
-    //     console.log('🚀 ~ file: use-get-user.tsx:39 ~ response:', response);
-    //     if (response.status === 200) {
-    //       const setUser = useAuth.use.setUser();
-    //       setUser(response?.data);
-    //     }
-    //     return response.data;
-    //   })
-    //   .catch((error) => {
-    //     console.log(error, 'Error');
-    //   });
-    enabled: !!token,
-  });
-};
+  enabled: !!accessToken()?.access,
+});

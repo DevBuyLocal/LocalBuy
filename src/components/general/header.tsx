@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
 import { AnimatePresence, MotiView } from 'moti';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { type GestureResponderEvent } from 'react-native';
 
@@ -21,19 +22,21 @@ function Header(props: HeaderProps) {
   const { back, push } = useRouter();
 
   const { total } = useCart(CartSelector);
+  const { colorScheme } = useColorScheme();
+
   return (
     <View
       style={{
-        shadowColor: '#000000',
+        shadowColor: colorScheme === 'dark' ? '#fff' : '#000000',
         shadowOffset: {
           width: 0,
           height: 1,
         },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.2,
         shadowRadius: 1.0,
         elevation: 1,
       }}
-      className="h-20 w-full flex-row  px-5"
+      className="h-20 w-full flex-row bg-[#FFFFFF] px-5 dark:bg-black"
     >
       {!props.hideBackButton && (
         <Pressable
@@ -48,7 +51,7 @@ function Header(props: HeaderProps) {
           props.headerComponent
         ) : (
           <View>
-            <Text className="text-[16px] font-normal capitalize">
+            <Text className="text-[16px] font-bold capitalize">
               {props.headerTitle}
             </Text>
           </View>
