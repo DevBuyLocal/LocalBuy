@@ -14,7 +14,7 @@ import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
-import { extractError, ScrollView, Text, View } from '@/components/ui';
+import { ScrollView, Text, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
@@ -141,7 +141,7 @@ const Default = ({
 
 /* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
-  const { setSuccess, setLoading, setError } = useLoader();
+  const { setSuccess, setLoading, setError } = useLoader({});
   const { user } = useAuth();
 
   const [details, setDetails] = React.useState({
@@ -155,7 +155,7 @@ const Edit = () => {
       setSuccess('Phone number updated');
     },
     onError: (error) => {
-      setError(extractError(error?.response?.data));
+      setError(error?.response?.data);
     },
     onSettled() {
       setLoading(false);
@@ -218,7 +218,7 @@ const Edit = () => {
 
 /* PASSWORD MANAGEMENT SECTION - HANDLES PASSWORD UPDATES */
 const Password = () => {
-  const { setSuccess, setLoading, setError } = useLoader();
+  const { setSuccess, setLoading, setError } = useLoader({});
   const { user } = useAuth();
   const { back } = useRouter();
   const [pass, setPass] = React.useState({ password: '', confirmPassword: '' });
@@ -229,7 +229,7 @@ const Password = () => {
       setSuccess(data?.message);
     },
     onError: (error) => {
-      setError(extractError(error?.response?.data));
+      setError(error?.response?.data);
     },
     onSettled() {
       setLoading(false);
@@ -244,7 +244,7 @@ const Password = () => {
       back();
     },
     onError: (error) => {
-      setError(extractError(error?.response?.data));
+      setError(error?.response?.data);
     },
     onSettled() {
       setLoading(false);

@@ -1,8 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
@@ -13,76 +10,69 @@ import { twMerge } from 'tailwind-merge';
 
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
-import { AdsBanner } from '@/components/home/ads-banner';
-import { FeaturedBrands } from '@/components/home/featured-brands';
+import { AdsHeader } from '@/components/home/ads-header';
+import FeaturedBrands from '@/components/home/featured-brands';
+// import { FeaturedBrands } from '@/components/home/featured-brands';
 import FilterModal from '@/components/products/filter-modal';
 import LocationModal from '@/components/products/location-modal';
 import ProductCarousel from '@/components/products/product-carousel';
-import {
-  colors,
-  Pressable,
-  ScrollView,
-  Text,
-  useModal,
-  View,
-} from '@/components/ui';
+import { Pressable, Text, useModal, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { UserType } from '@/lib/constants';
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
 
-import dummyProducts from '../../../lib/dummy';
-const imgs = [
-  {
-    id: 1,
-    img: [
-      'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-      'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-      'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-      'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-      'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-    ],
-  },
-  {
-    id: 2,
-    img: [
-      'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-      'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-      'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-      'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-      'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-    ],
-  },
-  {
-    id: 3,
-    img: [
-      'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-      'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-      'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-      'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-      'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-    ],
-  },
-  {
-    id: 4,
-    img: [
-      'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-      'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-      'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-      'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-      'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-    ],
-  },
-  {
-    id: 5,
-    img: [
-      'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-      'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-      'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-      'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-      'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-    ],
-  },
-];
+// const imgs = [
+//   {
+//     id: 1,
+//     img: [
+//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
+//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
+//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
+//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
+//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
+//     ],
+//   },
+//   {
+//     id: 2,
+//     img: [
+//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
+//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
+//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
+//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
+//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
+//     ],
+//   },
+//   {
+//     id: 3,
+//     img: [
+//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
+//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
+//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
+//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
+//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
+//     ],
+//   },
+//   {
+//     id: 4,
+//     img: [
+//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
+//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
+//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
+//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
+//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
+//     ],
+//   },
+//   {
+//     id: 5,
+//     img: [
+//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
+//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
+//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
+//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
+//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
+//     ],
+//   },
+// ];
 
 // eslint-disable-next-line max-lines-per-function
 export default function Home() {
@@ -95,11 +85,7 @@ export default function Home() {
 
   const { token } = useAuth();
 
-  // const { data } = useGetProducts({ type: 'trending' })();
-  // console.log('🚀 ~ file: index.tsx:93 ~ error:', JSON.stringify(error));
-  // console.log('🚀 ~ file: index.tsx:93 ~ data:', data?.pages);
-  // const products = normalizePages(data?.pages);
-  // console.log('🚀 ~ file: index.tsx:96 ~ products:', products);
+  // console.log('🚀 ~ file: index.tsx:95 ~ products:', products);
 
   const { push } = useRouter();
   const { user } = useAuth();
@@ -144,9 +130,8 @@ export default function Home() {
   // console.log('🚀 ~ file: index.tsx:126 ~ step:', step);
 
   // const [completeIndex] = React.useState<number | undefined>(step);
-  const { headerTranslateY, onScroll } = useScrollBehavior();
+  const { onScroll, scrollOffset } = useScrollBehavior();
 
-  const notificationUnread = false;
   const opts = [
     {
       name: 'Filter',
@@ -183,9 +168,35 @@ export default function Home() {
     },
   ];
 
+  const stickyHeaderHeight = scrollOffset
+    ? scrollOffset.interpolate({
+        inputRange: [0, 50],
+        outputRange: [0, 30], // Adjust this value for desired spacing
+        extrapolate: 'clamp',
+      })
+    : new Animated.Value(0);
+
+  // console.log('🚀 ~ Home ~ stickyHeaderHeight:', stickyHeaderHeight);
+
+  // const stickyHeaderHeight = scroll
+  //   ? scroll?.interpolate({
+  //       inputRange: [0, 50],
+  //       outputRange: [0, 12], // Adjust this value for desired spacing
+  //       extrapolate: 'clamp',
+  //     })
+  //   : new Animated.Value(0);
+
+  // useEffect(() => {
+  // StatusBar.setHidden(false, 'slide');
+  // StatusBar.setBarStyle('dark-content');
+  // }, []);
+
   return (
-    <>
-      <Animated.View
+    <View style={{ flex: 1 }}>
+      {/* <SafeAreaView edges={['top']} /> */}
+
+      {/* <StatusBar barStyle={'light-content'} backgroundColor={'green'} /> */}
+      {/* <Animated.View
         style={{
           transform: [{ translateY: headerTranslateY }],
         }}
@@ -229,15 +240,53 @@ export default function Home() {
             </Pressable>
           </View>
         </Container.Box>
-      </Animated.View>
+        <Animated.View
+          style={[{ transform: [{ translateY }] }]}
+          className={'absolute inset-x-0 top-0'}
+        >
+          <Container.Box>
+            <CustomInput
+              isSearch
+              placeholder="Search for a product..."
+              onPress={() => push('/search')}
+            />
+          </Container.Box>
+        </Animated.View>
+      </Animated.View> */}
 
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
         bounces={false}
+        stickyHeaderIndices={[1]}
+        // className={'bg-white dark:bg-[#282828]'}
       >
-        <Container.Page className="mt-16 px-0 dark:bg-black">
+        <AdsHeader scroll={scrollOffset} locationPresent={locationPresent} />
+
+        <Container.Box>
+          <Animated.View
+            style={{
+              paddingTop: stickyHeaderHeight,
+            }}
+          >
+            <CustomInput
+              isSearch
+              placeholder="Search for a product..."
+              onPress={() => push('/search')}
+              // style={{
+              //   elevation: 2,
+              //   shadowRadius: 1,
+              //   shadowColor: '#000',
+              //   shadowOffset: { width: 0, height: 0 },
+              //   shadowOpacity: 0.2,
+              // }}
+              containerClass="shadow-sm overflow-hidden rounded-full"
+            />
+          </Animated.View>
+        </Container.Box>
+
+        <Container.Page className="px-0 dark:bg-black">
           <Container.Box>
             {token && Boolean(step) && (
               <Pressable
@@ -274,17 +323,13 @@ export default function Home() {
                 />
               </Pressable>
             )}
-            <CustomInput
-              isSearch
-              placeholder="Search for a product..."
-              onPress={() => push('/search')}
-            />
-            <View className="mt-2 flex-row items-center justify-between gap-1">
+
+            <View className=" flex-row items-center justify-between gap-1">
               {opts.map((e, i) => (
                 <Pressable
                   key={i.toString()}
                   onPress={e.onPress}
-                  className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-5 py-3 dark:bg-[#282828]"
+                  className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-6 py-3 dark:bg-[#282828] "
                 >
                   {e.icon}
                   <Text className="text-[#121227B2] dark:text-[#fff]">
@@ -293,25 +338,18 @@ export default function Home() {
                 </Pressable>
               ))}
             </View>
-            <AdsBanner imgs={imgs} />
-            {FeaturedBrands(dummyProducts)}
+            {/* <AdsBanner imgs={imgs} /> */}
+            <FeaturedBrands />
+            {/* {FeaturedBrands(dummyProducts)} */}
           </Container.Box>
           <Container.Box containerClassName="bg-[#F7F7F7] dark:bg-[#282828] pb-5">
-            <ProductCarousel
-              items={dummyProducts}
-              title={'New Arrivals'}
-              isLoading={false}
-            />
-            <ProductCarousel
-              items={dummyProducts}
-              title={'Trending Products'}
-              isLoading={false}
-            />
+            <ProductCarousel title={'New Arrivals'} />
+            <ProductCarousel title={'Trending Products'} />
           </Container.Box>
         </Container.Page>
         <FilterModal ref={ref} dismiss={dismiss} />
         <LocationModal ref={locationRef} dismiss={locationDismiss} />
-      </ScrollView>
-    </>
+      </Animated.ScrollView>
+    </View>
   );
 }

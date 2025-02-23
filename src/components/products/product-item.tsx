@@ -1,59 +1,158 @@
-import Feather from '@expo/vector-icons/build/Feather';
-import Entypo from '@expo/vector-icons/Entypo';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { Image } from 'expo-image';
 import React from 'react';
-import { FlatList, type PressableProps } from 'react-native';
-import Accordion from 'react-native-collapsible/Accordion';
-import { showMessage } from 'react-native-flash-message';
-import Lightbox from 'react-native-lightbox-v2';
-import Share from 'react-native-share';
+import { type PressableProps } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
+import { type TProduct } from '@/api';
+import { useAddCartItem, useGetCartItems } from '@/api/cart';
+import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 
-import dummyProducts from '../../lib/dummy';
-import Container from '../general/container';
 import CustomButton from '../general/custom-button';
-import { Image, Modal, Pressable, Text, useModal, View, WIDTH } from '../ui';
-import ProductCarousel from './product-carousel';
-import QuantitySelect from './quantity-select';
+import { Modal, Pressable, Text, useModal, View } from '../ui';
+import DetailsModal from './details-modal';
 
-interface ProductItemProps extends Partial<PressableProps> {
-  item: any;
+export interface ProductItemProps extends Partial<PressableProps> {
+  item: TProduct;
   containerClassname?: string | undefined;
 }
 
+// eslint-disable-next-line max-lines-per-function
 function ProductItem(props: ProductItemProps) {
+  const { token } = useAuth();
+  const { loading, setLoading, setSuccess, setError } = useLoader({
+    showLoadingPage: false,
+  });
   const { addToCart, products_in_cart } = useCart(CartSelector);
-  const [imgSrc, setImgSrc] = React.useState(props?.item?.images[0]);
-
+  const { data } = useGetCartItems();
+  const cartItems = token ? data?.items || [] : products_in_cart || [];
   const { present, ref, dismiss } = useModal();
+  // const isInCart = products_in_cart?.find(
+  //   (item: any) => item?.id === props?.item?.id
+  // );
 
-  const isInCart = products_in_cart.find(
-    (item: any) => item?.id === props?.item?.id
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const getFirstValidOption = (options: TProduct['options']) => {
+    if (!options || !options.length) return null;
+
+    for (let option of options) {
+      if (option?.image?.length) {
+        return option; // Return the first option that has an image
+      }
+    }
+    return options[0] || null; // If no option has an image, return the first option as a fallback
+  };
+  const getSelectionInCart = (options: TProduct['options']) => {
+    if (!options || options.length === 0) return null;
+
+    const matchedOption = options.find((option) => {
+      const isInCart = cartItems.some(
+        (item) => item.productOption?.id === option?.id
+      );
+      // if (isInCart) {
+      //   console.log(`Variant in cart: ${option?.id}`);
+      // }
+      return isInCart;
+    });
+
+    return matchedOption || null;
+    // return matchedOption || options[0] || null;
+  };
+
+  const { mutate } = useAddCartItem({
+    onSuccess: () => {
+      setSuccess('Item added to cart');
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
+  // const getSelectionInCart = (options: TProduct['options']) => {
+  //   if (!options || !options.length) return null;
+
+  //   for (let option of options) {
+  //     if (
+  //       cartItems.filter((item) => item.productOption?.id === option?.id).length
+  //     ) {
+  //       console.log(
+  //         cartItems.filter((item) => item.productOption?.id === option?.id)
+  //           .length
+  //       );
+  //       return option; // Return the first option found in cart
+  //     }
+  //   }
+  //   return options[0] || null;
+  // };
+  const selectedOption = getFirstValidOption(props?.item?.options);
+
+  const itemIsInCart = getSelectionInCart(props?.item?.options);
+  // console.log('🚀 ~ ProductItem ~ itemIsInCart:', itemIsInCart);
+
+  const displayInfo = {
+    name: props?.item?.name,
+    description: props?.item?.description,
+    options: selectedOption
+      ? { ...selectedOption }
+      : {
+          id: 0,
+          value: '',
+          price: 0,
+          moq: 0,
+          image: [],
+          productId: 0,
+          unit: '',
+          createdAt: '',
+          updatedAt: '',
+        },
+  };
+
+  const [imgSrc, setImgSrc] = React.useState(
+    displayInfo?.options?.image.length ? displayInfo?.options?.image : null
   );
 
+  const foundItem = cartItems.find(
+    (item) => item?.productOption?.id === selectedOption?.id
+  );
+
+  // console.log('🚀 ~ ProductItem ~ fem:', foundItem);
+
+  // React.useEffect(() => {
+  //   if (displayInfo?.options?.image.length) {
+  //     setImgSrc(displayInfo.options.image);
+  //   } else {
+  //     setImgSrc(null);
+  //   }
+  // }, [displayInfo?.options?.image]);
   return (
     <>
       <Pressable
         className={twMerge(
-          'w-[158px] rounded-[2px] bg-[#FFFFFF] dark:bg-[#000000] px-[10px] py-[8px] justify-between',
+          'w-[148px] rounded-[2px] bg-[#FFFFFF] dark:bg-[#000000] px-[10px] pt-[16px] pb-2 justify-between',
           props.containerClassname
         )}
-        onPress={present}
+        onPress={() => {
+          setIsOpen(true);
+          present();
+        }}
       >
         <View>
           <Image
             source={
-              imgSrc
-                ? { uri: imgSrc }
+              imgSrc?.length
+                ? { uri: imgSrc[0] }
                 : require('../../../assets/images/img-p-holder.png')
             }
-            className="h-[95px] w-full "
+            className="h-[95px] w-full mix-blend-multiply"
+            contentFit="cover"
+            transition={1000}
             style={{
               tintColor: imgSrc ? undefined : '#D5D5D580',
-              resizeMode: 'contain',
             }}
             onError={() => {
               setImgSrc(null);
@@ -61,26 +160,53 @@ function ProductItem(props: ProductItemProps) {
           />
           <View className="mb-1 mt-3 min-h-[78px] justify-between">
             <View>
-              <Text numberOfLines={2} className="text-[12px] font-bold">
-                {props?.item?.name}
-              </Text>
-              <Text numberOfLines={1} className="mt-1 text-[10px]">
-                Minimum purchase: {props?.item?.minPurchase}
+              <Text numberOfLines={2} className="text-[12px] font-normal">
+                {displayInfo?.name}
               </Text>
             </View>
             <Text className="text-[14px] font-bold">
-              N{Number(props?.item?.price).toLocaleString()}
+              N{Number(displayInfo?.options?.price).toLocaleString()}
+            </Text>
+            <Text numberOfLines={1} className="text-[10px] text-primaryText">
+              Minimum purchase: {displayInfo?.options?.moq}
             </Text>
           </View>
         </View>
         <View>
-          {isInCart ? (
-            <QuantitySelect itemId={props.item.id} />
+          <CustomButton
+            label={itemIsInCart ? 'Added to cart' : 'Add to cart'}
+            disabled={Boolean(itemIsInCart)}
+            loading={loading}
+            containerClassname="border-primaryText h-[29px] rounded-[4px]"
+            textClassName="text-white font-normal text-[12px]"
+            onPress={() => {
+              if (token && selectedOption) {
+                setLoading(true);
+                mutate({
+                  productOptionId: selectedOption?.id,
+                  quantity: 1,
+                });
+              }
+              // addToCart(props.item);
+              // showMessage({
+              //   message: 'Added to cart!',
+              //   type: 'success',
+              //   duration: 2000,
+              // });
+            }}
+          />
+          {/* {itemIsInCart ? (
+            <QuantitySelect
+              itemId={itemIsInCart?.id}
+              cartItemId={
+                cartItems?.filter((e) => e?.id === itemIsInCart?.id)[0]?.id
+              }
+            />
           ) : (
-            <CustomButton.Secondary
+            <CustomButton
               label="Add to cart"
-              containerClassname="border-[#0F3D30] h-[29px] rounded-[4px]"
-              textClassName="text-[#0F3D30] font-regular text-[12px]"
+              containerClassname="border-primaryText h-[29px] rounded-[4px]"
+              textClassName="text-white font-normal text-[12px]"
               onPress={() => {
                 addToCart(props.item);
                 showMessage({
@@ -90,232 +216,28 @@ function ProductItem(props: ProductItemProps) {
                 });
               }}
             />
-          )}
+          )} */}
         </View>
       </Pressable>
+
       <Modal
         ref={ref}
         snapPoints={['90%']}
         style={{ borderRadius: 16, overflow: 'hidden' }}
+        onDismiss={() => setIsOpen(false)}
+        padTheTop={false}
       >
-        {DetailsModal(dismiss, isInCart, addToCart, props)}
+        {isOpen && (
+          <DetailsModal
+            dismiss={dismiss}
+            isInCart={foundItem}
+            addToCart={addToCart}
+            item={props.item}
+          />
+        )}
       </Modal>
     </>
   );
 }
 
 export default ProductItem;
-
-// eslint-disable-next-line max-lines-per-function
-function DetailsModal(
-  dismiss: () => void,
-  isInCart: any,
-  addToCart: (payload: any) => void,
-  props: ProductItemProps
-) {
-  const [activeIndex, setActiveIndex] = React.useState<number>(0);
-  const [activeSections, setActiveSections] = React.useState<any[]>([]);
-
-  const ref = React.useRef<any>(null);
-
-  const onFlatListUpdate = React.useCallback(({ viewableItems }: any) => {
-    if (viewableItems.length > 0) {
-      setActiveIndex(viewableItems[0].index || 0);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      if (props?.item?.images?.length) {
-        if (activeIndex === props.item.images.length - 1) {
-          setActiveIndex(0);
-          ref?.current?.scrollToIndex({ animated: true, index: 0 });
-        } else {
-          setActiveIndex(activeIndex + 1);
-          ref?.current?.scrollToIndex({
-            animated: true,
-            index: activeIndex + 1,
-          });
-        }
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [activeIndex, props.item.images.length]);
-
-  const SECTIONS = [
-    {
-      title: (
-        <View className="flex-row justify-between">
-          <Text className="text-[14px]">Description</Text>
-          <Entypo name="chevron-small-down" size={20} color="black" />
-        </View>
-      ),
-      content: (
-        <View className="w-[95%]">
-          <Text className="pt-5 text-justify">{props?.item?.description}</Text>
-        </View>
-      ),
-    },
-    {
-      title: (
-        <View className="flex-row justify-between">
-          <Text
-            className={twMerge(
-              'text-[14px]',
-              props?.item?.quantity ? 'opacity-100' : 'opacity-55'
-            )}
-          >
-            Choose quantity
-          </Text>
-          <Entypo name="chevron-small-down" size={20} color="black" />
-        </View>
-      ),
-      content: props?.item?.quantity ? (
-        <View className={twMerge('mt-5 pt-5')}>
-          <QuantitySelect itemId={props.item.id} removeOnZero={false} />
-        </View>
-      ) : (
-        <></>
-      ),
-    },
-    {
-      title: (
-        <View className="flex-row justify-between">
-          <Text className="text-[14px]">Save for later</Text>
-          <Ionicons name="bookmark-outline" size={24} color="black" />
-        </View>
-      ),
-      content: <></>,
-    },
-  ];
-
-  return (
-    <Container.Page>
-      <View className="fixed top-0 h-16 flex-row items-center justify-between border-b border-[#12121214] px-5">
-        <Pressable onPress={dismiss}>
-          <Feather name="x" size={24} color="black" />
-        </Pressable>
-
-        <Pressable
-          className="py-2 pl-5"
-          onPress={() =>
-            Share.open({
-              message: `Buy ${props.item?.name} from buy-local`,
-              url: 'buylocal.app',
-            })
-          }
-        >
-          <Ionicons name="share-social-outline" size={28} color="black" />
-        </Pressable>
-      </View>
-      <BottomSheetScrollView showsVerticalScrollIndicator={false}>
-        <View className="h-[350px] w-full bg-[#F7F7F7]">
-          <FlatList
-            data={props?.item?.images || []}
-            renderItem={({ item }) => (
-              //@ts-ignore
-              <Lightbox
-                backgroundColor="#121212"
-                springConfig={{ tension: 15, friction: 7 }}
-              >
-                <View>
-                  <Image
-                    source={{ uri: item }}
-                    style={{ width: WIDTH, height: 300 }}
-                  />
-                </View>
-              </Lightbox>
-            )}
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(_, i) => i.toString()}
-            snapToAlignment={'center'}
-            decelerationRate={'fast'}
-            snapToInterval={WIDTH}
-            viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
-            horizontal
-            onViewableItemsChanged={onFlatListUpdate}
-            ref={ref}
-          />
-
-          <BottomSheetScrollView
-            horizontal
-            className={'gap-5 px-5 py-2'}
-            showsHorizontalScrollIndicator={false}
-          >
-            {props?.item?.images?.map((e, i) => (
-              <Pressable
-                key={i.toString()}
-                onPress={() => {
-                  setActiveIndex(i);
-                  ref?.current?.scrollToIndex({ animated: true, index: i });
-                }}
-              >
-                <Image
-                  source={{ uri: e }}
-                  className="mr-3 size-[65px] rounded-md border-primaryText bg-[#F7F7F7]"
-                  style={{ borderWidth: i === activeIndex ? 1 : undefined }}
-                />
-              </Pressable>
-            ))}
-          </BottomSheetScrollView>
-        </View>
-
-        <Container.Box containerClassName="flex-1">
-          <Text className="my-3 text-[16px] font-[200] opacity-75">
-            {props?.item?.name}
-          </Text>
-          <Text className="mb-3 text-[24px] font-medium">
-            N{props?.item?.price?.toLocaleString()}
-          </Text>
-
-          <Accordion
-            sections={SECTIONS}
-            activeSections={activeSections}
-            renderSectionTitle={undefined}
-            underlayColor="transparent"
-            renderHeader={(section) => (section?.title ? section.title : <></>)}
-            renderContent={(section) => section.content}
-            onChange={(i) => {
-              setActiveSections(i);
-            }}
-            sectionContainerStyle={{
-              borderWidth: 1,
-              marginBottom: 8,
-              paddingHorizontal: 10,
-              paddingVertical: 15,
-              borderRadius: 5,
-              borderColor: '#1212121A',
-            }}
-            containerStyle={{ marginTop: 10 }}
-          />
-          <View className="mt-10">
-            {isInCart ? (
-              <CustomButton label={'Proceed to checkout'} />
-            ) : (
-              <CustomButton
-                label="Add to cart"
-                onPress={() => {
-                  addToCart(props.item);
-                  showMessage({
-                    message: 'Added to cart!',
-                    type: 'success',
-                    duration: 2000,
-                  });
-                }}
-              />
-            )}
-          </View>
-        </Container.Box>
-        <Container.Box containerClassName="bg-[#F7F7F7]">
-          <ProductCarousel
-            items={dummyProducts}
-            title={'Suggested Products'}
-            isLoading={false}
-          />
-        </Container.Box>
-        <View className="mb-10" />
-      </BottomSheetScrollView>
-    </Container.Page>
-  );
-}

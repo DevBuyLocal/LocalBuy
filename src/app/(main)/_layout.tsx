@@ -3,6 +3,7 @@ import { Redirect, SplashScreen, Stack } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 
 import { queryClient, QueryKey, useGetUser } from '@/api';
+import { useGetCartItems } from '@/api/cart';
 import { useAuth, useIsFirstTime } from '@/lib';
 
 export default function MainLayout() {
@@ -13,6 +14,7 @@ export default function MainLayout() {
   }, []);
 
   useGetUser();
+  useGetCartItems();
 
   useEffect(() => {
     if (status !== 'idle') {
@@ -20,6 +22,7 @@ export default function MainLayout() {
         hideSplash();
         if (token) {
           queryClient.fetchQuery({ queryKey: [QueryKey.USER] });
+          queryClient.fetchQuery({ queryKey: [QueryKey.CART] });
         }
       }, 1000);
     }
@@ -54,7 +57,11 @@ export default function MainLayout() {
       />
       <Stack.Screen
         name="search"
-        options={{ headerShown: false, presentation: 'containedModal' }}
+        options={{
+          headerShown: false,
+          animation: 'slide_from_bottom',
+          animationDuration: 200,
+        }}
       />
       <Stack.Screen
         name="add-product"

@@ -22,7 +22,8 @@ export const useUpdateUser = createMutation<Response, Variables, AxiosError>({
       },
     })
       .then(async (response) => {
-        console.log('🚀 ~ file: use:', response?.data);
+        // console.log('🚀 ~ file: use:', response?.data);
+        await queryClient.invalidateQueries({ queryKey: [QueryKey.USER] });
         await queryClient.refetchQueries({
           queryKey: [QueryKey.USER],
         });

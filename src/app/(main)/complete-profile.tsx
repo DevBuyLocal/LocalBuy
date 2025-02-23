@@ -47,7 +47,7 @@ function CompleteProfile() {
       setSuccess('Phone number updated');
     },
     onError: (error) => {
-      setError(extractError(error?.response?.data));
+      setError(error?.response?.data);
     },
     onSettled() {
       setLoading(false);

@@ -8,4 +8,8 @@ export type PaginateQuery<T> = {
 export enum QueryKey {
   USER = 'user',
   PRODUCTS = 'products',
+  CART = 'cart',
+  MANUFACTURERS = 'manufacturers',
+  CATEGORIES = 'categories',
+  ORDERS = 'orders',
 }

@@ -2,16 +2,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 
+import { type TCartItem } from '@/api/cart/types';
+
 import { createSelectors } from '../utils';
 
 interface CartState {
-  products_in_cart: any[];
+  products_in_cart: TCartItem[];
   total: number;
   totalPrice: number;
   quantity: number;
   cart_loaded: false;
   note: string;
-  addToCart: (payload: any) => void;
+  addToCart: (payload: Partial<TCartItem>) => void;
   removeFromCart: (itemId: string) => void;
   increaseQuantity: (itemId: string) => void;
   decreaseQuantity: (itemId: string, removeOnZero?: boolean) => void;

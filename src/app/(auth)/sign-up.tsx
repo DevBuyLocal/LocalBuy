@@ -9,7 +9,7 @@ import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
 import InputView from '@/components/general/input-view';
-import { extractError, Pressable, Text, View } from '@/components/ui';
+import { Pressable, Text, View } from '@/components/ui';
 import { type UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
@@ -17,7 +17,7 @@ import { type RegFormType, regSchema } from './types';
 
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();
-  const { setLoading, setError, setSuccess } = useLoader();
+  const { setLoading, setError, setSuccess } = useLoader({});
   const { push, replace, canGoBack, back } = useRouter();
   const { mutate: Register } = useRegister();
   const {
@@ -50,7 +50,7 @@ export default function SignUp() {
           );
         },
         onError(error) {
-          setError(extractError(error?.response?.data));
+          setError(error?.response?.data);
         },
         onSettled() {
           setLoading(false);

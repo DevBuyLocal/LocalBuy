@@ -75,4 +75,19 @@ export default [
     createdAt: '2025-01-12T11:41:06.265095',
     updatedAt: '2025-01-12T11:41:06.265095',
   },
+  {
+    id: '73f5c643-85ac-46c4-9f7b-83b59920cbsd15',
+    price: 19.99,
+    minPurchase: 3,
+    name: 'Durable Nylon-Braided USB Cable with Fast Charging Capability',
+    description:
+      'Say goodbye to flimsy cables with this durable nylon-braided USB cable that’s built to withstand daily wear and tear. With fast charging capabilities and universal compatibility, this cable is a must-have accessory for any device.',
+    images: [
+      'https://m.media-amazon.com/images/I/61Z5JYlVQML._AC_SL1500_.jpg',
+      'https://m.media-amazon.com/images/I/61msuO8zgCL._AC_SL1500_.jpg',
+      'https://m.media-amazon.com/images/I/61xPdd1Pl2L._AC_SL1500_.jpg',
+    ],
+    createdAt: '2025-01-12T11:41:06.265095',
+    updatedAt: '2025-01-12T11:41:06.265095',
+  },
 ];

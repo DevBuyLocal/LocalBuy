@@ -12,23 +12,26 @@ import { ActivityIndicator, StyleSheet } from 'react-native';
 import { showMessage } from 'react-native-flash-message';
 
 import Container from '@/components/general/container';
-import { Text } from '@/components/ui';
+import { extractError, Text } from '@/components/ui';
 
 interface LoaderContextProps {
   loading: boolean;
   loadingText?: string;
   setLoading: Dispatch<SetStateAction<boolean>>;
+  setShowPage: Dispatch<SetStateAction<boolean>>;
+  showPage: boolean;
   setLoadingText: Dispatch<SetStateAction<string>>;
-  setError: Dispatch<string>;
+  setError: Dispatch<any>;
   setSuccess: Dispatch<string>;
 }
 
 const LoaderContext = createContext<LoaderContextProps | null>(null);
 
 export const LoaderProvider = ({ children }: { children: ReactNode }) => {
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<any>('');
   const [success, setSuccess] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPage, setShowPage] = useState<boolean>(true);
   const [loadingText, setLoadingText] = useState<string>('');
 
   useEffect(() => {
@@ -37,20 +40,20 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
         message: success,
         type: 'success',
       });
+      setSuccess('');
     }
 
     if (error) {
       showMessage({
-        message: error,
+        message: extractError(error),
         type: 'danger',
       });
+      setError('');
     }
 
     return () => {
       setLoading(false);
       setLoadingText('');
-      setError('');
-      setSuccess('');
     };
   }, [error, success]);
 
@@ -63,11 +66,13 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
         setLoadingText,
         setError,
         setSuccess,
+        showPage,
+        setShowPage,
       }}
     >
       <>
         {children}
-        {loading && (
+        {loading && showPage && (
           <Container.Page
             containerClassName="items-center justify-center bg-[#12121299] dark:bg-[#28282880] px-0 flex-0"
             style={StyleSheet.absoluteFillObject}
@@ -89,10 +94,26 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useLoader = (): LoaderContextProps => {
+export const useLoader = ({
+  showLoadingPage = true,
+}: {
+  showLoadingPage?: boolean;
+}): LoaderContextProps => {
   const context = useContext(LoaderContext);
   if (!context) {
     throw new Error('useLoader must be used within a LoaderProvider');
   }
+
+  useEffect(() => {
+    if (context.showPage !== showLoadingPage) {
+      context.setShowPage(showLoadingPage);
+    }
+    return () => {
+      if (context.showPage) {
+        context.setShowPage(false);
+      }
+    };
+  }, [showLoadingPage, context]);
+
   return context;
 };

@@ -6,7 +6,9 @@ import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { type GestureResponderEvent } from 'react-native';
 
+import { useGetCartItems } from '@/api/cart';
 import { Pressable, Text, View } from '@/components/ui';
+import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 
 export type HeaderProps = {
@@ -20,9 +22,13 @@ export type HeaderProps = {
 
 function Header(props: HeaderProps) {
   const { back, push } = useRouter();
-
+  const { token } = useAuth();
   const { total } = useCart(CartSelector);
   const { colorScheme } = useColorScheme();
+
+  const { data } = useGetCartItems();
+
+  const noInCart = token ? data?.items?.length : total;
 
   return (
     <View
@@ -65,7 +71,7 @@ function Header(props: HeaderProps) {
         >
           <SimpleLineIcons name="basket" size={24} color="black" />
           <AnimatePresence>
-            {Boolean(total) && (
+            {Number(noInCart) && (
               <MotiView
                 from={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -77,7 +83,7 @@ function Header(props: HeaderProps) {
                 className="absolute -right-2 -top-2 rounded-full bg-red-600 px-[5px]"
               >
                 <Text className=" text-[14px] font-bold text-white">
-                  {total}
+                  {noInCart}
                 </Text>
               </MotiView>
             )}

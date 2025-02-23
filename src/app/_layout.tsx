@@ -5,6 +5,7 @@ import 'react-native-get-random-values';
 import { useFonts } from '@expo-google-fonts/dm-sans';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 
 import Providers from '@/components/providers';
@@ -33,13 +34,18 @@ SplashScreen.setOptions({
 // });
 export default function RootLayout() {
   // const theme = useThemeConfig();
-  // const { colorScheme } = useColorScheme();
+  const { setColorScheme } = useColorScheme();
 
   const [loaded, error] = useFonts({
     'dm-sans-regular': require('../../assets/fonts/DMSans-Regular.ttf'),
     'dm-sans-medium': require('../../assets/fonts/DMSans-Medium.ttf'),
     'dm-sans-bold': require('../../assets/fonts/DMSans-Bold.ttf'),
   });
+
+  React.useEffect(() => {
+    setColorScheme('light');
+  }, [setColorScheme]);
+
   if (!loaded && !error) {
     return null;
   }

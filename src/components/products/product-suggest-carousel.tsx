@@ -8,12 +8,12 @@ import { useGetProducts } from '@/api';
 import ViewAll from '../general/view-all';
 import ProductItem from './product-item';
 
-type ProductCarouselProps = {
+type ProductSuggestCarouselProps = {
   title: string;
   type?: string;
 };
 
-function ProductCarousel(props: ProductCarouselProps) {
+function ProductSuggestCarousel(props: ProductSuggestCarouselProps) {
   const { push } = useRouter();
 
   const { data, isFetching } = useGetProducts({
@@ -22,7 +22,7 @@ function ProductCarousel(props: ProductCarouselProps) {
   })();
   // const products = normalizePages(data?.pages);
   const products = data?.pages[0]?.data || [];
-  // console.log('🚀 ~ ProductCarousel ~ products:', products);
+  // console.log('🚀 ~ ProductSuggestCarousel ~ products:', products);
 
   if (!isFetching && !Boolean(products.length)) return null;
 
@@ -63,4 +63,4 @@ function ProductCarousel(props: ProductCarouselProps) {
   );
 }
 
-export default ProductCarousel;
+export default ProductSuggestCarousel;

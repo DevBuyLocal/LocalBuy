@@ -7,13 +7,13 @@ import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
-import { extractError, Text } from '@/components/ui';
+import { Text } from '@/components/ui';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 export default function ResetPassword() {
   const [email, setEmail] = React.useState('');
-  const { setSuccess, setLoading, setError } = useLoader();
+  const { setSuccess, setLoading, setError } = useLoader({});
 
   const { back } = useRouter();
   const [pass, setPass] = React.useState({
@@ -29,7 +29,7 @@ export default function ResetPassword() {
       setCodeSent(true);
     },
     onError: (error) => {
-      setError(extractError(error?.response?.data));
+      setError(error?.response?.data);
     },
     onSettled() {
       setLoading(false);
@@ -44,7 +44,7 @@ export default function ResetPassword() {
       back();
     },
     onError: (error) => {
-      setError(extractError(error?.response?.data));
+      setError(error?.response?.data);
     },
     onSettled() {
       setLoading(false);

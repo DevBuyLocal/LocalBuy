@@ -8,15 +8,7 @@ import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
 import CustomCheckbox from '@/components/general/custom-checkbox';
-import {
-  extractError,
-  Modal,
-  Pressable,
-  Radio,
-  Text,
-  useModal,
-  View,
-} from '@/components/ui';
+import { Modal, Pressable, Radio, Text, useModal, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { UserType, userType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
@@ -33,7 +25,7 @@ export default function Login() {
 
   const { mutate } = useLogin();
   const { signIn } = useAuth();
-  const { setLoading, setError, setSuccess, setLoadingText } = useLoader();
+  const { setLoading, setError, setSuccess, setLoadingText } = useLoader({});
   const { handleSubmit, control } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -53,12 +45,13 @@ export default function Login() {
         async onSuccess(data) {
           signIn({ access: data?.user?.token, refresh: '' });
           await queryClient.fetchQuery({ queryKey: [QueryKey.USER] });
+          await queryClient.fetchQuery({ queryKey: [QueryKey.CART] });
           //TODO: FETCH USER DATA AND STORE IT IN CONTEXT
           setSuccess('Login successful');
           replace(from === 'cart' ? '/(bottom-tabs)/cart' : `/`);
         },
         onError(error) {
-          setError(extractError(error?.response?.data));
+          setError(error?.response?.data);
         },
         onSettled() {
           setLoading(false);

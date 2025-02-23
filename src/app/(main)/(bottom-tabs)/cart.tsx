@@ -2,6 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Href, useRouter } from 'expo-router';
 import { Alert, FlatList, Pressable } from 'react-native';
 
+import { useGetProducts } from '@/api';
+import { useGetCartItems } from '@/api/cart/use-get-cart-items';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import Empty from '@/components/general/empty';
@@ -11,13 +13,31 @@ import { Text, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 
-import dummyProducts from '../../../lib/dummy';
-
 export default function Cart() {
   const { push } = useRouter();
   const { token } = useAuth();
-  const { clearCart, total, totalPrice, products_in_cart } =
-    useCart(CartSelector);
+  const { clearCart, products_in_cart } = useCart(CartSelector);
+
+  useGetProducts({})();
+  const { data, error } = useGetCartItems();
+  const cartItems = (token ? data?.items : products_in_cart) || [];
+  const sortCartItemsByCreatedAt = cartItems.sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const totalPrice = sortCartItemsByCreatedAt.reduce(
+    (sum, item) => sum + item?.productOption?.price * item?.quantity,
+    0
+  );
+
+  if (error) {
+    console.error('Failed to fetch cart items:', error);
+    return (
+      <Container.Box>
+        <Text>Error fetching cart items. Please try again later.</Text>
+      </Container.Box>
+    );
+  }
 
   function redirectToLoginAndBack(path: Href) {
     if (!token?.access) {
@@ -26,6 +46,7 @@ export default function Cart() {
       push(path);
     }
   }
+
   return (
     <Container.Page
       showHeader
@@ -52,10 +73,10 @@ export default function Cart() {
         ) : undefined
       }
     >
-      <Container.Box containerClassName="">
+      <Container.Box containerClassName="flex-1">
         <FlatList
-          data={products_in_cart || []}
-          keyExtractor={(e) => e.id}
+          data={sortCartItemsByCreatedAt}
+          keyExtractor={(_, i) => i?.toString()}
           renderItem={({ item }) => <CartItem item={item} />}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -78,7 +99,7 @@ export default function Cart() {
             <View className="my-3 h-px w-full bg-[#F7F7F7]" />
           )}
           ListFooterComponent={
-            Boolean(products_in_cart.length) ? (
+            Boolean(cartItems.length) ? (
               <View>
                 <View className="my-3 flex-row justify-between">
                   <Text className="opacity-65">Total amount</Text>
@@ -88,9 +109,11 @@ export default function Cart() {
                 </View>
                 <View className="h-px w-full bg-[#F7F7F7]" />
                 <View className="my-3 flex-row justify-between">
-                  <Text className="opacity-65">Number of product(s)</Text>
+                  <Text adjustsFontSizeToFit className="opacity-65">
+                    Number of product(s)
+                  </Text>
                   <Text className="text-[16px] font-bold">
-                    {total?.toLocaleString()}
+                    {cartItems?.length}
                   </Text>
                 </View>
                 <CustomButton
@@ -103,11 +126,7 @@ export default function Cart() {
                   onPress={() => redirectToLoginAndBack('/schedule-order')}
                 />
                 <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-40">
-                  <ProductCarousel
-                    items={dummyProducts}
-                    title={'Frequently bought'}
-                    isLoading={false}
-                  />
+                  <ProductCarousel title={'Frequently bought'} />
                 </Container.Box>
               </View>
             ) : undefined

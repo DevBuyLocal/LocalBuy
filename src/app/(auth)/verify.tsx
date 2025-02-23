@@ -8,7 +8,7 @@ import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import InputView from '@/components/general/input-view';
-import { extractError, Text, View } from '@/components/ui';
+import { Text, View } from '@/components/ui';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 import { shortenAddress } from '@/lib/shorten-address';
@@ -19,7 +19,7 @@ function Verify() {
   const { replace } = useRouter();
   const { mutate } = useVerify();
   const { mutate: ResendCode } = useResendCode();
-  const { setSuccess, setLoading, setError } = useLoader();
+  const { setSuccess, setLoading, setError } = useLoader({});
 
   const handleSubmit = () => {
     if (!email || !code) return;
@@ -35,7 +35,7 @@ function Verify() {
           replace(`/login`);
         },
         onError(error) {
-          setError(extractError(error?.response?.data));
+          setError(error?.response?.data);
         },
         onSettled() {
           setLoading(false);
@@ -55,7 +55,7 @@ function Verify() {
         },
         onError(error) {
           console.log('🚀 ~ file: verify.tsx:38 ~ error:', error);
-          setError(extractError(error?.response?.data));
+          setError(error?.response?.data);
         },
         onSettled() {
           setLoading(false);

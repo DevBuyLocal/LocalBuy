@@ -1,6 +1,6 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider } from '@react-navigation/native';
-import { useColorScheme } from 'nativewind';
+import { usePathname } from 'expo-router';
 import React from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
 import FlashMessage from 'react-native-flash-message';
@@ -14,34 +14,37 @@ import { useThemeConfig } from '@/lib/use-theme-config';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const theme = useThemeConfig();
-  const { colorScheme } = useColorScheme();
+  // const { colorScheme } = useColorScheme();
+  const pN = usePathname();
+
   return (
     <GestureHandlerRootView
       style={styles.container}
       // className={undefined}
       className={theme.dark ? `dark` : undefined}
     >
-      <FocusAwareStatusBar />
-      <KeyboardProvider>
-        <ThemeProvider value={theme}>
-          <APIProvider>
-            <BottomSheetModalProvider>
-              <LoaderProvider>
-                <SafeAreaView edges={['top']} />
+      <LoaderProvider>
+        <FocusAwareStatusBar />
+        <KeyboardProvider>
+          <ThemeProvider value={theme}>
+            <APIProvider>
+              <BottomSheetModalProvider>
+                <SafeAreaView edges={pN === '/' ? [] : ['top']} />
                 <StatusBar
-                  barStyle={
-                    colorScheme === 'light' ? 'dark-content' : 'light-content'
-                  }
-                  backgroundColor={colorScheme === 'dark' ? 'black' : 'white'}
+                  // barStyle={
+                  //   colorScheme === 'dark' ? 'light-content' : 'dark-content'
+                  // }
+                  // backgroundColor={colorScheme === 'dark' ? 'black' : 'white'}
+                  translucent={false}
                 />
 
                 {children}
-              </LoaderProvider>
-              <FlashMessage position="top" />
-            </BottomSheetModalProvider>
-          </APIProvider>
-        </ThemeProvider>
-      </KeyboardProvider>
+                <FlashMessage position="top" />
+              </BottomSheetModalProvider>
+            </APIProvider>
+          </ThemeProvider>
+        </KeyboardProvider>
+      </LoaderProvider>
     </GestureHandlerRootView>
   );
 }
