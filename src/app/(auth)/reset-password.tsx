@@ -13,7 +13,9 @@ import { useLoader } from '@/lib/hooks/general/use-loader';
 
 export default function ResetPassword() {
   const [email, setEmail] = React.useState('');
-  const { setSuccess, setLoading, setError } = useLoader({});
+  const { setSuccess, setLoading, setError } = useLoader({
+    showLoadingPage: false,
+  });
 
   const { back } = useRouter();
   const [pass, setPass] = React.useState({

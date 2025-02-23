@@ -19,7 +19,9 @@ function Verify() {
   const { replace } = useRouter();
   const { mutate } = useVerify();
   const { mutate: ResendCode } = useResendCode();
-  const { setSuccess, setLoading, setError } = useLoader({});
+  const { setSuccess, setLoading, setError } = useLoader({
+    showLoadingPage: false,
+  });
 
   const handleSubmit = () => {
     if (!email || !code) return;

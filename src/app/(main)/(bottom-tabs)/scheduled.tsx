@@ -16,7 +16,8 @@ export default function Scheduled() {
         </Text>
 
         <FlatList
-          data={Array.from({ length: 10 })}
+          data={[]}
+          // data={Array.from({ length: 10 })}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <OrderItem item={item} handleDelete={() => {}} />

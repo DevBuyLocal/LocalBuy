@@ -141,7 +141,9 @@ const Default = ({
 
 /* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
-  const { setSuccess, setLoading, setError } = useLoader({});
+  const { setSuccess, setLoading, setError } = useLoader({
+    showLoadingPage: false,
+  });
   const { user } = useAuth();
 
   const [details, setDetails] = React.useState({
@@ -161,8 +163,6 @@ const Edit = () => {
       setLoading(false);
     },
   });
-
-  // const { loading, setLoading } = useLoader();
 
   // React.useEffect(() => {
   //   setLoading(true);
@@ -218,7 +218,9 @@ const Edit = () => {
 
 /* PASSWORD MANAGEMENT SECTION - HANDLES PASSWORD UPDATES */
 const Password = () => {
-  const { setSuccess, setLoading, setError } = useLoader({});
+  const { setSuccess, setLoading, setError } = useLoader({
+    showLoadingPage: false,
+  });
   const { user } = useAuth();
   const { back } = useRouter();
   const [pass, setPass] = React.useState({ password: '', confirmPassword: '' });

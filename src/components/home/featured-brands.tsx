@@ -39,6 +39,7 @@ const FeaturedBrands = () => {
   const { push } = useRouter();
   const { data } = useGetManufacturers({ limit: 10, page: 1 })();
   const brands = data?.pages[0]?.data || [];
+  if (!brands.length) return null;
 
   return (
     <View>

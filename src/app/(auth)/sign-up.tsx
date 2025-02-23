@@ -17,7 +17,9 @@ import { type RegFormType, regSchema } from './types';
 
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();
-  const { setLoading, setError, setSuccess } = useLoader({});
+  const { setLoading, setError, setSuccess } = useLoader({
+    showLoadingPage: false,
+  });
   const { push, replace, canGoBack, back } = useRouter();
   const { mutate: Register } = useRegister();
   const {

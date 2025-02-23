@@ -25,7 +25,8 @@ export default function Login() {
 
   const { mutate } = useLogin();
   const { signIn } = useAuth();
-  const { setLoading, setError, setSuccess, setLoadingText } = useLoader({});
+  const { loading, setLoading, setError, setSuccess, setLoadingText } =
+    useLoader({ showLoadingPage: false });
   const { handleSubmit, control } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -105,7 +106,11 @@ export default function Login() {
       </Container.Box>
 
       <Container.Box containerClassName="absolute bottom-16 w-full self-center">
-        <CustomButton label="Continue" onPress={handleSubmit(handleLogin)} />
+        <CustomButton
+          loading={loading}
+          label="Continue"
+          onPress={handleSubmit(handleLogin)}
+        />
         <Pressable className="mt-2 flex-row self-center" onPress={present}>
           <Text className="color-[#121212BF]">Don't have an account? </Text>
           <Text className="color-primaryText">Sign up</Text>

@@ -40,7 +40,6 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
         message: success,
         type: 'success',
       });
-      setSuccess('');
     }
 
     if (error) {
@@ -48,12 +47,13 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
         message: extractError(error),
         type: 'danger',
       });
-      setError('');
     }
 
     return () => {
       setLoading(false);
       setLoadingText('');
+      setSuccess('');
+      setError('');
     };
   }, [error, success]);
 
@@ -105,13 +105,15 @@ export const useLoader = ({
   }
 
   useEffect(() => {
-    if (context.showPage !== showLoadingPage) {
-      context.setShowPage(showLoadingPage);
+    if (showLoadingPage) {
+      context.setShowPage(true);
+    } else {
+      context.setShowPage(false);
     }
     return () => {
-      if (context.showPage) {
-        context.setShowPage(false);
-      }
+      // if (!context.showPage) {
+      context.setShowPage(true);
+      // }
     };
   }, [showLoadingPage, context]);
 

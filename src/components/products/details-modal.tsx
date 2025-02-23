@@ -72,24 +72,24 @@ export default function DetailsModal({
   );
   // console.log('🚀 ~ foundItem:', foundItem);
 
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      if (selectedOption?.image?.length) {
-        if (activeIndex === selectedOption?.image.length - 1) {
-          setActiveIndex(0);
-          ref?.current?.scrollToIndex({ animated: true, index: 0 });
-        } else {
-          setActiveIndex(activeIndex + 1);
-          ref?.current?.scrollToIndex({
-            animated: true,
-            index: activeIndex + 1,
-          });
-        }
-      }
-    }, 5000);
+  // React.useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     if (selectedOption?.image?.length) {
+  //       if (activeIndex === selectedOption?.image.length - 1) {
+  //         setActiveIndex(0);
+  //         ref?.current?.scrollToIndex({ animated: true, index: 0 });
+  //       } else {
+  //         setActiveIndex(activeIndex + 1);
+  //         ref?.current?.scrollToIndex({
+  //           animated: true,
+  //           index: activeIndex + 1,
+  //         });
+  //       }
+  //     }
+  //   }, 5000);
 
-    return () => clearInterval(interval);
-  }, [activeIndex, selectedOption?.image?.length]);
+  //   return () => clearInterval(interval);
+  // }, [activeIndex, selectedOption?.image?.length]);
 
   const { mutate } = useAddCartItem({
     onSuccess: () => {

@@ -36,7 +36,7 @@ function CompleteProfile() {
 
   const { user } = useAuth();
   const isBusiness = user?.type === UserType.Business;
-  const { setSuccess, setError, setLoading } = useLoader();
+  const { setSuccess, setError, setLoading } = useLoader({});
   const [page, setPage] = React.useState<number>(0);
   const [phone, setPhone] = React.useState<string>(user?.phoneNumber || '');
   const [selectedPref, setSelectedPref] = React.useState<string[]>([]);

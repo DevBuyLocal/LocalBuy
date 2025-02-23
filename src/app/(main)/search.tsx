@@ -14,7 +14,7 @@ function Search() {
   const [search, setSearch] = React.useState<string>('');
   const { addToRecent, recent_search, clearRecent } =
     useUtility(UtilitySelector);
-  console.log('🚀 ~ Search ~ recent_search:', recent_search);
+  // console.log('🚀 ~ Search ~ recent_search:', recent_search);
   const resultAvailable = Boolean(dummyProducts.length && search);
 
   const ListFooterComponent = (
