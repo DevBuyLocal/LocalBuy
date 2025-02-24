@@ -38,7 +38,7 @@ export default function DetailsModal({
 
   const ref = React.useRef<any>(null);
   const { token } = useAuth();
-  const { products_in_cart } = useCart(CartSelector);
+  const { products_in_cart, addToCart } = useCart(CartSelector);
   const { data } = useGetCartItems();
   const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
@@ -307,6 +307,34 @@ export default function DetailsModal({
                     productOptionId: selectedOption?.id,
                     quantity,
                   });
+                }
+                if (!token && selectedOption) {
+                  addToCart({
+                    id: products_in_cart?.length + 1,
+                    cartId: 0,
+                    productOption: {
+                      createdAt: new Date(selectedOption?.createdAt),
+                      id: selectedOption?.id,
+                      value: selectedOption?.value,
+                      price: selectedOption?.price,
+                      moq: selectedOption?.moq,
+                      image: selectedOption?.image,
+                      productId: selectedOption?.productId,
+                      unit: selectedOption?.unit,
+                      updatedAt: new Date(selectedOption?.updatedAt),
+                      product: {
+                        id: item.id,
+                        name: item?.name,
+                        description: item?.description,
+                        categoryId: item?.categoryId,
+                        manufacturerId: item?.manufacturerId,
+                        createdAt: new Date(item?.createdAt),
+                        updatedAt: new Date(item?.updatedAt),
+                      },
+                    },
+                    quantity: 1,
+                  });
+                  setSuccess('Item added to cart');
                 }
                 // addToCart(props.item);
               }}

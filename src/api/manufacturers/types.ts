@@ -11,3 +11,5 @@ export interface TSingleManufacturers {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// export interface TSingleManufacturer {

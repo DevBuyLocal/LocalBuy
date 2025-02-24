@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import StoryCarousel from 'react-native-story-carousel';
 
+import { queryClient, QueryKey, useGetUser } from '@/api';
+import { useGetCartItems } from '@/api/cart';
 // IMPORT CUSTOM COMPONENTS AND HOOKS
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
@@ -27,6 +29,15 @@ export default function Onboarding() {
   const [selectedRole, setSelectedRole] = React.useState<UserType>(
     UserType.Individual
   );
+
+  useGetUser();
+  useGetCartItems();
+
+  React.useEffect(() => {
+    queryClient.fetchQuery({ queryKey: [QueryKey.PRODUCTS] });
+    queryClient.fetchQuery({ queryKey: [QueryKey.MANUFACTURERS] });
+    queryClient.fetchQuery({ queryKey: [QueryKey.CATEGORIES] });
+  }, []);
 
   // CONFIGURATION FOR ONBOARDING SCREEN CAROUSEL
   const screens = [
@@ -71,7 +82,7 @@ export default function Onboarding() {
           }}
         />
         <CustomButton.Secondary
-          label={'Continue as guest'}
+          label={'Skip sign in'}
           onPress={() => {
             setIsFirstTime(false);
             replace('/(main)');

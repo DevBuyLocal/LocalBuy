@@ -13,7 +13,7 @@ import { useLoader } from '@/lib/hooks/general/use-loader';
 import { Pressable, Text, View } from '../ui';
 
 interface QuantitySelectProps extends Partial<ViewProps> {
-  itemId: string | number;
+  itemId: number;
   cartItemId?: TCartItem['cartId'];
   containerClass?: string | undefined;
   removeOnZero?: boolean;
@@ -30,25 +30,19 @@ function QuantitySelect(props: QuantitySelectProps) {
   const { data, refetch } = useGetCartItems();
   const { increaseQuantity, decreaseQuantity, products_in_cart } =
     useCart(CartSelector);
-
   const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
   const cartItems = token ? data?.items || [] : products_in_cart || [];
-  // console.log('🚀 ~ QuantitySelect ~ cartItems:', cartItems);
-
   const foundItem = cartItems.find((item) => item?.id === props?.itemId);
-
   const [inQuantity, setInQuantity] = React.useState<number>(
     foundItem?.quantity || 1
   );
-  // console.log('🚀 ~ QuantitySelect ~ inQuantity:', inQuantity);
-  // React.useEffect(() => {
-  //   if (foundItem) {
-  //     setInQuantity(foundItem?.quantity);
-  //   }
-  // }, [foundItem]);
-
+  React.useEffect(() => {
+    if (foundItem && !token) {
+      setInQuantity(foundItem?.quantity);
+    }
+  }, [foundItem, token]);
   const { mutate } = useUpdateCartItem({
     onSuccess: () => {
       setSuccess('Item updated');
@@ -71,6 +65,35 @@ function QuantitySelect(props: QuantitySelectProps) {
     [setLoading, mutate]
   );
 
+  const handleDecrease = React.useCallback(() => {
+    if (inQuantity <= 1) return;
+    if (token && props.cartItemId) {
+      setInQuantity((prev) => prev - 1);
+      updateQuantityDebounce(props.cartItemId, inQuantity - 1);
+      return;
+    }
+    if (props.useWithoutApi && props.quantity) {
+      props.setQuantity?.(Math.max(1, props.quantity - 1));
+      return;
+    }
+    decreaseQuantity(props.itemId, props.removeOnZero);
+  }, [inQuantity, token, props, decreaseQuantity, updateQuantityDebounce]);
+
+  const handleIncrease = React.useCallback(() => {
+    if (Number(props?.moq) <= inQuantity) return;
+    if (token && props.cartItemId) {
+      setInQuantity((prev) => prev + 1);
+      updateQuantityDebounce(props.cartItemId, inQuantity + 1);
+      return;
+    }
+    if (props.useWithoutApi && props.selectedOption && props.quantity) {
+      if (props?.selectedOption?.moq <= props.quantity) return;
+      props.setQuantity?.((prev) => prev + 1);
+      return;
+    }
+    increaseQuantity(props.itemId);
+  }, [props, inQuantity, token, increaseQuantity, updateQuantityDebounce]);
+
   return (
     <View
       className={twMerge(
@@ -80,20 +103,7 @@ function QuantitySelect(props: QuantitySelectProps) {
       {...props}
     >
       <Pressable
-        onPress={() => {
-          if (token && props.cartItemId) {
-            if (inQuantity <= 1) return;
-            setInQuantity(inQuantity - 1);
-            updateQuantityDebounce(props.cartItemId, inQuantity - 1);
-            return;
-          }
-          if (props.useWithoutApi && props.quantity) {
-            props.setQuantity &&
-              props.setQuantity(Math.max(1, props.quantity - 1));
-            return;
-          }
-          decreaseQuantity(props.cartItemId, props.removeOnZero);
-        }}
+        onPress={handleDecrease}
         // className="px-[25px]"
       >
         <Text className="text-[20px] font-bold">-</Text>
@@ -107,20 +117,7 @@ function QuantitySelect(props: QuantitySelectProps) {
       )}
 
       <Pressable
-        onPress={() => {
-          if (token && props.cartItemId) {
-            if (Number(props?.moq) <= inQuantity) return;
-            setInQuantity(inQuantity + 1);
-            updateQuantityDebounce(props.cartItemId, inQuantity + 1);
-            return;
-          }
-          if (props.useWithoutApi && props.selectedOption && props.quantity) {
-            if (props?.selectedOption?.moq <= props.quantity) return;
-            props.setQuantity && props.setQuantity((prev) => prev + 1);
-            return;
-          }
-          increaseQuantity(props.itemId);
-        }}
+        onPress={handleIncrease}
         // className="px-[25px] py-px"
       >
         <Text className="text-[20px] font-bold">+</Text>

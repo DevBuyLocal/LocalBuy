@@ -125,7 +125,7 @@ export default function Cart() {
                   label={'Schedule order'}
                   onPress={() => redirectToLoginAndBack('/schedule-order')}
                 />
-                <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-40">
+                <Container.Box containerClassName="px-0 pb-20">
                   <ProductCarousel title={'Frequently bought'} />
                 </Container.Box>
               </View>

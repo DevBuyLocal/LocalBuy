@@ -1,5 +1,6 @@
 import Entypo from '@expo/vector-icons/Entypo';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { type Href, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, type PressableProps } from 'react-native';
 import { twMerge } from 'tailwind-merge';
@@ -7,6 +8,7 @@ import { twMerge } from 'tailwind-merge';
 import { useAddNote, useUpdateNote } from '@/api/cart';
 import { type TCartItem } from '@/api/cart/types';
 import { useAuth } from '@/lib';
+import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import Container from '../general/container';
@@ -24,7 +26,9 @@ interface CartItemProps extends Partial<PressableProps> {
 // eslint-disable-next-line max-lines-per-function
 function CartItem(props: CartItemProps) {
   const cart_item = props?.item;
-  // const { removeFromCart, addNote } = useCart(CartSelector);
+
+  const { push } = useRouter();
+  const { removeFromCart, addNote } = useCart(CartSelector);
   const { token } = useAuth();
   const [imgSrc, setImgSrc] = React.useState<string[] | null>(
     cart_item?.productOption?.image || []
@@ -71,9 +75,22 @@ function CartItem(props: CartItemProps) {
         mutate({ cartItemId: cart_item?.id, note });
       }
       return;
+    } else {
+      addNote(cart_item?.id, note);
+      dismiss();
     }
-    // addNote(cart_item?.id, note);
-    dismiss();
+  }
+
+  function redirectToLoginAndBack(path: Href, action?: () => void) {
+    if (!token?.access) {
+      push('/login?from=cart');
+    } else {
+      if (action) {
+        action();
+        return;
+      }
+      push(path);
+    }
   }
 
   return (
@@ -127,6 +144,7 @@ function CartItem(props: CartItemProps) {
                 if (token) {
                   return;
                 }
+                redirectToLoginAndBack('/cart');
               }}
             >
               Save for later
@@ -137,7 +155,7 @@ function CartItem(props: CartItemProps) {
                 if (token) {
                   return;
                 }
-                // removeFromCart(props?.item?.id);
+                removeFromCart(props?.item?.id);
               }}
             >
               Remove

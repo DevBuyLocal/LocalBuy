@@ -4,10 +4,12 @@ import Octicons from '@expo/vector-icons/Octicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import React from 'react';
-import { Animated } from 'react-native';
+import React, { useCallback } from 'react';
+import { Animated, FlatList, RefreshControl } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
+import { queryClient, QueryKey } from '@/api';
+import { useGetCategories } from '@/api/product/use-get-categories';
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
 import { AdsHeader } from '@/components/home/ads-header';
@@ -90,6 +92,14 @@ export default function Home() {
   const { push } = useRouter();
   const { user } = useAuth();
   const { colorScheme } = useColorScheme();
+
+  const { data } = useGetCategories()();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const categories = data?.data || [];
+  // console.log('🚀 ~ Home ~ categories:', categories);
+  // console.log('🚀 ~ file: index.tsx:95 ~ data:', data);
   // const { data } = useGetUser();
   // const isBusiness = user?.type === UserType.Business;
   const { present, ref, dismiss } = useModal();
@@ -176,6 +186,29 @@ export default function Home() {
       })
     : new Animated.Value(0);
 
+  const handleRefresh = useCallback(async () => {
+    // console.log('🚀 ~ Home ~ handleRefresh triggered');
+    setRefreshing(true);
+    await queryClient.invalidateQueries({
+      queryKey: [
+        QueryKey.CATEGORIES,
+        QueryKey.PRODUCTS,
+        QueryKey.MANUFACTURERS,
+      ],
+    });
+
+    await queryClient.fetchQuery({
+      queryKey: [
+        QueryKey.CATEGORIES,
+        QueryKey.PRODUCTS,
+        QueryKey.MANUFACTURERS,
+      ],
+    });
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
+
   // console.log('🚀 ~ Home ~ stickyHeaderHeight:', stickyHeaderHeight);
 
   // const stickyHeaderHeight = scroll
@@ -258,8 +291,11 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        bounces={false}
+        // bounces={false}
         stickyHeaderIndices={[1]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
         // className={'bg-white dark:bg-[#282828]'}
       >
         <AdsHeader scroll={scrollOffset} locationPresent={locationPresent} />
@@ -344,8 +380,32 @@ export default function Home() {
           </Container.Box>
           <Container.Box containerClassName="bg-[#F7F7F7] dark:bg-[#282828] pb-5">
             <ProductCarousel title={'New Arrivals'} />
-            <ProductCarousel title={'Trending Products'} />
+            <ProductCarousel title={'Trending Products'} type="trending" />
           </Container.Box>
+          {categories.length && (
+            <Container.Box containerClassName="py-3">
+              <Text className="mb-2 text-[18px] font-bold">
+                Store Categories
+              </Text>
+              <View className="mt-3 gap-2">
+                <FlatList
+                  data={categories}
+                  renderItem={({ item }) => (
+                    <View className="mb-3 w-[49%] rounded-lg bg-[#F7F7F7] p-2 py-3 dark:bg-[#282828]">
+                      <Text>{item?.name}</Text>
+                    </View>
+                  )}
+                  scrollEnabled={false}
+                  keyExtractor={(_, i) => i.toString()}
+                  numColumns={2}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                  columnWrapperStyle={{
+                    justifyContent: 'space-between',
+                  }}
+                />
+              </View>
+            </Container.Box>
+          )}
         </Container.Page>
         <FilterModal ref={ref} dismiss={dismiss} />
         <LocationModal ref={locationRef} dismiss={locationDismiss} />

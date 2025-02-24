@@ -8,7 +8,7 @@ export interface TProduct {
   updatedAt: string;
   options: Option[];
   manufacturer: Manufacturer;
-  category: Category;
+  category: TSingleCategory;
 }
 
 export interface Option {
@@ -32,7 +32,7 @@ export interface Manufacturer {
   updatedAt: string;
 }
 
-export interface Category {
+export interface TSingleCategory {
   id: number;
   name: string;
   createdAt: string;

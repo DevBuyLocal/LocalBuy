@@ -14,10 +14,10 @@ interface CartState {
   cart_loaded: false;
   note: string;
   addToCart: (payload: Partial<TCartItem>) => void;
-  removeFromCart: (itemId: string) => void;
-  increaseQuantity: (itemId: string) => void;
-  decreaseQuantity: (itemId: string, removeOnZero?: boolean) => void;
-  addNote: (itemId: string, note: string) => void;
+  removeFromCart: (itemId: number) => void;
+  increaseQuantity: (itemId: number) => void;
+  decreaseQuantity: (itemId: number, removeOnZero?: boolean) => void;
+  addNote: (itemId: number, note: string) => void;
   clearCart: () => void;
   calculateTotalPrice: (item: any[]) => void;
 }
@@ -32,26 +32,27 @@ const _useCart = create<CartState>()(
         note: '',
         total: 0,
         totalPrice: 0,
-        addToCart: (payload: any) => {
+        addToCart: (payload: Partial<TCartItem>) => {
           const { products_in_cart } = get();
           const exists = products_in_cart.find(
-            (item: any) => item.id === payload.id
+            (item) => item.id === payload.id
           );
           if (exists) return;
+          const newItem: TCartItem = {
+            id: 0,
+            quantity: 1,
+            note: '',
+            ...payload,
+          } as TCartItem;
           get().calculateTotalPrice(
-            products_in_cart.length
-              ? [...products_in_cart, { ...payload, quantity: 1 }]
-              : [{ ...payload, quantity: 1 }]
+            products_in_cart.length ? [...products_in_cart, newItem] : [newItem]
           );
           set({
-            products_in_cart: [
-              ...products_in_cart,
-              { ...payload, quantity: 1 },
-            ],
+            products_in_cart: [...products_in_cart, newItem],
             total: products_in_cart.length + 1,
           });
         },
-        removeFromCart: (itemId: string) => {
+        removeFromCart: (itemId: number) => {
           const { products_in_cart } = get();
           get().calculateTotalPrice(products_in_cart);
           set({
@@ -61,7 +62,7 @@ const _useCart = create<CartState>()(
             total: products_in_cart.length - 1,
           });
         },
-        increaseQuantity: (itemId: string) => {
+        increaseQuantity: (itemId: number) => {
           const { products_in_cart } = get();
           get().calculateTotalPrice(products_in_cart);
           set({
@@ -72,7 +73,7 @@ const _useCart = create<CartState>()(
             ),
           });
         },
-        decreaseQuantity: (itemId: string, removeOnZero = true) => {
+        decreaseQuantity: (itemId: number, removeOnZero = true) => {
           const { products_in_cart } = get();
           get().calculateTotalPrice(products_in_cart);
           const newProduct = products_in_cart.map((item: any) =>
@@ -91,15 +92,13 @@ const _useCart = create<CartState>()(
             ), // Remove items with quantity <= 0
           });
         },
-        addNote: (itemId: string, note: string) => {
+        addNote: (itemId: number, note: string) => {
           const { products_in_cart } = get();
-          const newProduct = products_in_cart.map((item: any) =>
+          const newProduct = products_in_cart.map((item) =>
             item.id === itemId ? { ...item, note } : item
           );
           set({
-            products_in_cart: newProduct.filter(
-              (item: any) => item.quantity > 0
-            ),
+            products_in_cart: newProduct.filter((item) => item.quantity > 0),
           });
         },
         calculateTotalPrice: (products_in_cart: any[]) => {
@@ -125,16 +124,16 @@ export const useCart = createSelectors(_useCart);
 export const addToCart = (payload: any) =>
   _useCart.getState().addToCart(payload);
 
-export const removeFromCart = (itemId: string) =>
+export const removeFromCart = (itemId: number) =>
   _useCart.getState().removeFromCart(itemId);
 
-export const increaseQuantity = (itemId: string) =>
+export const increaseQuantity = (itemId: number) =>
   _useCart.getState().increaseQuantity(itemId);
 
-export const decreaseQuantity = (itemId: string, removeOnZero?: boolean) =>
+export const decreaseQuantity = (itemId: number, removeOnZero?: boolean) =>
   _useCart.getState().decreaseQuantity(itemId, removeOnZero);
 
-export const addNote = (itemId: string, note: string) =>
+export const addNote = (itemId: number, note: string) =>
   _useCart.getState().addNote(itemId, note);
 
 export const calculateTotalPrice = (item: any[]) =>

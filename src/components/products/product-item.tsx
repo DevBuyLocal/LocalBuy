@@ -187,6 +187,34 @@ function ProductItem(props: ProductItemProps) {
                   quantity: 1,
                 });
               }
+              if (!token && selectedOption) {
+                addToCart({
+                  id: products_in_cart?.length + 1,
+                  cartId: 0,
+                  productOption: {
+                    createdAt: new Date(selectedOption?.createdAt),
+                    id: selectedOption?.id,
+                    value: selectedOption?.value,
+                    price: selectedOption?.price,
+                    moq: selectedOption?.moq,
+                    image: selectedOption?.image,
+                    productId: selectedOption?.productId,
+                    unit: selectedOption?.unit,
+                    updatedAt: new Date(selectedOption?.updatedAt),
+                    product: {
+                      id: props.item.id,
+                      name: props?.item?.name,
+                      description: props?.item?.description,
+                      categoryId: props?.item?.categoryId,
+                      manufacturerId: props?.item?.manufacturerId,
+                      createdAt: new Date(props?.item?.createdAt),
+                      updatedAt: new Date(props?.item?.updatedAt),
+                    },
+                  },
+                  quantity: 1,
+                });
+                setSuccess('Item added to cart');
+              }
               // addToCart(props.item);
               // showMessage({
               //   message: 'Added to cart!',

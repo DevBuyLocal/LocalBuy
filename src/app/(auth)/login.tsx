@@ -22,11 +22,10 @@ export default function Login() {
   const [selectedRole, setSelectedRole] = React.useState<UserType>(
     UserType.Individual
   );
-
   const { mutate } = useLogin();
   const { signIn } = useAuth();
   const { loading, setLoading, setError, setSuccess, setLoadingText } =
-    useLoader({ showLoadingPage: false });
+    useLoader({ showLoadingPage: true });
   const { handleSubmit, control } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -34,6 +33,7 @@ export default function Login() {
       password: '',
     },
   });
+
   function handleLogin(data: LoginFormType) {
     setLoading(true);
     setLoadingText('Logging in...');
@@ -45,8 +45,9 @@ export default function Login() {
       {
         async onSuccess(data) {
           signIn({ access: data?.user?.token, refresh: '' });
-          await queryClient.fetchQuery({ queryKey: [QueryKey.USER] });
-          await queryClient.fetchQuery({ queryKey: [QueryKey.CART] });
+          await queryClient.fetchQuery({
+            queryKey: [QueryKey.USER, QueryKey.CART],
+          });
           //TODO: FETCH USER DATA AND STORE IT IN CONTEXT
           setSuccess('Login successful');
           replace(from === 'cart' ? '/(bottom-tabs)/cart' : `/`);
@@ -61,8 +62,6 @@ export default function Login() {
       }
     );
   }
-  // setLoading(false);
-
   return (
     <Container.Page
       showHeader
@@ -104,7 +103,6 @@ export default function Login() {
           description="By checking this box you won’t have to sign in as often on this device. For your security, we recommend only checking this box on personal devices."
         />
       </Container.Box>
-
       <Container.Box containerClassName="absolute bottom-16 w-full self-center">
         <CustomButton
           loading={loading}

@@ -17,8 +17,8 @@ import { type RegFormType, regSchema } from './types';
 
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();
-  const { setLoading, setError, setSuccess } = useLoader({
-    showLoadingPage: false,
+  const { loading, setLoading, setError, setSuccess } = useLoader({
+    showLoadingPage: true,
   });
   const { push, replace, canGoBack, back } = useRouter();
   const { mutate: Register } = useRegister();
@@ -121,6 +121,7 @@ export default function SignUp() {
             label="Create account"
             onPress={handleSubmit(onSubmit)}
             disabled={!isValid}
+            loading={loading}
           />
           <Pressable
             className="mt-2 flex-row self-center"
