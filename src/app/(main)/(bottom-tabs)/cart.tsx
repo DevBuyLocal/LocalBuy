@@ -1,9 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { type Href, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+import React from 'react';
 import { Alert, FlatList, Pressable } from 'react-native';
 
 import { useGetProducts } from '@/api';
 import { useGetCartItems } from '@/api/cart/use-get-cart-items';
+import { useCheckoutOrder } from '@/api/order';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import Empty from '@/components/general/empty';
@@ -12,26 +14,55 @@ import ProductCarousel from '@/components/products/product-carousel';
 import { Text, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 
+// eslint-disable-next-line max-lines-per-function
 export default function Cart() {
   const { push } = useRouter();
   const { token } = useAuth();
   const { clearCart, products_in_cart } = useCart(CartSelector);
+  const { setError, setLoading, loading, setLoadingText } = useLoader({
+    showLoadingPage: true,
+  });
 
   useGetProducts({})();
   const { data, error } = useGetCartItems();
-  const cartItems = (token ? data?.items : products_in_cart) || [];
-  const sortCartItemsByCreatedAt = cartItems.sort((a, b) => {
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-
-  const totalPrice = sortCartItemsByCreatedAt.reduce(
-    (sum, item) => sum + item?.productOption?.price * item?.quantity,
-    0
+  const cartItems = React.useMemo(
+    () => (token ? data?.items : products_in_cart) || [],
+    [token, data, products_in_cart]
   );
 
+  const sortCartItemsByCreatedAt = React.useMemo(
+    () =>
+      cartItems.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [cartItems]
+  );
+
+  const totalPrice = React.useMemo(
+    () =>
+      sortCartItemsByCreatedAt.reduce(
+        (sum, item) => sum + item?.productOption?.price * item?.quantity,
+        0
+      ),
+    [sortCartItemsByCreatedAt]
+  );
+
+  const { mutate } = useCheckoutOrder({
+    onSuccess: () => {
+      push('/checkout');
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
   if (error) {
-    console.error('Failed to fetch cart items:', error);
     return (
       <Container.Box>
         <Text>Error fetching cart items. Please try again later.</Text>
@@ -39,14 +70,15 @@ export default function Cart() {
     );
   }
 
-  function redirectToLoginAndBack(path: Href) {
+  function redirectToLoginAndBack() {
     if (!token?.access) {
       push('/login?from=cart');
     } else {
-      push(path);
+      setLoading(true);
+      setLoadingText('Checking out');
+      mutate();
     }
   }
-
   return (
     <Container.Page
       showHeader
@@ -54,14 +86,22 @@ export default function Cart() {
       headerTitle="My Cart"
       containerClassName="flex-1"
       rightHeaderIcon={
-        products_in_cart.length ? (
+        sortCartItemsByCreatedAt.length ? (
           <Pressable
             onPress={() =>
               Alert.alert(
                 'Empty cart',
                 'Are you sure you want to clear your cart?',
                 [
-                  { text: 'Yes', onPress: () => clearCart() },
+                  {
+                    text: 'Yes',
+                    onPress: () => {
+                      if (token) {
+                        return;
+                      }
+                      clearCart();
+                    },
+                  },
                   { text: 'Cancel', style: 'destructive' },
                 ]
               )
@@ -119,11 +159,12 @@ export default function Cart() {
                 <CustomButton
                   label={'Checkout'}
                   containerClassname="mt-10"
-                  onPress={() => redirectToLoginAndBack('/checkout')}
+                  onPress={() => redirectToLoginAndBack()}
+                  loading={loading}
                 />
                 <CustomButton.Secondary
                   label={'Schedule order'}
-                  onPress={() => redirectToLoginAndBack('/schedule-order')}
+                  // onPress={() => redirectToLoginAndBack('/schedule-order')}
                 />
                 <Container.Box containerClassName="px-0 pb-20">
                   <ProductCarousel title={'Frequently bought'} />

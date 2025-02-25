@@ -12,7 +12,7 @@ import { queryClient, QueryKey } from '@/api';
 import { useGetCategories } from '@/api/product/use-get-categories';
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
-import { AdsHeader } from '@/components/home/ads-header';
+import AdsHeader from '@/components/home/ads-header';
 import FeaturedBrands from '@/components/home/featured-brands';
 // import { FeaturedBrands } from '@/components/home/featured-brands';
 import FilterModal from '@/components/products/filter-modal';
@@ -379,7 +379,7 @@ export default function Home() {
             {/* {FeaturedBrands(dummyProducts)} */}
           </Container.Box>
           <Container.Box containerClassName="bg-[#F7F7F7] dark:bg-[#282828] pb-5">
-            <ProductCarousel title={'New Arrivals'} />
+            <ProductCarousel title={'New Arrivals'} type="new" />
             <ProductCarousel title={'Trending Products'} type="trending" />
           </Container.Box>
           {categories.length && (

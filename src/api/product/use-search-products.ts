@@ -1,31 +1,44 @@
 import { type AxiosError } from 'axios';
 import { createInfiniteQuery } from 'react-query-kit';
 
-import { accessToken } from '@/lib';
-
 import { client } from '../common/client';
 import { DEFAULT_LIMIT, getNextPageParam } from '../common/utils';
-import { type PaginateQuery, QueryKey } from '../types';
+import { QueryKey } from '../types';
 import { type TProduct } from './types';
 
-type Response = PaginateQuery<TProduct>;
-type Variables = { query?: string };
+export type PaginateQueryProduct<T> = {
+  data: T[];
+  pagination: {
+    totalProducts: number;
+    totalPages: number;
+    currentPage: number;
+  };
+};
+type Response = TProduct[];
+// type Response = PaginateQueryProduct<TProduct>;
+type Variables = {
+  query?: string;
+  type?: string;
+  limit?: number;
+  page?: number;
+};
 
 export const useSearchProducts = (_variables: Variables) => {
   return createInfiniteQuery<Response, Variables, AxiosError>({
     queryKey: [QueryKey.PRODUCTS, _variables.query], // Include type to avoid caching conflicts
-    fetcher: async (_, { pageParam }) => {
+    fetcher: async () => {
       try {
-        const token = accessToken()?.access;
+        const { limit = DEFAULT_LIMIT, page, type } = _variables;
+
         return await client({
           url: `api/product/search`,
           method: 'GET',
           params: {
-            limit: DEFAULT_LIMIT,
-            page: pageParam,
-            type: _variables.query,
+            limit,
+            page,
+            type,
+            query: _variables.query,
           },
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         }).then((response) => response?.data);
       } catch (error) {
         throw error;
@@ -33,5 +46,6 @@ export const useSearchProducts = (_variables: Variables) => {
     },
     getNextPageParam: getNextPageParam as any,
     initialPageParam: 1,
+    enabled: Boolean(_variables.query),
   });
 };

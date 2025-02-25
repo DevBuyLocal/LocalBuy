@@ -21,7 +21,7 @@ function ProductSuggestCarousel(props: ProductSuggestCarouselProps) {
     limit: 20,
   })();
   // const products = normalizePages(data?.pages);
-  const products = data?.pages[0]?.data || [];
+  const products = React.useMemo(() => data?.pages?.[0]?.data || [], [data]);
   // console.log('🚀 ~ ProductSuggestCarousel ~ products:', products);
 
   if (!isFetching && !Boolean(products.length)) return null;
@@ -43,7 +43,9 @@ function ProductSuggestCarousel(props: ProductSuggestCarouselProps) {
       <>
         <ViewAll
           title={props.title}
-          onPress={() => push('/(main)/all-products')}
+          onPress={() =>
+            push(`/(main)/all-products?type=${props.type}&title=${props.title}`)
+          }
         />
         <ScrollView
           horizontal

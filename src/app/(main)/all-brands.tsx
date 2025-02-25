@@ -13,7 +13,7 @@ function AllBrands() {
   const [search, setSearch] = React.useState<string>('');
 
   const { data } = useGetManufacturers({ limit: 10, page: 1 })();
-  const brands = data?.pages[0]?.data || [];
+  const brands = React.useMemo(() => data?.pages[0]?.data || [], [data]);
 
   const BrandItem = ({ item }: { item: TSingleManufacturers }) => {
     const [imgSrc, setImgSrc] = React.useState(item.logo ? item.logo : null);

@@ -26,7 +26,7 @@ const _useUtility = create<TUtility>()(
         filters: { brands: [], categories: [] },
         addToRecent: (value: string) => {
           const { recent_search } = get();
-          set({ recent_search: [value, ...recent_search] });
+          set({ recent_search: [value, ...recent_search].slice(0, 8) });
         },
         clearRecent: () => {
           set({ recent_search: [] });

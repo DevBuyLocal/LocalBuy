@@ -57,6 +57,7 @@ export default function MainLayout() {
         if (token) {
           queryClient.fetchQuery({ queryKey: [QueryKey.USER] });
           queryClient.fetchQuery({ queryKey: [QueryKey.CART] });
+          queryClient.fetchQuery({ queryKey: [QueryKey.ORDERS] });
         }
       }, 1000);
     }

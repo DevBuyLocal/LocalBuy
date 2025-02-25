@@ -13,23 +13,23 @@ type ProductCarouselProps = {
   type?: string;
 };
 
+const LOADER_COUNT = 3;
+
 function ProductCarousel(props: ProductCarouselProps) {
   const { push } = useRouter();
 
   const { data, isFetching } = useGetProducts({
-    type: props.type || 'trending',
-    limit: 20,
+    type: props.type || undefined,
+    limit: 5,
   })();
-  // const products = normalizePages(data?.pages);
-  const products = data?.pages[0]?.data || [];
-  // console.log('🚀 ~ ProductCarousel ~ products:', products);
+  const products = React.useMemo(() => data?.pages?.[0]?.data || [], [data]);
 
-  if (!isFetching && !Boolean(products.length)) return null;
+  if (!isFetching && !Boolean(products.length)) return <View />;
 
-  if (isFetching && Boolean(products?.length)) {
+  if (isFetching && !Boolean(products?.length)) {
     return (
       <ScrollView horizontal contentContainerClassName="mt-5">
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: LOADER_COUNT }).map((_, i) => (
           <View key={i.toString()} className="mr-5 ">
             <Skeleton width={158} height={220} radius={5} colorMode={'light'} />
           </View>
@@ -43,7 +43,9 @@ function ProductCarousel(props: ProductCarouselProps) {
       <>
         <ViewAll
           title={props.title}
-          onPress={() => push('/(main)/all-products')}
+          onPress={() =>
+            push(`/(main)/all-products?type=${props.type}&title=${props.title}`)
+          }
         />
         <ScrollView
           horizontal

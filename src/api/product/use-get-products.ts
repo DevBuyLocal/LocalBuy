@@ -21,16 +21,20 @@ type Variables = { type?: string; limit?: number; page?: number };
 
 export const useGetProducts = (_variables: Variables) => {
   return createInfiniteQuery<Response, Variables, AxiosError>({
-    queryKey: [QueryKey.PRODUCTS, _variables.type], // Include type to avoid caching conflicts
+    queryKey: [
+      QueryKey.PRODUCTS,
+      _variables.type,
+      _variables.limit,
+      _variables.page,
+    ], // Include type to avoid caching conflicts
     fetcher: async (_, { pageParam }) => {
       try {
-        // const token = accessToken()?.access;
         return await client({
           url: `api/product`,
           method: 'GET',
           params: {
-            limit: _variables?.limit || 10,
-            page: pageParam,
+            limit: _variables?.limit || 5,
+            page: _variables?.page || pageParam,
             type: _variables.type,
           },
           // headers: token ? { Authorization: `Bearer ${token}` } : undefined,

@@ -38,7 +38,7 @@ const Item = ({ e }: { e: TSingleManufacturers }) => {
 const FeaturedBrands = () => {
   const { push } = useRouter();
   const { data } = useGetManufacturers({ limit: 10, page: 1 })();
-  const brands = data?.pages[0]?.data || [];
+  const brands = React.useMemo(() => data?.pages[0]?.data || [], [data]);
   if (!brands.length) return null;
 
   return (

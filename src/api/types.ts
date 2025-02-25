@@ -12,4 +12,6 @@ export enum QueryKey {
   MANUFACTURERS = 'manufacturers',
   CATEGORIES = 'categories',
   ORDERS = 'orders',
+  TRACK_ORDER = 'track-order',
+  PAYMENTS = 'payments',
 }
