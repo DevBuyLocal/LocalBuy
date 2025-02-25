@@ -5,6 +5,7 @@ import React from 'react';
 import AccountItem from '@/components/account/account-item';
 import Container from '@/components/general/container';
 
+/* LEGAL ITEMS LIST - CONTAINS ALL LEGAL AND POLICY RELATED OPTIONS */
 const legalItems = [
   {
     label: 'Terms & condition',
@@ -23,6 +24,7 @@ const legalItems = [
   },
 ];
 
+/* LEGAL COMPONENT - DISPLAYS TERMS, PRIVACY AND ABOUT US SECTIONS */
 function Legal() {
   return (
     <Container.Page showHeader headerTitle="Support & help">

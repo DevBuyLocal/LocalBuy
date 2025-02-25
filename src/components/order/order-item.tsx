@@ -1,16 +1,22 @@
-import { Entypo } from '@expo/vector-icons';
+import { Entypo, MaterialCommunityIcons } from '@expo/vector-icons';
+import { format, parseISO } from 'date-fns';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+
+import { type TOrder } from '@/api/order';
 
 import { Image, Pressable, Text, View } from '../ui';
 
 type Props = {
-  item: any;
-  handleDelete: () => void;
+  item: TOrder;
+  handleDelete?: () => void;
   onPress?: () => void;
+  isHistory?: boolean;
 };
 
-function OrderItem({ item, handleDelete, onPress }: Props) {
+function OrderItem({ item, handleDelete, onPress, isHistory }: Props) {
+  const { push } = useRouter();
   const leftSwipe = () => {
     return (
       <Pressable onPress={handleDelete}>
@@ -20,34 +26,58 @@ function OrderItem({ item, handleDelete, onPress }: Props) {
       </Pressable>
     );
   };
+  const [imgSrc, setImgSrc] = React.useState(null);
+
+  const date = format(parseISO(item?.createdAt), 'dd - MMM yyyy • hh:mm a');
 
   return (
     <Swipeable
       overshootLeft={false}
       overshootRight={false}
       overshootFriction={8}
-      renderRightActions={leftSwipe}
+      renderRightActions={isHistory ? undefined : leftSwipe}
+      enabled={!isHistory}
     >
       <Pressable
-        onPress={onPress}
-        className="flex-row items-center justify-between border-b border-gray-200 bg-white py-4"
+        onPress={() => {
+          if (isHistory && item?.status === 'PENDING') {
+            push(`/checkout?orderId=${item?.id}&price=${item?.totalPrice}`);
+          }
+          onPress && onPress();
+        }}
+        className="z-50 mt-1 flex-row items-center justify-between rounded-md border-b border-gray-200 bg-white px-5 py-4 dark:bg-[#282828]"
       >
-        <View className="flex-row items-center gap-5">
+        <View className="flex-row items-center gap-5 ">
           <Image
-            source={{
-              uri: 'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-            }}
+            source={
+              imgSrc
+                ? { uri: imgSrc }
+                : require('../../../assets/images/img-p-holder.png')
+            }
+            onError={() => setImgSrc(null)}
+            style={{ tintColor: imgSrc ? undefined : '#D5D5D580' }}
+            contentFit="contain"
             className="h-[75px] w-[70px] rounded-lg bg-[#F7F7F7]"
           />
           <View className="h-[75px] justify-between ">
-            <Text numberOfLines={2} className="w-[70%] font-medium">
-              {item?.name}Mr. Rice. Foreign long rice (50kg)
+            <View>
+              <Text numberOfLines={2} className="w-[70%] font-medium">
+                Order:# {item?.id}
+              </Text>
+              <Text className="text-[13px] font-normal opacity-60">{date}</Text>
+            </View>
+
+            <Text className="text-[12px]">
+              {item?.scheduledDate ? item.scheduledDate : item?.status}
             </Text>
-            <Text className="opacity-70">Upcoming: Sat, Dec 31</Text>
           </View>
         </View>
 
-        <Text className="underline color-primaryText">Edit</Text>
+        {isHistory ? (
+          <MaterialCommunityIcons name="chevron-right" size={20} />
+        ) : (
+          <Text className="underline color-primaryText">Edit</Text>
+        )}
       </Pressable>
     </Swipeable>
   );

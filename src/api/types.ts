@@ -4,3 +4,14 @@ export type PaginateQuery<T> = {
   next: string | null;
   previous: string | null;
 };
+
+export enum QueryKey {
+  USER = 'user',
+  PRODUCTS = 'products',
+  CART = 'cart',
+  MANUFACTURERS = 'manufacturers',
+  CATEGORIES = 'categories',
+  ORDERS = 'orders',
+  TRACK_ORDER = 'track-order',
+  PAYMENTS = 'payments',
+}

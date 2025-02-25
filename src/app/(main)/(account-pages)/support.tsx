@@ -5,6 +5,7 @@ import React from 'react';
 import AccountItem from '@/components/account/account-item';
 import Container from '@/components/general/container';
 
+/* SUPPORT ITEMS LIST - CONTAINS ALL SUPPORT AND HELP OPTIONS */
 const supportItems = [
   {
     label: 'Frequently asked questions',
@@ -23,6 +24,7 @@ const supportItems = [
   },
 ];
 
+/* SUPPORT COMPONENT - DISPLAYS FAQ, CONTACT SUPPORT AND PROBLEM REPORTING OPTIONS */
 function Support() {
   return (
     <Container.Page showHeader headerTitle="Support & help">

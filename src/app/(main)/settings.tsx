@@ -9,10 +9,10 @@ import { LanguageItem } from '@/components/settings/language-item';
 import { ThemeItem } from '@/components/settings/theme-item';
 import { colors, ScrollView, Text, View } from '@/components/ui';
 import { Github, Rate, Share, Support, Website } from '@/components/ui/icons';
-import { translate, useAuth } from '@/lib';
+import { translate } from '@/lib';
 
 export default function Settings() {
-  const signOut = useAuth.use.signOut();
+  // const signOut = useAuth.use.signOut();
   const { colorScheme } = useColorScheme();
   const iconColor =
     colorScheme === 'dark' ? colors.neutral[400] : colors.neutral[500];
@@ -68,7 +68,21 @@ export default function Settings() {
 
           <View className="my-8">
             <ItemsContainer>
-              <Item text="settings.logout" onPress={signOut} />
+              <Item
+                text="settings.logout"
+                // onPress={() => {
+                //   Alert.alert('Logout', 'Are you sure you want to logout?', [
+                //     {
+                //       text: 'Cancel',
+                //       style: 'cancel',
+                //     },
+                //     {
+                //       text: 'Logout',
+                //       onPress: () => signOut(),
+                //     },
+                //   ]);
+                // }}
+              />
             </ItemsContainer>
           </View>
         </View>

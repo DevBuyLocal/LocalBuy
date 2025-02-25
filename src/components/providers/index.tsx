@@ -1,7 +1,8 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider } from '@react-navigation/native';
+import { usePathname } from 'expo-router';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
 import FlashMessage from 'react-native-flash-message';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -13,25 +14,37 @@ import { useThemeConfig } from '@/lib/use-theme-config';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const theme = useThemeConfig();
+  // const { colorScheme } = useColorScheme();
+  const pN = usePathname();
+
   return (
     <GestureHandlerRootView
       style={styles.container}
+      // className={undefined}
       className={theme.dark ? `dark` : undefined}
     >
-      <FocusAwareStatusBar />
-      <KeyboardProvider>
-        <ThemeProvider value={theme}>
-          <APIProvider>
-            <BottomSheetModalProvider>
-              <LoaderProvider>
-                <SafeAreaView edges={['top']} />
+      <LoaderProvider>
+        <FocusAwareStatusBar />
+        <KeyboardProvider>
+          <ThemeProvider value={theme}>
+            <APIProvider>
+              <BottomSheetModalProvider>
+                <SafeAreaView edges={pN === '/' ? [] : ['top']} />
+                <StatusBar
+                  // barStyle={
+                  //   colorScheme === 'dark' ? 'light-content' : 'dark-content'
+                  // }
+                  // backgroundColor={colorScheme === 'dark' ? 'black' : 'white'}
+                  translucent={false}
+                />
+
                 {children}
-              </LoaderProvider>
-              <FlashMessage position="top" />
-            </BottomSheetModalProvider>
-          </APIProvider>
-        </ThemeProvider>
-      </KeyboardProvider>
+                <FlashMessage position="top" />
+              </BottomSheetModalProvider>
+            </APIProvider>
+          </ThemeProvider>
+        </KeyboardProvider>
+      </LoaderProvider>
     </GestureHandlerRootView>
   );
 }

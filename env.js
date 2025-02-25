@@ -40,6 +40,7 @@ const NAME = 'Buy Local'; // app name
 const EXPO_ACCOUNT_OWNER = 'expo-owner'; // expo account owner
 const EAS_PROJECT_ID = 'c3e1075b-6fe7-4686-aa49-35b46a229044'; // eas project id
 const SCHEME = 'LocalBuy'; // app scheme
+const PAYSTACK_PUBLIC_KEY = 'pk_test_8f7';
 
 /**
  * We declare a function withEnvSuffix that will add a suffix to the variable name based on the APP_ENV
@@ -82,6 +83,7 @@ const client = z.object({
   API_URL: z.string(),
   VAR_NUMBER: z.number(),
   VAR_BOOL: z.boolean(),
+  PAYSTACK_PUBLIC_KEY: z.string(),
 });
 
 const buildTime = z.object({
@@ -89,6 +91,7 @@ const buildTime = z.object({
   EAS_PROJECT_ID: z.string(),
   // ADD YOUR BUILD TIME ENV VARS HERE
   SECRET_KEY: z.string(),
+  PAYSTACK_PUBLIC_KEY: z.string(),
 });
 
 /**
@@ -106,12 +109,14 @@ const _clientEnv = {
   API_URL: process.env.API_URL,
   VAR_NUMBER: Number(process.env.VAR_NUMBER),
   VAR_BOOL: process.env.VAR_BOOL === 'true',
+  PAYSTACK_PUBLIC_KEY: process.env.PAYSTACK_PUBLIC_KEY,
 };
 
 /**
  * @type {Record<keyof z.infer<typeof buildTime> , unknown>}
  */
 const _buildTimeEnv = {
+  PAYSTACK_PUBLIC_KEY,
   EXPO_ACCOUNT_OWNER,
   EAS_PROJECT_ID,
   // ADD YOUR ENV VARS HERE TOO

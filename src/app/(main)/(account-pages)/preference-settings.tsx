@@ -6,6 +6,7 @@ import AccountItem from '@/components/account/account-item';
 import Container from '@/components/general/container';
 import { Switch } from '@/components/ui';
 
+/* PREFERENCES AND SETTINGS COMPONENT - MANAGES USER APP PREFERENCES */
 function PreferenceSettings() {
   return (
     <Container.Page showHeader headerTitle="Preference and settings">

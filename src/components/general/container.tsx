@@ -15,7 +15,10 @@ interface ContainerProps
 function Container(props: ContainerProps) {
   return (
     <View
-      className={twMerge('px-5 bg-[#FFFFFF]', props.containerClassName)}
+      className={twMerge(
+        'px-5 bg-[#FFFFFF] dark:bg-[#000]',
+        props.containerClassName
+      )}
       {...props}
     >
       {props.children}
@@ -26,7 +29,10 @@ function Container(props: ContainerProps) {
 Container.Page = (props: ContainerProps) => {
   return (
     <View
-      className={twMerge('flex-1 bg-[#FFFFFF]', props.containerClassName)}
+      className={twMerge(
+        'flex-1 bg-[#FFFFFF] dark:bg-[#000]',
+        props.containerClassName
+      )}
       {...props}
     >
       {props.showHeader && (
@@ -46,7 +52,10 @@ Container.Page = (props: ContainerProps) => {
 
 Container.Box = (props: ContainerProps) => {
   return (
-    <View className={twMerge('px-5 mt-2', props.containerClassName)} {...props}>
+    <View
+      className={twMerge('px-5 mt-2 dark:bg-[#000]', props.containerClassName)}
+      {...props}
+    >
       {props.children}
     </View>
   );

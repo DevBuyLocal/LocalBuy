@@ -1,4 +1,5 @@
 import Entypo from '@expo/vector-icons/Entypo';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { type GestureResponderEvent, type PressableProps } from 'react-native';
 
@@ -12,6 +13,7 @@ interface AccountItemProps extends Partial<PressableProps> {
 }
 
 function AccountItem(props: AccountItemProps) {
+  const { colorScheme } = useColorScheme();
   return (
     <Pressable
       className="flex-row items-center justify-between py-[20px]"
@@ -25,7 +27,11 @@ function AccountItem(props: AccountItemProps) {
       {props.rightElement ? (
         props.rightElement
       ) : (
-        <Entypo name="chevron-small-right" size={20} color="black" />
+        <Entypo
+          name="chevron-small-right"
+          size={20}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
       )}
     </Pressable>
   );

@@ -1,5 +1,6 @@
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
+import { useColorScheme } from 'nativewind';
 import React, { type RefAttributes, useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, type TextInput } from 'react-native';
 import { twMerge } from 'tailwind-merge';
@@ -34,10 +35,12 @@ function CustomInput({
 }: CustomInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [show, setShow] = useState(false);
+  const { colorScheme } = useColorScheme();
+
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0))?.current;
   useEffect(() => {
     Animated.timing(animatedValue, {
-      toValue: isFocused || value.length > 0 ? 1 : 0,
+      toValue: isFocused || (value?.length && value?.length > 0) ? 1 : 0,
       duration: 200,
       useNativeDriver: false,
     }).start();
@@ -54,10 +57,11 @@ function CustomInput({
     opacity: interpolate(0, 1, 0, 1),
     fontSize: interpolate(0, 1, 16, 14),
     color: interpolate(0, 1, '#12121233', error ? '#E84343' : '#EC9F01BF'),
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colorScheme === 'dark' ? '#282828' : '#FFFFFF',
     zIndex: 1,
   };
-  const style = styles(error);
+  const style = styles(error, colorScheme);
+
   return (
     <View className={twMerge('mt-3 w-full', containerClass)}>
       {!isSearch && (
@@ -88,7 +92,7 @@ function CustomInput({
               name="search"
               size={22}
               style={{ marginTop: 3 }}
-              color="#030C0AB2"
+              color={colorScheme === 'dark' ? '#fff' : '#030C0AB2'}
             />
           ) : undefined
         }
@@ -108,8 +112,8 @@ function CustomInput({
         }
         className={twMerge(
           isSearch
-            ? 'bg-[#F7F7F7] w-full rounded-[32px] h-[50px] pl-[35px] placeholder:color-[#12121280] text-[16px]'
-            : 'h-[48px] w-full rounded-[6px] border border-[#12121233] px-[10px] placeholder:color-[#12121280] text-[16px]'
+            ? 'bg-[#F7F7F7] dark:bg-[#282828] w-full rounded-[32px] h-[50px] pl-[35px] placeholder:color-[#12121280] dark:placeholder:color-[#f5f5f5] text-[16px]'
+            : 'h-[48px] w-full rounded-[6px] border border-[#12121233] px-[10px] dark:placeholder:color-[#f5f5f5] placeholder:color-[#12121280] text-[16px]'
         )}
         {...props}
       />
@@ -130,15 +134,16 @@ function CustomInput({
 
 export default CustomInput;
 
-const styles = (error?: string) =>
-  StyleSheet.create({
+const styles = (error?: string, scheme?: string) => {
+  return StyleSheet.create({
     input: {
       fontSize: 16,
-      color: '#000000',
-      backgroundColor: '#FFFFFF',
+      color: scheme === 'dark' ? '#FFF' : '#282828',
+      backgroundColor: scheme === 'dark' ? '#282828' : '#FFFFFF',
     },
     inputFocused: {
       borderColor: error ? '#E84343' : '#EC9F01BF',
       borderWidth: 2,
     },
   });
+};

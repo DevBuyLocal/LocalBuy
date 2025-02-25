@@ -1,19 +1,21 @@
 import React from 'react';
 import { FlatList, type FlatListProps } from 'react-native';
 
+import { type TProduct } from '@/api';
+
 import { View } from '../ui';
 import ProductItem from './product-item';
 
-interface GridProductsProps<T> extends Partial<FlatListProps<T>> {
-  items: any[];
+interface GridProductsProps extends Partial<FlatListProps<TProduct>> {
+  items: TProduct[];
   isLoading: boolean;
 }
 
-function GridProducts<T>({ props }: { props: GridProductsProps<T> }) {
+function GridProducts(props: GridProductsProps) {
   if (!props.isLoading && !Boolean(props?.items?.length)) return null;
 
   return (
-    <View>
+    <View className="mt-3">
       <FlatList
         data={props.items || []}
         renderItem={({ item }) => (
@@ -21,6 +23,7 @@ function GridProducts<T>({ props }: { props: GridProductsProps<T> }) {
         )}
         keyExtractor={(_, index) => index.toString()}
         numColumns={2}
+        initialNumToRender={6}
         showsVerticalScrollIndicator={false}
         columnWrapperStyle={{
           justifyContent: 'space-between',

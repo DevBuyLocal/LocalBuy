@@ -33,6 +33,7 @@ import type {
   BottomSheetModalProps,
 } from '@gorhom/bottom-sheet';
 import { BottomSheetModal, useBottomSheet } from '@gorhom/bottom-sheet';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -42,6 +43,7 @@ import { Text } from './text';
 type ModalProps = BottomSheetModalProps & {
   title?: string;
   customHeader?: React.JSX.Element;
+  padTheTop?: boolean;
 };
 
 type ModalRef = React.ForwardedRef<BottomSheetModal>;
@@ -69,6 +71,8 @@ export const Modal = React.forwardRef(
       title,
       customHeader,
       detached = false,
+      padTheTop = true,
+      // onChange,
       ...props
     }: ModalProps,
     ref: ModalRef
@@ -77,7 +81,22 @@ export const Modal = React.forwardRef(
       () => getDetachedProps(detached),
       [detached]
     );
+
+    // Add state if you need to track it within the component
+    // const [isOpen, setIsOpen] = React.useState(false);
+
+    // // Handle changes
+    // const handleChange = React.useCallback(
+    //   (index: number, position: number, source: SNAP_POINT_TYPE) => {
+    //     console.log('🚀 ~ index:', index);
+    //     setIsOpen(index !== -1);
+    //     onChange?.(index, position, source);
+    //   },
+    //   [onChange]
+    // );
     const modal = useModal();
+    const { colorScheme } = useColorScheme();
+
     const snapPoints = React.useMemo(() => _snapPoints, [_snapPoints]);
 
     React.useImperativeHandle(
@@ -89,10 +108,11 @@ export const Modal = React.forwardRef(
       () => (
         <>
           {/* <View className="rounded-0 mb-8 mt-2 h-1 w-12 self-center bg-gray-400 dark:bg-gray-700" /> */}
+          {padTheTop && <View className="mb-8 mt-2" />}
           <ModalHeader title={title} dismiss={modal.dismiss} />
         </>
       ),
-      [title, modal.dismiss]
+      [title, modal.dismiss, padTheTop]
     );
 
     return (
@@ -100,10 +120,17 @@ export const Modal = React.forwardRef(
         {...detachedProps}
         ref={modal.ref}
         index={0}
+        // onChange={handleChange}
         snapPoints={snapPoints}
         backdropComponent={props.backdropComponent || renderBackdrop}
         enableDynamicSizing={false}
-        style={{ borderRadius: 0, backgroundColor: 'white' }}
+        style={{
+          borderRadius: 0,
+          backgroundColor: colorScheme === 'dark' ? '#282828' : 'white',
+        }}
+        backgroundStyle={{
+          backgroundColor: colorScheme === 'dark' ? '#282828' : 'white',
+        }}
         handleComponent={
           customHeader ? () => customHeader : renderHandleComponent
         }

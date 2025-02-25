@@ -1,26 +1,36 @@
 import { useRouter } from 'expo-router';
-import { AnimatePresence, MotiView, ScrollView, View } from 'moti';
+import { ScrollView, View } from 'moti';
 import { Skeleton } from 'moti/skeleton';
 import React from 'react';
+
+import { useGetProducts } from '@/api';
 
 import ViewAll from '../general/view-all';
 import ProductItem from './product-item';
 
 type ProductCarouselProps = {
-  items: any[];
   title: string;
-  isLoading: boolean;
+  type?: string;
 };
+
+const LOADER_COUNT = 3;
 
 function ProductCarousel(props: ProductCarouselProps) {
   const { push } = useRouter();
-  if (!props.isLoading && !Boolean(props?.items?.length)) return null;
 
-  if (props.isLoading && Boolean(props?.items?.length)) {
+  const { data, isFetching } = useGetProducts({
+    type: props.type || undefined,
+    limit: 5,
+  })();
+  const products = React.useMemo(() => data?.pages?.[0]?.data || [], [data]);
+
+  if (!isFetching && !Boolean(products.length)) return <View />;
+
+  if (isFetching && !Boolean(products?.length)) {
     return (
-      <ScrollView horizontal>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <View key={i.toString()} className="mr-5">
+      <ScrollView horizontal contentContainerClassName="mt-5">
+        {Array.from({ length: LOADER_COUNT }).map((_, i) => (
+          <View key={i.toString()} className="mr-5 ">
             <Skeleton width={158} height={220} radius={5} colorMode={'light'} />
           </View>
         ))}
@@ -29,35 +39,29 @@ function ProductCarousel(props: ProductCarouselProps) {
   }
 
   return (
-    <AnimatePresence>
-      {Boolean(props.items.length) && (
-        <MotiView
-          from={{ height: 0 }}
-          animate={{ height: 320 }}
-          exit={{
-            height: 0,
-          }}
+    Boolean(products.length) && (
+      <>
+        <ViewAll
+          title={props.title}
+          onPress={() =>
+            push(`/(main)/all-products?type=${props.type}&title=${props.title}`)
+          }
+        />
+        <ScrollView
+          horizontal
+          className="mt-5"
+          showsHorizontalScrollIndicator={false}
         >
-          <ViewAll
-            title={props.title}
-            onPress={() => push('/(main)/all-products')}
-          />
-          <ScrollView
-            horizontal
-            className="mt-5"
-            showsHorizontalScrollIndicator={false}
-          >
-            {(props.items || []).map((e, i) => (
-              <ProductItem
-                item={e}
-                key={i.toString()}
-                containerClassname="mr-5"
-              />
-            ))}
-          </ScrollView>
-        </MotiView>
-      )}
-    </AnimatePresence>
+          {products.map((e, i) => (
+            <ProductItem
+              item={e}
+              key={i.toString()}
+              containerClassname="mr-3"
+            />
+          ))}
+        </ScrollView>
+      </>
+    )
   );
 }
 

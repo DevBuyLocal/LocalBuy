@@ -2,15 +2,24 @@ import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { AvoidSoftInputView } from 'react-native-avoid-softinput';
 
+import { useUpdateUser } from '@/api';
+import { useResetPassword } from '@/api/auth/use-reset-password';
+import { useUpdatePassword } from '@/api/auth/use-update-password';
 import AccountItem from '@/components/account/account-item';
 import Container from '@/components/general/container';
+import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import { ScrollView, Text, View } from '@/components/ui';
+import { useAuth } from '@/lib';
+import { Env } from '@/lib/env';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 
+/* MAIN ACCOUNT INFORMATION COMPONENT - HANDLES USER PROFILE, PASSWORD, PAYMENT AND SHIPPING DETAILS */
 function AccountInfo() {
   const { back } = useRouter();
   const [page, setPage] = React.useState<
@@ -51,6 +60,7 @@ function AccountInfo() {
   );
 }
 
+/* DEFAULT VIEW - DISPLAYS LIST OF ACCOUNT MANAGEMENT OPTIONS */
 const Default = ({
   setPage,
 }: {
@@ -60,31 +70,56 @@ const Default = ({
     >
   >;
 }) => {
+  const { colorScheme } = useColorScheme();
   const defaultList = [
     {
       label: 'Edit profile',
-      icon: <Feather name="edit-3" size={24} color="black" />,
+      icon: (
+        <Feather
+          name="edit-3"
+          size={24}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
+      ),
       onPress: () => {
         setPage('edit');
       },
     },
     {
       label: 'Change password',
-      icon: <MaterialIcons name="change-circle" size={24} color="black" />,
+      icon: (
+        <MaterialIcons
+          name="change-circle"
+          size={24}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
+      ),
       onPress: () => {
         setPage('password');
       },
     },
     {
       label: 'Manage payment methods',
-      icon: <MaterialIcons name="payments" size={24} color="black" />,
+      icon: (
+        <MaterialIcons
+          name="payments"
+          size={24}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
+      ),
       onPress: () => {
         // setPage('payment');
       },
     },
     {
       label: 'Edit shipping address',
-      icon: <FontAwesome6 name="book-bookmark" size={24} color="black" />,
+      icon: (
+        <FontAwesome6
+          name="book-bookmark"
+          size={24}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
+      ),
       onPress: () => {
         setPage('shipping');
       },
@@ -103,8 +138,31 @@ const Default = ({
     </Container.Box>
   );
 };
+
+/* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
-  // const { loading, setLoading } = useLoader();
+  const { setSuccess, setLoading, setError } = useLoader({
+    showLoadingPage: false,
+  });
+  const { user } = useAuth();
+
+  const [details, setDetails] = React.useState({
+    fullName: user?.profile?.fullName,
+    email: user?.email,
+    phoneNumber: user?.phoneNumber,
+  });
+
+  const { mutate: mutateUpdate } = useUpdateUser({
+    onSuccess: () => {
+      setSuccess('Phone number updated');
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled() {
+      setLoading(false);
+    },
+  });
 
   // React.useEffect(() => {
   //   setLoading(true);
@@ -119,18 +177,99 @@ const Edit = () => {
           <Text className="text-[50px] font-bold color-primaryText">D</Text>
         </View>
 
-        <CustomInput placeholder="Full name" />
-        <CustomInput placeholder="Email address" keyboardType="email-address" />
-        <CustomInput placeholder="Phone number" keyboardType="number-pad" />
+        <CustomInput
+          placeholder="Full name"
+          value={details?.fullName}
+          onChangeText={(e) => {
+            setDetails({ ...details, fullName: e });
+          }}
+        />
+        <CustomInput
+          placeholder="Email address"
+          keyboardType="email-address"
+          value={details?.email}
+          disabled
+          onPress={() => {}}
+        />
+        <CustomInput
+          placeholder="Phone number"
+          keyboardType="number-pad"
+          value={details?.phoneNumber}
+          onChangeText={(e) => {
+            setDetails({ ...details, phoneNumber: e });
+          }}
+        />
         <View className="absolute bottom-[120px] w-full">
-          <CustomButton label="Update" />
+          <CustomButton
+            label="Update"
+            onPress={() => {
+              setLoading(true);
+              mutateUpdate({
+                phoneNumber: details?.phoneNumber,
+                fullName: details?.fullName,
+              });
+            }}
+          />
         </View>
       </ScrollView>
     </AvoidSoftInputView>
   );
 };
 
+/* PASSWORD MANAGEMENT SECTION - HANDLES PASSWORD UPDATES */
 const Password = () => {
+  const { setSuccess, setLoading, setError } = useLoader({
+    showLoadingPage: false,
+  });
+  const { user } = useAuth();
+  const { back } = useRouter();
+  const [pass, setPass] = React.useState({ password: '', confirmPassword: '' });
+  const [code, setCode] = React.useState('');
+
+  const { mutate } = useResetPassword({
+    onSuccess: (data) => {
+      setSuccess(data?.message);
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled() {
+      setLoading(false);
+    },
+  });
+
+  const { mutate: mutateUpdate } = useUpdatePassword({
+    onSuccess: (data) => {
+      setSuccess(data?.message);
+      setPass({ password: '', confirmPassword: '' });
+      setCode('');
+      back();
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled() {
+      setLoading(false);
+    },
+  });
+  function SendCode() {
+    if (!user?.email) return;
+    setLoading(true);
+    mutate({
+      email: user?.email,
+    });
+  }
+  function UpdatePassword() {
+    if (!user?.email) return;
+    setLoading(true);
+    mutateUpdate({
+      email: user?.email,
+      code,
+      password: pass?.password,
+      confirmPassword: pass?.confirmPassword,
+    });
+  }
+
   return (
     <AvoidSoftInputView>
       <ScrollView
@@ -144,16 +283,51 @@ const Password = () => {
           Enter a new password to keep your account secure.
         </Text>
 
-        <CustomInput placeholder="Current password" isPassword />
-        <CustomInput placeholder="Enter new password" isPassword />
-        <CustomInput placeholder="Confirm new password" isPassword />
+        <CustomInput
+          placeholder="Enter new password"
+          isPassword
+          value={pass?.password}
+          onChangeText={(e) => {
+            setPass({ ...pass, password: e });
+          }}
+        />
+        <CustomInput
+          placeholder="Confirm new password"
+          isPassword
+          value={pass?.confirmPassword}
+          onChangeText={(e) => {
+            setPass({ ...pass, confirmPassword: e });
+          }}
+        />
+        <CountdownTimer
+          countFrom={Env.APP_ENV === 'development' ? 5 : 60}
+          onCountdownComplete={() => {}}
+          resend={SendCode}
+          text1="Click to receive code"
+          text2="Send"
+        />
+
+        <CustomInput
+          placeholder="Code"
+          keyboardType="number-pad"
+          maxLength={6}
+          value={code}
+          onChangeText={setCode}
+        />
+
         <View className="absolute bottom-[120px] w-full">
-          <CustomButton label="Update" />
+          <CustomButton
+            label="Update"
+            disabled={code.length < 6 || pass.password !== pass.confirmPassword}
+            onPress={UpdatePassword}
+          />
         </View>
       </ScrollView>
     </AvoidSoftInputView>
   );
 };
+
+/* PAYMENT METHODS SECTION - MANAGES USER PAYMENT OPTIONS */
 const Payment = () => {
   return (
     <Container.Box>
@@ -161,6 +335,8 @@ const Payment = () => {
     </Container.Box>
   );
 };
+
+/* SHIPPING ADDRESS SECTION - HANDLES USER DELIVERY INFORMATION */
 const Shipping = () => {
   return (
     <AvoidSoftInputView>

@@ -1,21 +1,84 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import React from 'react';
 import { Alert, FlatList, Pressable } from 'react-native';
 
+import { useGetProducts } from '@/api';
+import { useGetCartItems } from '@/api/cart/use-get-cart-items';
+import { useCheckoutOrder } from '@/api/order';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import Empty from '@/components/general/empty';
 import CartItem from '@/components/products/cart-item';
 import ProductCarousel from '@/components/products/product-carousel';
 import { Text, View } from '@/components/ui';
+import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 
-import dummyProducts from '../../../lib/dummy';
-
+// eslint-disable-next-line max-lines-per-function
 export default function Cart() {
   const { push } = useRouter();
-  const { clearCart, total, totalPrice, products_in_cart } =
-    useCart(CartSelector);
+  const { token } = useAuth();
+  const { clearCart, products_in_cart } = useCart(CartSelector);
+  const { setError, setLoading, loading, setLoadingText } = useLoader({
+    showLoadingPage: true,
+  });
+
+  useGetProducts({})();
+  const { data, error } = useGetCartItems();
+  const cartItems = React.useMemo(
+    () => (token ? data?.items : products_in_cart) || [],
+    [token, data, products_in_cart]
+  );
+
+  const sortCartItemsByCreatedAt = React.useMemo(
+    () =>
+      cartItems.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [cartItems]
+  );
+
+  const totalPrice = React.useMemo(
+    () =>
+      sortCartItemsByCreatedAt.reduce(
+        (sum, item) => sum + item?.productOption?.price * item?.quantity,
+        0
+      ),
+    [sortCartItemsByCreatedAt]
+  );
+
+  const { mutate } = useCheckoutOrder({
+    onSuccess: () => {
+      push('/checkout');
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
+  if (error) {
+    return (
+      <Container.Box>
+        <Text>Error fetching cart items. Please try again later.</Text>
+      </Container.Box>
+    );
+  }
+
+  function redirectToLoginAndBack() {
+    if (!token?.access) {
+      push('/login?from=cart');
+    } else {
+      setLoading(true);
+      setLoadingText('Checking out');
+      mutate();
+    }
+  }
   return (
     <Container.Page
       showHeader
@@ -23,14 +86,22 @@ export default function Cart() {
       headerTitle="My Cart"
       containerClassName="flex-1"
       rightHeaderIcon={
-        products_in_cart.length ? (
+        sortCartItemsByCreatedAt.length ? (
           <Pressable
             onPress={() =>
               Alert.alert(
                 'Empty cart',
                 'Are you sure you want to clear your cart?',
                 [
-                  { text: 'Yes', onPress: () => clearCart() },
+                  {
+                    text: 'Yes',
+                    onPress: () => {
+                      if (token) {
+                        return;
+                      }
+                      clearCart();
+                    },
+                  },
                   { text: 'Cancel', style: 'destructive' },
                 ]
               )
@@ -42,10 +113,10 @@ export default function Cart() {
         ) : undefined
       }
     >
-      <Container.Box containerClassName="">
+      <Container.Box containerClassName="flex-1">
         <FlatList
-          data={products_in_cart || []}
-          keyExtractor={(e) => e.id}
+          data={sortCartItemsByCreatedAt}
+          keyExtractor={(_, i) => i?.toString()}
           renderItem={({ item }) => <CartItem item={item} />}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -57,7 +128,9 @@ export default function Cart() {
                 <CustomButton.Secondary
                   label={'Browse products'}
                   containerClassname="w-full mt-16"
-                  onPress={() => push('/')}
+                  onPress={() => {
+                    push('/');
+                  }}
                 />
               }
             />
@@ -66,7 +139,7 @@ export default function Cart() {
             <View className="my-3 h-px w-full bg-[#F7F7F7]" />
           )}
           ListFooterComponent={
-            Boolean(products_in_cart.length) ? (
+            Boolean(cartItems.length) ? (
               <View>
                 <View className="my-3 flex-row justify-between">
                   <Text className="opacity-65">Total amount</Text>
@@ -76,23 +149,25 @@ export default function Cart() {
                 </View>
                 <View className="h-px w-full bg-[#F7F7F7]" />
                 <View className="my-3 flex-row justify-between">
-                  <Text className="opacity-65">Number of product(s)</Text>
+                  <Text adjustsFontSizeToFit className="opacity-65">
+                    Number of product(s)
+                  </Text>
                   <Text className="text-[16px] font-bold">
-                    {total?.toLocaleString()}
+                    {cartItems?.length}
                   </Text>
                 </View>
                 <CustomButton
                   label={'Checkout'}
                   containerClassname="mt-10"
-                  onPress={() => push('/checkout')}
+                  onPress={() => redirectToLoginAndBack()}
+                  loading={loading}
                 />
-                <CustomButton.Secondary label={'Schedule order'} />
-                <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-40">
-                  <ProductCarousel
-                    items={dummyProducts}
-                    title={'Frequently bought'}
-                    isLoading={false}
-                  />
+                <CustomButton.Secondary
+                  label={'Schedule order'}
+                  // onPress={() => redirectToLoginAndBack('/schedule-order')}
+                />
+                <Container.Box containerClassName="px-0 pb-20">
+                  <ProductCarousel title={'Frequently bought'} />
                 </Container.Box>
               </View>
             ) : undefined

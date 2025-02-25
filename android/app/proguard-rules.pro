@@ -12,3 +12,7 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+-keep public class net.time4j.android.ApplicationStarter
+-keep public class net.time4j.PrettyTime
+

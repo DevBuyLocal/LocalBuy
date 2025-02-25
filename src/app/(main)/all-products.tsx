@@ -1,27 +1,21 @@
-import { View } from 'moti';
+import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 
+import { useGetProducts } from '@/api';
 import Container from '@/components/general/container';
-import CustomInput from '@/components/general/custom-input';
+import GridProducts from '@/components/products/grid-products';
 
 function AllProducts() {
-  const [search, setSearch] = React.useState<string>('');
+  const { type, title }: { type: string; title: string } =
+    useLocalSearchParams();
+
+  const { data, isFetching } = useGetProducts({ type })();
+  const items = React.useMemo(() => data?.pages[0]?.data || [], [data]);
   return (
-    <Container.Page
-      showHeader
-      showCart
-      headerComponent={
-        <View className="w-[70%]">
-          <CustomInput
-            isSearch
-            placeholder="Search products..."
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
-      }
-    >
-      <></>
+    <Container.Page showHeader showCart headerTitle={title || 'All Products'}>
+      <Container.Box containerClassName="bg-[#F7F7F7] pb-40">
+        <GridProducts items={items} isLoading={isFetching} />
+      </Container.Box>
     </Container.Page>
   );
 }

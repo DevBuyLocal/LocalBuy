@@ -1,12 +1,47 @@
+import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
+import { Paystack, type paystackProps } from 'react-native-paystack-webview';
 
+import { useInitializePayment } from '@/api/order/use-initialize-payment';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
-import { Text, View } from '@/components/ui';
-import { CartSelector, useCart } from '@/lib/cart';
+import { colors, Text, View } from '@/components/ui';
+import { useAuth } from '@/lib';
+import { Env } from '@/lib/env';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 
 function Checkout() {
-  const { totalPrice } = useCart(CartSelector);
+  const paystackWebViewRef = React.useRef<paystackProps.PayStackRef>(null);
+  const { user } = useAuth();
+  const { setError, loading, setLoading } = useLoader({
+    showLoadingPage: false,
+  });
+
+  const { orderId, price }: { orderId: string; price: string } =
+    useLocalSearchParams();
+
+  const { mutate, isPending } = useInitializePayment({
+    onSuccess: (data) => {
+      console.log('🚀 ~ Checkout ~ data:', data);
+      paystackWebViewRef.current?.startTransaction();
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
+  const handlePayment = () => {
+    setLoading(true);
+    mutate({
+      orderId: Number(orderId),
+      email: user?.email || '',
+      amount: Number(price),
+    });
+  };
+
   return (
     <Container.Page showHeader headerTitle="Checkout">
       <Container.Box containerClassName="bg-[#F7F7F7] flex-1">
@@ -26,7 +61,7 @@ function Checkout() {
           <View className="flex-row items-center justify-between">
             <Text className="text-[16px] opacity-65">Subtotal</Text>
             <Text className="text-[16px] font-medium">
-              N{totalPrice?.toLocaleString()}
+              N{Number(price)?.toLocaleString()}
             </Text>
           </View>
           <View className="flex-row items-center justify-between py-5">
@@ -44,9 +79,30 @@ function Checkout() {
           <Text className="w-[90%] text-[16px] opacity-75">Payment</Text>
         </View>
         <View className="absolute bottom-12 w-full self-center">
-          <CustomButton label="Continue" />
+          <CustomButton
+            label="Continue"
+            onPress={handlePayment}
+            loading={loading || isPending}
+            disabled={loading || isPending}
+          />
         </View>
       </Container.Box>
+
+      <Paystack
+        paystackKey={Env.PAYSTACK_PUBLIC_KEY}
+        billingEmail={user?.email || ''}
+        amount={price}
+        activityIndicatorColor={colors.primaryText}
+        onCancel={(e) => {
+          console.log('🚀 ~ Checkout ~ e:', e);
+          // handle response here
+        }}
+        onSuccess={(res) => {
+          console.log('🚀 ~ Checkout ~ res:', res);
+          // handle response here
+        }}
+        ref={paystackWebViewRef as any}
+      />
     </Container.Page>
   );
 }

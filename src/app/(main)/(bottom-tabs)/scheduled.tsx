@@ -8,7 +8,7 @@ import { Text, View } from '@/components/ui';
 export default function Scheduled() {
   return (
     <Container.Page showHeader hideBackButton headerTitle="Scheduled Orders">
-      <Container.Box>
+      <Container.Box containerClassName="-mt-5">
         <CustomInput isSearch placeholder="Search order..." />
         <Text className="mb-2 mt-4 text-[16px]">
           Below is a list of your scheduled orders. Click an order to edit or
@@ -16,7 +16,8 @@ export default function Scheduled() {
         </Text>
 
         <FlatList
-          data={Array.from({ length: 10 })}
+          data={[]}
+          // data={Array.from({ length: 10 })}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <OrderItem item={item} handleDelete={() => {}} />
