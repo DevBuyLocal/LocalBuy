@@ -7,33 +7,32 @@ import { client, queryClient } from '../common';
 import { QueryKey } from '../types';
 import { type TOrder } from './types';
 
-export interface TCheckoutOrderResponse {
+export interface TScheduleOrderResponse {
   order: TOrder;
 }
 
-export const useCheckoutOrder = createMutation<
-  TCheckoutOrderResponse,
-  void,
+type Variables = { scheduledDate: string | Date; orderId: number };
+
+export const useScheduleOrder = createMutation<
+  TScheduleOrderResponse,
+  Variables,
   AxiosError
 >({
-  mutationFn: async () =>
+  mutationFn: async ({ orderId, scheduledDate }) =>
     client({
-      url: 'api/orders',
-      method: 'POST',
-      data: {},
+      url: `api/orders/${orderId}/schedule`,
+      method: 'PATCH',
+      data: { scheduledDate },
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken()?.access}`,
       },
     }).then(async (response) => {
-      if (response.status === 201) {
+      console.log('🚀 ~ response:', response.status);
+      if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: [QueryKey.ORDERS] });
-        await queryClient.invalidateQueries({ queryKey: [QueryKey.CART] });
         await queryClient.fetchQuery({
           queryKey: [QueryKey.ORDERS],
-        });
-        await queryClient.fetchQuery({
-          queryKey: [QueryKey.CART],
         });
         return response.data;
       }

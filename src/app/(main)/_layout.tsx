@@ -4,6 +4,7 @@ import React, { useCallback, useEffect } from 'react';
 
 import { queryClient, QueryKey, useGetUser } from '@/api';
 import { useAddCartItem, useAddNote, useGetCartItems } from '@/api/cart';
+import { useGetAllOrders } from '@/api/order';
 import { useAuth, useIsFirstTime } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
@@ -23,6 +24,7 @@ export default function MainLayout() {
 
   useGetUser();
   const { data } = useGetCartItems();
+  useGetAllOrders();
 
   const { mutateAsync: syncCartItems } = useAddCartItem({
     onError: (error) => {

@@ -51,8 +51,13 @@ export default function Cart() {
   );
 
   const { mutate } = useCheckoutOrder({
-    onSuccess: () => {
-      push('/checkout');
+    onSuccess: (data) => {
+      const item = data?.order;
+      if (item) {
+        push(`/checkout?orderId=${item?.id}&price=${item?.totalPrice}`);
+      } else {
+        setError('No order information available.');
+      }
     },
     onError: (error) => {
       setError(error?.response?.data);
@@ -161,10 +166,6 @@ export default function Cart() {
                   containerClassname="mt-10"
                   onPress={() => redirectToLoginAndBack()}
                   loading={loading}
-                />
-                <CustomButton.Secondary
-                  label={'Schedule order'}
-                  // onPress={() => redirectToLoginAndBack('/schedule-order')}
                 />
                 <Container.Box containerClassName="px-0 pb-20">
                   <ProductCarousel title={'Frequently bought'} />

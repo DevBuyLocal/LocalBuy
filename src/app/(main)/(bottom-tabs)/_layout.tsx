@@ -6,6 +6,7 @@ import { AnimatePresence, MotiView } from 'moti';
 import React from 'react';
 
 import { useGetCartItems } from '@/api/cart';
+import { useGetAllOrders } from '@/api/order';
 import { Text, View } from '@/components/ui';
 import { Inventory } from '@/components/ui/icons/inventory';
 import { useAuth } from '@/lib';
@@ -21,17 +22,11 @@ export default function BottomTabsLayout() {
 
   const noInCart = token ? data?.items?.length : total;
 
-  // React.useEffect(() => {
-  //   console.log(token);
-
-  //   if (token) {
-  //     queryClient.fetchQuery({ queryKey: [QueryKey.USER] });
-  //     refetch();
-  //     console.log('got here 2');
-
-  //     // queryClient.fetchQuery({ queryKey: [QueryKey.CART] });
-  //   }
-  // }, [refetch, token, user]);
+  const { data: orderData } = useGetAllOrders();
+  const orders = React.useMemo(
+    () => orderData?.orders.filter((e) => e.status === 'PENDING') || [],
+    [orderData]
+  );
 
   return (
     <Tabs
@@ -163,7 +158,27 @@ export default function BottomTabsLayout() {
         options={{
           title: 'Account',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="account-circle" size={28} color={color} />
+            <View>
+              <MaterialIcons name="account-circle" size={28} color={color} />
+              <AnimatePresence>
+                {Number(orders.length) > 0 && Number(noInCart) < 1 && (
+                  <MotiView
+                    from={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.5,
+                    }}
+                    transition={{ type: 'timing', duration: 350 }}
+                    className="absolute -right-2 -top-2 rounded-full bg-red-600 px-[5px]"
+                  >
+                    <Text className=" text-[14px] font-bold text-white">
+                      {orders.length}
+                    </Text>
+                  </MotiView>
+                )}
+              </AnimatePresence>
+            </View>
           ),
           tabBarLabel(props) {
             return (

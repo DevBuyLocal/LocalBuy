@@ -15,6 +15,10 @@ function AllBrands() {
   const { data } = useGetManufacturers({ limit: 10, page: 1 })();
   const brands = React.useMemo(() => data?.pages[0]?.data || [], [data]);
 
+  const filteredBrands = brands.filter((brand) =>
+    brand.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   const BrandItem = ({ item }: { item: TSingleManufacturers }) => {
     const [imgSrc, setImgSrc] = React.useState(item.logo ? item.logo : null);
 
@@ -57,7 +61,7 @@ function AllBrands() {
           />
 
           <FlatList
-            data={brands}
+            data={filteredBrands}
             renderItem={({ item }) => <BrandItem item={item} />}
           />
         </View>

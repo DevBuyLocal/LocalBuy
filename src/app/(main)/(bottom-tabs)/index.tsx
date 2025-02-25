@@ -391,9 +391,12 @@ export default function Home() {
                 <FlatList
                   data={categories}
                   renderItem={({ item }) => (
-                    <View className="mb-3 w-[49%] rounded-lg bg-[#F7F7F7] p-2 py-3 dark:bg-[#282828]">
+                    <Pressable
+                      className="mb-3 w-[49%] rounded-lg bg-[#F7F7F7] p-2 py-3 dark:bg-[#282828]"
+                      onPress={() => push(`/all-products?category=${item?.id}`)}
+                    >
                       <Text>{item?.name}</Text>
-                    </View>
+                    </Pressable>
                   )}
                   scrollEnabled={false}
                   keyExtractor={(_, i) => i.toString()}

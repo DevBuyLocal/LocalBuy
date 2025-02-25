@@ -17,7 +17,12 @@ export type PaginateQueryProduct<T> = {
 };
 
 type Response = PaginateQueryProduct<TProduct>;
-type Variables = { type?: string; limit?: number; page?: number };
+type Variables = {
+  type?: string;
+  limit?: number;
+  page?: number;
+  category?: number;
+};
 
 export const useGetProducts = (_variables: Variables) => {
   return createInfiniteQuery<Response, Variables, AxiosError>({
@@ -26,6 +31,7 @@ export const useGetProducts = (_variables: Variables) => {
       _variables.type,
       _variables.limit,
       _variables.page,
+      _variables.category,
     ], // Include type to avoid caching conflicts
     fetcher: async (_, { pageParam }) => {
       try {

@@ -6,10 +6,18 @@ import Container from '@/components/general/container';
 import GridProducts from '@/components/products/grid-products';
 
 function AllProducts() {
-  const { type, title }: { type: string; title: string } =
-    useLocalSearchParams();
+  const {
+    type,
+    title,
+    category,
+  }: { type: string; title: string; category: string } = useLocalSearchParams();
 
-  const { data, isFetching } = useGetProducts({ type })();
+  const { data, isFetching } = useGetProducts({
+    type,
+    limit: 10,
+    category: Number(category),
+  })();
+
   const items = React.useMemo(() => data?.pages[0]?.data || [], [data]);
   return (
     <Container.Page showHeader showCart headerTitle={title || 'All Products'}>

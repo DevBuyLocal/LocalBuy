@@ -6,17 +6,21 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { type Href, useRouter } from 'expo-router';
 import { type NavigationOptions } from 'expo-router/build/global-state/routing';
+import { AnimatePresence, MotiView } from 'moti';
 import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { Alert } from 'react-native';
 
+import { useGetAllOrders } from '@/api/order';
 import AccountItem from '@/components/account/account-item';
 import Container from '@/components/general/container';
-import { View } from '@/components/ui';
+import { Text, View } from '@/components/ui';
 import { signOut } from '@/lib';
+
 const accountItems = (
   push: (href: Href, options?: NavigationOptions) => void,
-  colorScheme?: 'dark' | 'light'
+  colorScheme?: 'dark' | 'light',
+  indicator?: number
 ) => [
   {
     label: 'Account Information',
@@ -32,11 +36,31 @@ const accountItems = (
   {
     label: 'Manage Order',
     icon: (
-      <FontAwesome5
-        name="clipboard-list"
-        size={24}
-        color={colorScheme === 'dark' ? '#fff' : 'black'}
-      />
+      <View>
+        <FontAwesome5
+          name="clipboard-list"
+          size={24}
+          color={colorScheme === 'dark' ? '#fff' : 'black'}
+        />
+        <AnimatePresence>
+          {Number(indicator) > 0 && (
+            <MotiView
+              from={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{
+                opacity: 0,
+                scale: 0.5,
+              }}
+              transition={{ type: 'timing', duration: 350 }}
+              className="absolute -right-2 -top-2 rounded-full bg-red-600 px-[5px]"
+            >
+              <Text className=" text-[14px] font-bold text-white">
+                {indicator}
+              </Text>
+            </MotiView>
+          )}
+        </AnimatePresence>
+      </View>
     ),
     onPress: () => push('/main-account-page?page=manage-order'),
   },
@@ -114,7 +138,14 @@ const accountItems = (
 export default function Account() {
   const { push } = useRouter();
   const { colorScheme } = useColorScheme();
-  const accountI = accountItems(push, colorScheme);
+
+  const { data: orderData } = useGetAllOrders();
+  const orders = React.useMemo(
+    () => orderData?.orders.filter((e) => e.status === 'PENDING') || [],
+    [orderData]
+  );
+
+  const accountI = accountItems(push, colorScheme, orders.length || 0);
 
   return (
     <Container.Page headerTitle="Account" showHeader hideBackButton>
