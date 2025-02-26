@@ -5,9 +5,14 @@ import { accessToken } from '@/lib';
 
 import { client } from '../common';
 import { QueryKey } from '../types';
-import { type TOrderResponse } from './types';
 
-type Response = TOrderResponse;
+type Response = {
+  order: {
+    scheduledDate: string | null;
+    status: string;
+    updatedAt: string;
+  };
+};
 type Variables = {
   orderId: string | number;
 };

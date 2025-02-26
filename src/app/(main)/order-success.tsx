@@ -6,7 +6,7 @@ import { Image, Text } from '@/components/ui';
 import { useAuth } from '@/lib';
 
 export default function OrderSuccess() {
-  const { replace, back } = useRouter();
+  const { replace } = useRouter();
   const { user } = useAuth();
 
   const { orderId }: { orderId: string } = useLocalSearchParams();
@@ -27,7 +27,10 @@ export default function OrderSuccess() {
         </Text>
       </Container.Box>
       <Container.Box containerClassName="absolute bottom-14 w-full">
-        <CustomButton label="View Order Details" onPress={back} />
+        <CustomButton
+          label="View Order Details"
+          onPress={() => replace(`/track-order?orderId=${orderId}`)}
+        />
 
         <Text
           className="self-center p-5"
