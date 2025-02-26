@@ -43,6 +43,11 @@ function OrderItem({ item, onPress, isHistory }: Props) {
           push(
             `/checkout?orderId=${item?.id}&price=${item?.totalPrice}&scheduledDate=${item?.scheduledDate}`
           );
+          return;
+        }
+        if (item?.status !== 'PENDING') {
+          push(`/track-order?orderId=${item?.id}`);
+          return;
         }
         onPress && onPress();
       }}

@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { useAuth } from '@/lib';
 
-import { Image, SafeAreaView, Text, WIDTH } from '../ui';
+import { Image, Text, WIDTH } from '../ui';
 
 const IMAGE_SOURCES = [
   require('../../../assets/images/home-icons/hm2.jpeg'),
@@ -89,10 +89,6 @@ const AdsHeader = memo(
 
     return (
       <View className="w-full overflow-hidden bg-[#0F3D30] p-5">
-        <SafeAreaView edges={['top']} />
-        {/* <SafeAreaView edges={['top']} /> */}
-        {/* {IS_IOS && <SafeAreaView edges={['top']} />} */}
-
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="mb-1 w-[70px]  rounded-sm bg-[#FFFFFF1A] px-2 text-[14px] text-white">

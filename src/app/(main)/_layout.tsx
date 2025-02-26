@@ -112,7 +112,6 @@ export default function MainLayout() {
   if (isFirstTime) {
     return <Redirect href="/onboarding" />;
   }
-
   // if (status === 'signOut') {
   //   return <Redirect href="/login" />;
   // }
@@ -131,6 +130,7 @@ export default function MainLayout() {
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="checkout" options={{ headerShown: false }} />
       <Stack.Screen name="schedule-order" options={{ headerShown: false }} />
+      <Stack.Screen name="track-order" options={{ headerShown: false }} />
       <Stack.Screen
         name="order-success"
         options={{

@@ -26,8 +26,8 @@ function ManageOrder() {
       tabIndex === 1 ? e.status === 'PENDING' : e.status === 'PROCESSING'
     )
     .filter((order) =>
-      order.items.some((item) =>
-        item.product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      order?.items?.some((item) =>
+        item?.product?.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
 

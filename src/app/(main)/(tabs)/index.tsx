@@ -18,7 +18,7 @@ import FeaturedBrands from '@/components/home/featured-brands';
 import FilterModal from '@/components/products/filter-modal';
 import LocationModal from '@/components/products/location-modal';
 import ProductCarousel from '@/components/products/product-carousel';
-import { Pressable, Text, useModal, View } from '@/components/ui';
+import { colors, Pressable, Text, useModal, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { UserType } from '@/lib/constants';
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
@@ -309,7 +309,11 @@ export default function Home() {
         // bounces={false}
         stickyHeaderIndices={[1]}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primaryText}
+          />
         }
         // className={'bg-white dark:bg-[#282828]'}
       >
