@@ -187,26 +187,41 @@ export default function Home() {
     : new Animated.Value(0);
 
   const handleRefresh = useCallback(async () => {
-    // console.log('🚀 ~ Home ~ handleRefresh triggered');
-    setRefreshing(true);
-    await queryClient.invalidateQueries({
-      queryKey: [
-        QueryKey.CATEGORIES,
-        QueryKey.PRODUCTS,
-        QueryKey.MANUFACTURERS,
-      ],
-    });
+    try {
+      // console.log('🚀 ~ Home ~ handleRefresh triggered');
+      setRefreshing(true);
+      await queryClient.invalidateQueries({
+        queryKey: [QueryKey.CATEGORIES],
+      });
+      await queryClient.invalidateQueries({
+        predicate: (query) => {
+          return query.queryKey[0] === QueryKey.PRODUCTS;
+        },
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [QueryKey.MANUFACTURERS],
+      });
 
-    await queryClient.fetchQuery({
-      queryKey: [
-        QueryKey.CATEGORIES,
-        QueryKey.PRODUCTS,
-        QueryKey.MANUFACTURERS,
-      ],
-    });
-    setTimeout(() => {
+      await queryClient.fetchQuery({
+        queryKey: [QueryKey.CATEGORIES],
+      });
+      await queryClient.invalidateQueries({
+        predicate: (query) => {
+          return query.queryKey[0] === QueryKey.PRODUCTS;
+        },
+      });
+      await queryClient.fetchQuery({
+        queryKey: [QueryKey.MANUFACTURERS],
+      });
+      // setTimeout(() => {
+      //   setRefreshing(false);
+      // }, 2000);
+    } catch (error) {
+      console.log('🚀 ~ handleRefresh ~ error:', error);
       setRefreshing(false);
-    }, 2000);
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
 
   // console.log('🚀 ~ Home ~ stickyHeaderHeight:', stickyHeaderHeight);

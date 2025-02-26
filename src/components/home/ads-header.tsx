@@ -5,6 +5,8 @@ import { Animated, Pressable, View } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import { twMerge } from 'tailwind-merge';
 
+import { useAuth } from '@/lib';
+
 import { Image, SafeAreaView, Text, WIDTH } from '../ui';
 
 const IMAGE_SOURCES = [
@@ -22,6 +24,7 @@ interface AdsHeaderProps {
 const AdsHeader = memo(
   ({ scroll, height = 300, locationPresent }: AdsHeaderProps) => {
     const { push } = useRouter();
+    const { token } = useAuth();
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollHeight = height;
 
@@ -105,23 +108,24 @@ const AdsHeader = memo(
               <FontAwesome5 name="chevron-down" size={10} color="white" />
             </Pressable>
           </View>
+          {token && (
+            <Pressable
+              className="rounded-full bg-[#FFFFFF1A] p-2"
+              onPress={() => push('/notifications')}
+            >
+              <MaterialCommunityIcons
+                name="bell-outline"
+                size={28}
+                color="white"
+              />
 
-          <Pressable
-            className="rounded-full bg-[#FFFFFF1A] p-2"
-            onPress={() => push('/notifications')}
-          >
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={28}
-              color="white"
-            />
-
-            {notificationUnread && (
-              <Text className="absolute right-3 top-1 text-[16px] color-[#E84343]">
-                ●
-              </Text>
-            )}
-          </Pressable>
+              {notificationUnread && (
+                <Text className="absolute right-3 top-1 text-[16px] color-[#E84343]">
+                  ●
+                </Text>
+              )}
+            </Pressable>
+          )}
         </View>
 
         <Carousel

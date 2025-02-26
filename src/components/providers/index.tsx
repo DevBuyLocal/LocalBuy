@@ -1,6 +1,7 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider } from '@react-navigation/native';
 import { usePathname } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
 import FlashMessage from 'react-native-flash-message';
@@ -14,7 +15,7 @@ import { useThemeConfig } from '@/lib/use-theme-config';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const theme = useThemeConfig();
-  // const { colorScheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const pN = usePathname();
 
   return (
@@ -31,10 +32,20 @@ function Providers({ children }: { children: React.ReactNode }) {
               <BottomSheetModalProvider>
                 <SafeAreaView edges={pN === '/' ? [] : ['top']} />
                 <StatusBar
-                  // barStyle={
-                  //   colorScheme === 'dark' ? 'light-content' : 'dark-content'
-                  // }
-                  // backgroundColor={colorScheme === 'dark' ? 'black' : 'white'}
+                  barStyle={
+                    pN === '/'
+                      ? 'light-content'
+                      : colorScheme === 'dark'
+                        ? 'light-content'
+                        : 'dark-content'
+                  }
+                  backgroundColor={
+                    pN === '/'
+                      ? '#0F3D30'
+                      : colorScheme === 'dark'
+                        ? 'black'
+                        : 'white'
+                  }
                   translucent={false}
                 />
 

@@ -32,7 +32,7 @@ function ScheduleOrder() {
     useScheduleOrder({
       onSuccess: () => {
         setSuccess('Order scheduled successfully!');
-        replace('/(bottom-tabs)/scheduled');
+        replace('/(tabs)/scheduled');
       },
       onError: (error) => {
         setError(error?.response?.data);

@@ -32,8 +32,7 @@ export default function Scheduled() {
           onChangeText={setSearchQuery}
         />
         <Text className="mb-2 mt-4 text-[14px]">
-          Below is a list of your scheduled orders. Click an order to edit or
-          swipe left to delete
+          Below is a list of your scheduled orders.
         </Text>
 
         <FlatList

@@ -14,7 +14,7 @@ import { CartSelector, useCart } from '@/lib/cart';
 import { UserType } from '@/lib/constants';
 
 // eslint-disable-next-line max-lines-per-function
-export default function BottomTabsLayout() {
+export default function TabsLayout() {
   const { data } = useGetCartItems();
   const { total } = useCart(CartSelector);
   const { token, user } = useAuth();

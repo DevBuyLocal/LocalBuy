@@ -50,7 +50,7 @@ export default function Login() {
           });
           //TODO: FETCH USER DATA AND STORE IT IN CONTEXT
           setSuccess('Login successful');
-          replace(from === 'cart' ? '/(bottom-tabs)/cart' : `/`);
+          replace(from === 'cart' ? '/(tabs)/cart' : `/`);
         },
         onError(error) {
           setError(error?.response?.data);

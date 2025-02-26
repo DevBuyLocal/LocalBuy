@@ -119,7 +119,7 @@ export default function MainLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(bottom-tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="all-products" options={{ headerShown: false }} />
       <Stack.Screen name="all-brands" options={{ headerShown: false }} />
       <Stack.Screen
