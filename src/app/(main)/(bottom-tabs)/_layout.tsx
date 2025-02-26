@@ -24,7 +24,7 @@ export default function BottomTabsLayout() {
 
   const { data: orderData } = useGetAllOrders();
   const orders = React.useMemo(
-    () => orderData?.orders.filter((e) => e.status === 'PENDING') || [],
+    () => orderData?.orders?.filter((e) => e?.status === 'PENDING') || [],
     [orderData]
   );
 
@@ -41,7 +41,6 @@ export default function BottomTabsLayout() {
           tabBarIcon: ({ color }) => (
             <Fontisto name="home" size={26} color={color} />
           ),
-          tabBarButtonTestID: 'feed-tab',
           tabBarLabel(props) {
             return (
               <View className="flex items-center">

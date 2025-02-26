@@ -141,7 +141,7 @@ export default function Account() {
 
   const { data: orderData } = useGetAllOrders();
   const orders = React.useMemo(
-    () => orderData?.orders.filter((e) => e.status === 'PENDING') || [],
+    () => orderData?.orders?.filter((e) => e?.status === 'PENDING') || [],
     [orderData]
   );
 

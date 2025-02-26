@@ -23,7 +23,7 @@ function ManageOrder() {
   const orders = React.useMemo(() => data?.orders || [], [data]);
   const filteredOrders = orders
     .filter((e) =>
-      tabIndex === 1 ? e.status === 'PENDING' : e.status === 'DELIVERED'
+      tabIndex === 1 ? e.status === 'PENDING' : e.status === 'PROCESSING'
     )
     .filter((order) =>
       order.items.some((item) =>

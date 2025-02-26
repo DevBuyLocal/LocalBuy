@@ -132,6 +132,14 @@ export default function MainLayout() {
       <Stack.Screen name="checkout" options={{ headerShown: false }} />
       <Stack.Screen name="schedule-order" options={{ headerShown: false }} />
       <Stack.Screen
+        name="order-success"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_bottom',
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
         name="complete-profile"
         options={{ headerShown: false, presentation: 'containedModal' }}
       />

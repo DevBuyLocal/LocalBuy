@@ -1,22 +1,28 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Paystack, type paystackProps } from 'react-native-paystack-webview';
+import { ActivityIndicator, Modal } from 'react-native';
+import { WebView, type WebViewNavigation } from 'react-native-webview';
 
 import { useInitializePayment } from '@/api/order/use-initialize-payment';
+import { useVerifyPayment } from '@/api/order/use-verify-payment';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
-import { colors, ScrollView, Text, View } from '@/components/ui';
+import { colors, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import { useAuth } from '@/lib';
-import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
+// eslint-disable-next-line max-lines-per-function
 function Checkout() {
-  const paystackWebViewRef = React.useRef<paystackProps.PayStackRef>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [showModal, setShowModal] = React.useState(false);
+  const [checkoutUri, setCheckoutUri] = React.useState('');
   const { user } = useAuth();
-  const { push } = useRouter();
-  const { setError, loading, setLoading } = useLoader({
+  const { push, replace } = useRouter();
+  const { setError, loading, setLoading, setSuccess } = useLoader({
     showLoadingPage: true,
   });
+
+  const webViewRef = React.useRef<WebView>(null);
 
   const {
     orderId,
@@ -26,9 +32,9 @@ function Checkout() {
     useLocalSearchParams();
 
   const { mutate, isPending } = useInitializePayment({
-    onSuccess: (data) => {
-      console.log('🚀 ~ Checkout ~ data:', data);
-      paystackWebViewRef.current?.startTransaction();
+    onSuccess: (data: any) => {
+      setCheckoutUri(data.authorizationUrl);
+      setShowModal(true);
     },
     onError: (error) => {
       setError(error?.response?.data);
@@ -37,6 +43,20 @@ function Checkout() {
       setLoading(false);
     },
   });
+  const { mutate: verifyMutate, isPending: verifyIsPending } = useVerifyPayment(
+    {
+      onSuccess: () => {
+        setSuccess('Payment successful');
+        replace(`/order-success?orderId=${orderId}`);
+      },
+      onError: (error) => {
+        setError(error?.response?.data);
+      },
+      onSettled: () => {
+        setLoading(false);
+      },
+    }
+  );
 
   const handlePayment = () => {
     setLoading(true);
@@ -47,6 +67,49 @@ function Checkout() {
     });
   };
 
+  const handleNavigationStateChange = React.useCallback(
+    (state: WebViewNavigation) => {
+      if (state.url === 'https://standard.paystack.co/close') {
+        setShowModal(false);
+      }
+    },
+    []
+  );
+
+  const handleError = React.useCallback(
+    (error: any) => {
+      setShowModal(false);
+      setError(error);
+    },
+    [setError]
+  );
+
+  const handleMessageReceived = React.useCallback(
+    (data: string) => {
+      const webResponse = JSON.parse(data);
+
+      switch (webResponse.event) {
+        case 'close':
+          setShowModal(false);
+          break;
+        case 'success':
+          verifyMutate({ reference: webResponse.data.reference });
+          setShowModal(false);
+          break;
+        case 'error':
+          setError(
+            webResponse.data.message || 'An error occurred during payment.'
+          );
+          setShowModal(false);
+          break;
+        default:
+          // setShowModal(false);
+          break;
+      }
+    },
+    [setError, verifyMutate]
+  );
+
   return (
     <Container.Page showHeader headerTitle="Checkout">
       <ScrollView
@@ -56,6 +119,11 @@ function Checkout() {
         <Container.Box containerClassName="bg-[#F7F7F7] flex-1">
           <Text className="my-5 text-[16px] font-medium">Shipping address</Text>
           <View className="rounded-lg bg-white p-5">
+            <Text className="mb-2 text-[16px] font-semibold">
+              {user?.profile?.fullName ||
+                user?.businessProfile?.name ||
+                user?.email}
+            </Text>
             <Text className="w-[90%] text-[16px] opacity-75">
               64 Ilogbo Road, Furniture Bus Stop, Ajangbadi, Ojo, Lagos. Imam
               Raji Central.
@@ -90,9 +158,12 @@ function Checkout() {
           <View className="absolute bottom-12 w-full self-center">
             <CustomButton
               label="Continue"
+              // onPress={() => {
+              //   replace('/order-success');
+              // }}
               onPress={handlePayment}
-              loading={loading || isPending}
-              disabled={loading || isPending}
+              loading={loading || isPending || verifyIsPending}
+              disabled={loading || isPending || verifyIsPending}
             />
             {scheduledDate !== null && (
               <CustomButton.Secondary
@@ -106,21 +177,42 @@ function Checkout() {
         </Container.Box>
       </ScrollView>
 
-      <Paystack
-        paystackKey={Env.PAYSTACK_PUBLIC_KEY}
-        billingEmail={user?.email || ''}
-        amount={price}
-        activityIndicatorColor={colors.primaryText}
-        onCancel={(e) => {
-          console.log('🚀 ~ Checkout ~ e:', e);
-          // handle response here
-        }}
-        onSuccess={(res) => {
-          console.log('🚀 ~ Checkout ~ res:', res);
-          // handle response here
-        }}
-        ref={paystackWebViewRef as any}
-      />
+      <Modal
+        style={{ flex: 1 }}
+        visible={showModal}
+        animationType="slide"
+        transparent={false}
+      >
+        <SafeAreaView className="flex-1 p-5">
+          <WebView
+            source={{ uri: checkoutUri }}
+            onMessage={(e) => {
+              handleMessageReceived(e.nativeEvent.data);
+            }}
+            onError={handleError}
+            onLoadStart={() => setIsLoading(true)}
+            onLoadEnd={() => setIsLoading(false)}
+            ref={webViewRef}
+            cacheEnabled={false}
+            cacheMode="LOAD_NO_CACHE"
+            onNavigationStateChange={handleNavigationStateChange}
+            javaScriptEnabled={true}
+            startInLoadingState={true}
+            style={{ backgroundColor: 'transparent' }}
+            injectedJavaScript={`
+              window.addEventListener('message', function(e) {
+                window.ReactNativeWebView.postMessage(JSON.stringify(e.data));
+              });
+              true;
+            `}
+          />
+          {isLoading && (
+            <View className="items-center justify-center">
+              <ActivityIndicator size="large" color={colors.primaryText} />
+            </View>
+          )}
+        </SafeAreaView>
+      </Modal>
     </Container.Page>
   );
 }

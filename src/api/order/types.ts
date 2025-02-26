@@ -9,7 +9,7 @@ export interface TOrder {
   createdAt: string;
   updatedAt: string;
   items: Item[];
-  transactions: any[];
+  transactions: Transaction[];
 }
 
 export interface Item {
@@ -30,6 +30,17 @@ export interface Product {
   description: string;
   categoryId: number;
   manufacturerId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Transaction {
+  id: number;
+  orderId: number;
+  amount: number;
+  reference: string;
+  status: string;
+  gateway: string;
   createdAt: string;
   updatedAt: string;
 }
