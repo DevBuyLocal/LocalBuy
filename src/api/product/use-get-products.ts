@@ -21,7 +21,7 @@ type Variables = {
   type?: string;
   limit?: number;
   page?: number;
-  category?: number;
+  categoryId?: number;
 };
 
 export const useGetProducts = (_variables: Variables) => {
@@ -31,7 +31,7 @@ export const useGetProducts = (_variables: Variables) => {
       _variables.type,
       _variables.limit,
       _variables.page,
-      _variables.category,
+      _variables.categoryId,
     ], // Include type to avoid caching conflicts
     fetcher: async (_, { pageParam }) => {
       try {
@@ -42,6 +42,7 @@ export const useGetProducts = (_variables: Variables) => {
             limit: _variables?.limit || 5,
             page: _variables?.page || pageParam,
             type: _variables.type,
+            categoryId: _variables.categoryId,
           },
           // headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         }).then((response) => response?.data);

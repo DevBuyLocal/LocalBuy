@@ -1,8 +1,10 @@
+import { Skeleton } from 'moti/skeleton';
 import React from 'react';
-import { FlatList, type FlatListProps } from 'react-native';
+import { FlatList, type FlatListProps, ScrollView } from 'react-native';
 
 import { type TProduct } from '@/api';
 
+import Empty from '../general/empty';
 import { View } from '../ui';
 import ProductItem from './product-item';
 
@@ -12,7 +14,17 @@ interface GridProductsProps extends Partial<FlatListProps<TProduct>> {
 }
 
 function GridProducts(props: GridProductsProps) {
-  if (!props.isLoading && !Boolean(props?.items?.length)) return null;
+  if (props.isLoading) {
+    return (
+      <ScrollView horizontal contentContainerClassName="mt-5">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <View key={i.toString()} className="mr-5 ">
+            <Skeleton width={158} height={220} radius={5} colorMode={'light'} />
+          </View>
+        ))}
+      </ScrollView>
+    );
+  }
 
   return (
     <View className="mt-3">
@@ -29,6 +41,9 @@ function GridProducts(props: GridProductsProps) {
           justifyContent: 'space-between',
           marginBottom: 15,
         }}
+        ListEmptyComponent={
+          <Empty containerClassName="mt-10" desc="No product found" />
+        }
         // ListFooterComponent={<View className="pb-10" />}
         {...props}
       />

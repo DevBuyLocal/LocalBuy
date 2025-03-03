@@ -44,3 +44,14 @@ export interface Transaction {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Order {
+  id: number;
+  userId: number;
+  totalPrice: number;
+  status: string;
+  scheduledDate: null;
+  createdAt: Date;
+  updatedAt: Date;
+  items: Item[];
+}

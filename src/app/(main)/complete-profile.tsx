@@ -10,7 +10,7 @@ import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import InputView from '@/components/general/input-view';
-import { extractError, Pressable, Text } from '@/components/ui';
+import { Pressable, Text } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';

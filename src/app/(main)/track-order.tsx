@@ -4,13 +4,17 @@ import { useLocalSearchParams } from 'expo-router';
 import StepIndicator from 'react-native-step-indicator';
 
 import { useTrackOrder } from '@/api/order';
+import { useGetSingleOrder } from '@/api/order/use-get-single-order';
 import Container from '@/components/general/container';
 import { Text, View } from '@/components/ui';
 
 export default function TrackOrder() {
   const { orderId }: { orderId: string } = useLocalSearchParams();
 
-  const { data } = useTrackOrder({ variables: { orderId } });
+  const { data: trackOrderData } = useTrackOrder({ variables: { orderId } });
+  const { data: singleOrderData } = useGetSingleOrder({
+    variables: { orderId },
+  });
 
   const labels = [
     `Order Placed `,
@@ -54,6 +58,17 @@ export default function TrackOrder() {
         <Container.Box containerClassName="bg-white p-5 rounded-lg">
           <Text className="text-[16px]font-semibold">Order#: {orderId}</Text>
           <View className="my-2 h-px w-full bg-[#12121214]" />
+
+          <Text>
+            {singleOrderData?.order?.items[0]?.selectedOption}
+            {`\n `}
+            {Boolean((singleOrderData?.order?.items?.length || 0) > 1) &&
+              `+${(singleOrderData?.order?.items?.length || 0) - 1} item(s)`}
+          </Text>
+
+          <Text className="mt-2 font-bold">
+            N{singleOrderData?.order?.totalPrice?.toLocaleString()}
+          </Text>
         </Container.Box>
         <Container.Box containerClassName="bg-white p-5 rounded-lg">
           <Text className="text-[16px] font-bold">Track order</Text>
