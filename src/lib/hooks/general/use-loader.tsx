@@ -1,4 +1,3 @@
-import { View } from 'moti';
 import React, {
   createContext,
   type Dispatch,
@@ -9,11 +8,9 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { ActivityIndicator, StyleSheet } from 'react-native';
 import { showMessage } from 'react-native-flash-message';
 
-import Container from '@/components/general/container';
-import { colors, extractError, Text } from '@/components/ui';
+import { extractError } from '@/components/ui';
 
 interface LoaderContextProps {
   loading: boolean;
@@ -63,7 +60,7 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
   return (
     <LoaderContext.Provider value={contextValue}>
       {children}
-      {loading && showPage && (
+      {/* {loading && showPage && (
         <Container.Page
           containerClassName="items-center justify-center bg-[#12121299] dark:bg-[#28282880] px-0 flex-0"
           style={StyleSheet.absoluteFillObject}
@@ -80,7 +77,7 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
             </Text>
           </View>
         </Container.Page>
-      )}
+      )} */}
     </LoaderContext.Provider>
   );
 };

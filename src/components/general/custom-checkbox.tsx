@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { Checkbox, Text, View } from '../ui';
+import { Checkbox, type RootProps, Text, View } from '../ui';
 
-type Props = {
+interface Props extends Partial<RootProps> {
   label: string;
   description?: string;
-};
+  isChecked?: boolean;
+}
 
 const CustomCheckbox = (props: Props) => {
   const [checked, setChecked] = React.useState(false);
@@ -14,8 +15,9 @@ const CustomCheckbox = (props: Props) => {
       checked={checked}
       onChange={setChecked}
       accessibilityLabel="accept terms of condition"
+      {...props}
     >
-      <Checkbox.Icon checked={checked} />
+      <Checkbox.Icon checked={props?.isChecked || checked} />
       <View className="ml-2 w-[95%]">
         <Checkbox.Label
           text={props.label}

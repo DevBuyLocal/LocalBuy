@@ -8,6 +8,7 @@ import { twMerge } from 'tailwind-merge';
 import { useAddNote, useUpdateNote } from '@/api/cart';
 import { type TCartItem } from '@/api/cart/types';
 import { useRemoveCartItem } from '@/api/cart/use-remove-cart-item';
+import { useSaveProduct } from '@/api/product/use-save-product';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
@@ -70,6 +71,18 @@ function CartItem(props: CartItemProps) {
   const { mutate: removeItem } = useRemoveCartItem({
     onSuccess: () => {
       setLoading(false);
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
+  const { mutate: saveProduct } = useSaveProduct({
+    onSuccess: () => {
+      setSuccess('Product saved for later');
     },
     onError: (error) => {
       setError(error?.response?.data);
@@ -155,6 +168,7 @@ function CartItem(props: CartItemProps) {
               className="text-[16px] font-medium underline color-[#0F3D30]"
               onPress={() => {
                 if (token) {
+                  saveProduct({ productId: props?.item?.id });
                   return;
                 }
                 redirectToLoginAndBack('/cart');

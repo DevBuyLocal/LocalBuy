@@ -16,6 +16,8 @@ interface TUtility {
     categories?: string[];
   }) => void;
   clearFilters: () => void;
+  keepSignedIn: boolean;
+  setKeepSignedIn: (value: boolean) => void;
 }
 
 const _useUtility = create<TUtility>()(
@@ -24,6 +26,10 @@ const _useUtility = create<TUtility>()(
       (set, get) => ({
         recent_search: [],
         filters: { brands: [], categories: [] },
+        keepSignedIn: false,
+        setKeepSignedIn: (value: boolean) => {
+          set({ keepSignedIn: value });
+        },
         addToRecent: (value: string) => {
           const { recent_search } = get();
           set({ recent_search: [value, ...recent_search].slice(0, 8) });
@@ -48,3 +54,6 @@ const _useUtility = create<TUtility>()(
 export const UtilitySelector = (state: TUtility) => state;
 
 export const useUtility = createSelectors(_useUtility);
+
+export const setKeepSignedIn = (value: boolean) =>
+  _useUtility.getState().setKeepSignedIn(value);

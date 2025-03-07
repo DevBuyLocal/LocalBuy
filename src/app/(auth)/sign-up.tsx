@@ -25,7 +25,7 @@ export default function SignUp() {
   const {
     handleSubmit,
     control,
-    formState: { isValid },
+    // formState: { isValid },
   } = useForm<RegFormType>({
     resolver: zodResolver(regSchema),
     defaultValues: {
@@ -116,11 +116,11 @@ export default function SignUp() {
             />
           </MotiView>
         </AnimatePresence>
-        <View className="absolute bottom-[120px] w-full">
+        <View className="absolute bottom-[140px] w-full self-center">
           <CustomButton
             label="Create account"
             onPress={handleSubmit(onSubmit)}
-            disabled={!isValid}
+            // disabled={!isValid}
             loading={loading}
           />
           <Pressable

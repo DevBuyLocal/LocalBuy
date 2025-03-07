@@ -4,6 +4,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs, useRouter } from 'expo-router';
 import { AnimatePresence, MotiView } from 'moti';
 import React from 'react';
+import { Platform } from 'react-native';
 
 import { useGetCartItems } from '@/api/cart';
 import { useGetAllOrders } from '@/api/order';
@@ -32,6 +33,9 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarStyle: Platform.select({
+          ios: {},
+        }),
       }}
     >
       <Tabs.Screen
@@ -128,7 +132,6 @@ export default function TabsLayout() {
           },
         }}
       />
-      {/* {user?.type === UserType.Business && ( */}
       <Tabs.Screen
         name="inventory"
         options={{
@@ -151,7 +154,6 @@ export default function TabsLayout() {
           lazy: true,
         }}
       />
-      {/* )} */}
       <Tabs.Screen
         name="account"
         options={{

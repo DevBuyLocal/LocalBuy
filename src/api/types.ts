@@ -9,6 +9,7 @@ export enum QueryKey {
   USER = 'user',
   PRODUCTS = 'products',
   CART = 'cart',
+  SAVED = 'saved',
   MANUFACTURERS = 'manufacturers',
   CATEGORIES = 'categories',
   ORDERS = 'orders',

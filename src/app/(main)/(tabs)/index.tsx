@@ -180,8 +180,8 @@ export default function Home() {
 
   const stickyHeaderHeight = scrollOffset
     ? scrollOffset.interpolate({
-        inputRange: [0, 50],
-        outputRange: [0, 30], // Adjust this value for desired spacing
+        inputRange: [0, 20],
+        outputRange: [0, 0], // Adjust this value for desired spacing
         extrapolate: 'clamp',
       })
     : new Animated.Value(0);
@@ -241,67 +241,6 @@ export default function Home() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* <SafeAreaView edges={['top']} /> */}
-
-      {/* <StatusBar barStyle={'light-content'} backgroundColor={'green'} /> */}
-      {/* <Animated.View
-        style={{
-          transform: [{ translateY: headerTranslateY }],
-        }}
-        className="absolute inset-x-0 top-0 z-50 pb-2 dark:bg-black"
-      >
-        <Container.Box>
-          <View className="flex-row items-center justify-between">
-            <View>
-              <Text className="text-[14px] opacity-65">Delivery location</Text>
-              <Pressable
-                className="mt-2 flex-row items-center gap-2"
-                onPress={locationPresent}
-              >
-                <FontAwesome6
-                  name="location-dot"
-                  size={18}
-                  color={colors.primaryText}
-                />
-                <Text className="text-[14px] font-medium">
-                  Ojo, abeokuta road
-                </Text>
-                <FontAwesome5 name="chevron-down" size={10} color="black" />
-              </Pressable>
-            </View>
-
-            <Pressable
-              className="rounded-full bg-[#F7F7F7] p-2"
-              onPress={() => push('/notifications')}
-            >
-              <MaterialCommunityIcons
-                name="bell-outline"
-                size={28}
-                color="black"
-              />
-
-              {notificationUnread && (
-                <Text className="absolute right-3 top-1 text-[16px] color-[#E84343]">
-                  ●
-                </Text>
-              )}
-            </Pressable>
-          </View>
-        </Container.Box>
-        <Animated.View
-          style={[{ transform: [{ translateY }] }]}
-          className={'absolute inset-x-0 top-0'}
-        >
-          <Container.Box>
-            <CustomInput
-              isSearch
-              placeholder="Search for a product..."
-              onPress={() => push('/search')}
-            />
-          </Container.Box>
-        </Animated.View>
-      </Animated.View> */}
-
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}

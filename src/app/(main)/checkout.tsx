@@ -150,11 +150,7 @@ function Checkout() {
               <Text className="text-[16px] font-medium">N0.00</Text>
             </View>
           </View>
-          {/* ================================= */}
-          {/* <Text className="my-5 text-[16px] font-medium">Payment</Text>
-          <View className="rounded-lg bg-white p-5">
-            <Text className="w-[90%] text-[16px] opacity-75">Payment</Text>
-          </View> */}
+
           <View className="absolute bottom-12 w-full self-center">
             <CustomButton
               label="Continue"

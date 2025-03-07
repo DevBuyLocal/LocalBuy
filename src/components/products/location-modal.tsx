@@ -1,20 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { BackHandler } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { twMerge } from 'tailwind-merge';
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
 import CustomInput from '../general/custom-input';
-import { Modal, Text, View } from '../ui';
+import { IS_IOS, Modal, Text, View } from '../ui';
 
 type Props = {
   dismiss: () => void;
 };
 
 const LocationModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
+  //prevent back press
+  useEffect(() => {
+    if (!IS_IOS) {
+      const backAction = () => {
+        dismiss();
+        return true; // Prevents default back behavior
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction
+      );
+
+      return () => backHandler.remove();
+    }
+  }, [dismiss]);
+
   return (
     <Modal ref={ref} snapPoints={['100%']}>
       <Container.Page
-        containerClassName="pt-10"
+        containerClassName={twMerge(IS_IOS && 'pt-5')}
         showHeader
         backPress={dismiss}
         headerTitle="Delivery location"

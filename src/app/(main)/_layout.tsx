@@ -43,14 +43,6 @@ export default function MainLayout() {
       setLoading(false);
     },
   });
-  // const { mutateAsync: UpdateNoteMutate } = useUpdateNote({
-  //   onError(error) {
-  //     setError(error?.response?.data);
-  //   },
-  //   onSettled() {
-  //     setLoading(false);
-  //   },
-  // });
 
   useEffect(() => {
     if (status !== 'idle') {
@@ -64,7 +56,6 @@ export default function MainLayout() {
       }, 1000);
     }
   }, [hideSplash, status, token]);
-
   useEffect(() => {
     (async () => {
       if (products_in_cart.length && token) {
@@ -108,13 +99,13 @@ export default function MainLayout() {
     syncCartItems,
     token,
   ]);
-
   if (isFirstTime) {
     return <Redirect href="/onboarding" />;
   }
   // if (status === 'signOut') {
   //   return <Redirect href="/login" />;
   // }
+
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />

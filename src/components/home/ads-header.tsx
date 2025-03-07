@@ -40,7 +40,7 @@ const AdsHeader = memo(
 
     // Memoize function to prevent re-renders
     const handleSnapToItem = React.useCallback((index: number) => {
-      setCurrentIndex((prev) => (prev === index ? prev : index));
+      setCurrentIndex((prev) => (prev === index ? prev : index) % 3);
     }, []);
 
     // Memoize renderItem
@@ -133,9 +133,10 @@ const AdsHeader = memo(
           data={IMAGE_SOURCES}
           scrollAnimationDuration={1500}
           onSnapToItem={handleSnapToItem}
+          onScrollStart={() => {}}
           renderItem={renderItem}
         />
-        <View className="absolute bottom-10 flex-row self-center">
+        <View className="absolute bottom-5 flex-row self-center">
           {IMAGE_SOURCES.map((_, i) => (
             <View
               key={i}

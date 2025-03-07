@@ -12,6 +12,7 @@ import { Modal, Pressable, Radio, Text, useModal, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { UserType, userType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { useUtility } from '@/lib/utility';
 
 import { type LoginFormType, loginSchema } from './types';
 
@@ -19,6 +20,9 @@ export default function Login() {
   const { replace, push, canGoBack, back } = useRouter();
   const { from } = useLocalSearchParams();
   const { ref, present, dismiss } = useModal();
+  const [checked, setChecked] = React.useState(false);
+  const { setKeepSignedIn } = useUtility();
+
   const [selectedRole, setSelectedRole] = React.useState<UserType>(
     UserType.Individual
   );
@@ -45,6 +49,7 @@ export default function Login() {
       {
         async onSuccess(data) {
           signIn({ access: data?.user?.token, refresh: '' });
+          setKeepSignedIn(checked);
           await queryClient.fetchQuery({
             queryKey: [QueryKey.USER, QueryKey.CART],
           });
@@ -101,6 +106,9 @@ export default function Login() {
         <CustomCheckbox
           label={'Keep me signed in'}
           description="By checking this box you won’t have to sign in as often on this device. For your security, we recommend only checking this box on personal devices."
+          checked={checked}
+          onChange={setChecked}
+          isChecked={checked}
         />
       </Container.Box>
       <Container.Box containerClassName="absolute bottom-16 w-full self-center">

@@ -1,6 +1,8 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import debounce from 'lodash.debounce';
 import React from 'react';
+import { twMerge } from 'tailwind-merge';
 
 import { useGetProducts } from '@/api';
 import { useSearchProducts } from '@/api/product/use-search-products';
@@ -35,14 +37,11 @@ function Search() {
     () => searchResult?.pages[0] || [],
     [searchResult]
   );
-
   const products = React.useMemo(
     () => (Boolean(result.length) ? result : prods) || [],
     [result, prods]
   );
-
   const resultAvailable = Boolean(result.length && search && !searchIsFetching);
-
   const handleSearch = React.useCallback(
     (term: string) => {
       setSearchTerm(term);
@@ -52,7 +51,7 @@ function Search() {
   );
 
   const debouncedHandleSearch = React.useMemo(
-    () => debounce(handleSearch, 500),
+    () => debounce(handleSearch, 800),
     [handleSearch]
   );
 
@@ -70,7 +69,6 @@ function Search() {
       <View className="mb-20" />
     </View>
   );
-
   return (
     <Container.Page
       showHeader
@@ -95,7 +93,24 @@ function Search() {
                   color={colors.primaryText}
                   className="mt-1"
                 />
-              ) : undefined
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    setSearch('');
+                    setSearchTerm('');
+                  }}
+                  className={twMerge(
+                    'pl-2 py-2',
+                    !search.length && 'opacity-0'
+                  )}
+                >
+                  <MaterialCommunityIcons
+                    name="close-circle"
+                    size={18}
+                    color={'black'}
+                  />
+                </Pressable>
+              )
             }
           />
         </View>
@@ -106,10 +121,10 @@ function Search() {
       ) && (
         <Container.Box containerClassName="">
           <Text className="my-3 text-[16px] font-medium">Recently viewed</Text>
-
           {recent_search.map(
             (e, i) =>
-              e !== '' && (
+              e !== '' &&
+              e.length > 2 && (
                 <Text
                   key={i.toString()}
                   onPress={() => {
@@ -131,7 +146,6 @@ function Search() {
           </Text>
         </Container.Box>
       )}
-
       <Container.Box containerClassName="flex-1 bg-[#F7F7F7]">
         {resultAvailable && (
           <View className="my-5 flex-row items-center justify-between">

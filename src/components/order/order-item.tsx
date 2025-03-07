@@ -82,9 +82,6 @@ function OrderItem({ item, onPress, isHistory }: Props) {
       </View>
 
       {isHistory && <MaterialCommunityIcons name="chevron-right" size={20} />}
-      {/* //   : (
-      //   <Text className="underline color-primaryText">Edit</Text>
-      // )} */}
     </Pressable>
     // </Swipeable>
   );

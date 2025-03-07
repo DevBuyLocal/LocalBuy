@@ -10,13 +10,15 @@ function AllProducts() {
     type,
     title,
     category,
-  }: { type: string; title: string; category: string } = useLocalSearchParams();
-  console.log('🚀 ~ AllProducts ~ category:', category);
+    brand,
+  }: { type: string; title: string; category: string; brand: string } =
+    useLocalSearchParams();
 
   const { data, isFetching } = useGetProducts({
     type,
     limit: 10,
     categoryId: category ? Number(category) : undefined,
+    manufacturerId: brand ? Number(brand) : undefined,
   })();
 
   const items = React.useMemo(() => data?.pages[0]?.data || [], [data]);

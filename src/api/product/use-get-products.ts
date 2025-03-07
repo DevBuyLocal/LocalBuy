@@ -22,6 +22,7 @@ type Variables = {
   limit?: number;
   page?: number;
   categoryId?: number;
+  manufacturerId?: number;
 };
 
 export const useGetProducts = (_variables: Variables) => {
@@ -32,6 +33,7 @@ export const useGetProducts = (_variables: Variables) => {
       _variables.limit,
       _variables.page,
       _variables.categoryId,
+      _variables.manufacturerId,
     ], // Include type to avoid caching conflicts
     fetcher: async (_, { pageParam }) => {
       try {
@@ -43,6 +45,7 @@ export const useGetProducts = (_variables: Variables) => {
             page: _variables?.page || pageParam,
             type: _variables.type,
             categoryId: _variables.categoryId,
+            manufacturerId: _variables.manufacturerId,
           },
           // headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         }).then((response) => response?.data);

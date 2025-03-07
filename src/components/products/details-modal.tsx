@@ -272,6 +272,10 @@ export default function DetailsModal({
             N{selectedOption?.price?.toLocaleString()}
           </Text>
 
+          <Text numberOfLines={1} className="text-[14px] text-primaryText">
+            Minimum purchase: {selectedOption?.moq}
+          </Text>
+
           <Accordion
             sections={SECTIONS}
             activeSections={activeSections}
@@ -336,10 +340,8 @@ export default function DetailsModal({
                   });
                   setSuccess('Item added to cart');
                 }
-                // addToCart(props.item);
               }}
             />
-            {/* // )} */}
           </View>
         </Container.Box>
         <Container.Box containerClassName="bg-[#F7F7F7]">

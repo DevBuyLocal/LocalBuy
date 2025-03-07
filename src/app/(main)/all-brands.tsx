@@ -1,7 +1,8 @@
 import { Entypo } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { View } from 'moti';
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Pressable } from 'react-native';
 
 import { useGetManufacturers } from '@/api/manufacturers';
 import { type TSingleManufacturers } from '@/api/manufacturers/types';
@@ -11,6 +12,7 @@ import { Image, Text } from '@/components/ui';
 
 function AllBrands() {
   const [search, setSearch] = React.useState<string>('');
+  const { push } = useRouter();
 
   const { data } = useGetManufacturers({ limit: 10, page: 1 })();
   const brands = React.useMemo(() => data?.pages[0]?.data || [], [data]);
@@ -23,7 +25,12 @@ function AllBrands() {
     const [imgSrc, setImgSrc] = React.useState(item.logo ? item.logo : null);
 
     return (
-      <View className="flex-row items-center justify-between border-b border-gray-200 p-4">
+      <Pressable
+        className="flex-row items-center justify-between border-b border-gray-200 p-4"
+        onPress={() => {
+          push(`/all-products?brand=${item.id}`);
+        }}
+      >
         <View className="flex-row items-center justify-center gap-5">
           <Image
             source={
@@ -46,7 +53,7 @@ function AllBrands() {
         </View>
 
         <Entypo name="chevron-right" size={18} color="black" />
-      </View>
+      </Pressable>
     );
   };
   return (
