@@ -21,4 +21,7 @@ export interface Profile {
   id: any;
   updatedAt: any;
   userId: number;
+  businessName: null;
+  businessAddress: null;
+  cacNumber: null;
 }

@@ -9,72 +9,23 @@ import { Animated, FlatList, RefreshControl } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
 import { queryClient, QueryKey } from '@/api';
+import { useGetNotifications } from '@/api/notifications/use-get-notifications';
 import { useGetCategories } from '@/api/product/use-get-categories';
+import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
 import AdsHeader from '@/components/home/ads-header';
+import DealsSection from '@/components/home/deals-section';
 import FeaturedBrands from '@/components/home/featured-brands';
-// import { FeaturedBrands } from '@/components/home/featured-brands';
+import SavedItems from '@/components/home/saved-items';
 import FilterModal from '@/components/products/filter-modal';
 import LocationModal from '@/components/products/location-modal';
 import ProductCarousel from '@/components/products/product-carousel';
 import { colors, Pressable, Text, useModal, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { UserType } from '@/lib/constants';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
-
-// const imgs = [
-//   {
-//     id: 1,
-//     img: [
-//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-//     ],
-//   },
-//   {
-//     id: 2,
-//     img: [
-//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-//     ],
-//   },
-//   {
-//     id: 3,
-//     img: [
-//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-//     ],
-//   },
-//   {
-//     id: 4,
-//     img: [
-//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-//     ],
-//   },
-//   {
-//     id: 5,
-//     img: [
-//       'https://rollupbanners.ng/wp-content/uploads/rollup-banner567.jpg',
-//       'https://img.freepik.com/free-psd/brand-consulting-banner-template_23-2148938800.jpg',
-//       'https://www.bannerbuzz.co.uk/blog/wp-content/uploads/2024/02/BB_UK_Blog_How-Pop-Up-Display-Banners-Redefine-Instant-Impact-in-Marketing_01-1-1024x441.webp',
-//       'https://sprak-11536.kxcdn.com/wp-content/uploads/2022/09/4-how-to-choose-the-best-professional-banner-design-services.png',
-//       'https://thumbs.dreamstime.com/b/banner-abstract-template-design-background-colorful-geometric-shapes-lines-modern-vector-163107316.jpg',
-//     ],
-//   },
-// ];
 
 // eslint-disable-next-line max-lines-per-function
 export default function Home() {
@@ -87,22 +38,23 @@ export default function Home() {
 
   const { token } = useAuth();
 
-  // console.log('🚀 ~ file: index.tsx:95 ~ products:', products);
-
   const { push } = useRouter();
   const { user } = useAuth();
   const { colorScheme } = useColorScheme();
+  const [showSaved, setShowSaved] = React.useState(false);
 
   const { data } = useGetCategories()();
+  const { data: savedProducts } = useGetSavedProducts()();
+  const { data: notifications } = useGetNotifications()();
 
   const [refreshing, setRefreshing] = React.useState(false);
 
   const categories = data?.data || [];
-  // console.log('🚀 ~ Home ~ categories:', categories);
-  // console.log('🚀 ~ file: index.tsx:95 ~ data:', data);
-  // const { data } = useGetUser();
-  // const isBusiness = user?.type === UserType.Business;
+
   const { present, ref, dismiss } = useModal();
+  const { setSuccess } = useLoader({
+    showLoadingPage: false,
+  });
   const {
     present: locationPresent,
     ref: locationRef,
@@ -160,10 +112,18 @@ export default function Home() {
         <Octicons
           name="heart"
           size={20}
-          color={colorScheme === 'dark' ? 'white' : '#12121270'}
+          color={
+            colorScheme === 'dark' ? 'white' : showSaved ? '#fff' : `#12121270`
+          }
         />
       ),
-      onPress: () => {},
+      onPress: () => {
+        if (!savedProducts?.savedProducts?.length) {
+          setSuccess('No saved items');
+        } else {
+          setShowSaved(!showSaved);
+        }
+      },
     },
     {
       name: 'Deals',
@@ -224,28 +184,12 @@ export default function Home() {
     }
   }, []);
 
-  // console.log('🚀 ~ Home ~ stickyHeaderHeight:', stickyHeaderHeight);
-
-  // const stickyHeaderHeight = scroll
-  //   ? scroll?.interpolate({
-  //       inputRange: [0, 50],
-  //       outputRange: [0, 12], // Adjust this value for desired spacing
-  //       extrapolate: 'clamp',
-  //     })
-  //   : new Animated.Value(0);
-
-  // useEffect(() => {
-  // StatusBar.setHidden(false, 'slide');
-  // StatusBar.setBarStyle('dark-content');
-  // }, []);
-
   return (
     <View style={{ flex: 1 }}>
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        // bounces={false}
         stickyHeaderIndices={[1]}
         refreshControl={
           <RefreshControl
@@ -256,7 +200,12 @@ export default function Home() {
         }
         // className={'bg-white dark:bg-[#282828]'}
       >
-        <AdsHeader scroll={scrollOffset} locationPresent={locationPresent} />
+        <AdsHeader
+          scroll={scrollOffset}
+          locationPresent={locationPresent}
+          notifications={notifications}
+          user={user}
+        />
 
         <Container.Box>
           <Animated.View
@@ -268,13 +217,6 @@ export default function Home() {
               isSearch
               placeholder="Search for a product..."
               onPress={() => push('/search')}
-              // style={{
-              //   elevation: 2,
-              //   shadowRadius: 1,
-              //   shadowColor: '#000',
-              //   shadowOffset: { width: 0, height: 0 },
-              //   shadowOpacity: 0.2,
-              // }}
               containerClass="shadow-sm overflow-hidden rounded-full"
             />
           </Animated.View>
@@ -323,15 +265,26 @@ export default function Home() {
                 <Pressable
                   key={i.toString()}
                   onPress={e.onPress}
-                  className="flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-6 py-3 dark:bg-[#282828] "
+                  className={twMerge(
+                    'flex-row items-center gap-2 rounded-full bg-[#F7F7F7] px-6 py-3 dark:bg-[#282828] ',
+                    showSaved && i === 1
+                      ? 'bg-primaryText'
+                      : 'bg-[#F7F7F7] dark:bg-[#282828]'
+                  )}
                 >
                   {e.icon}
-                  <Text className="text-[#121227B2] dark:text-[#fff]">
+                  <Text
+                    className={twMerge(
+                      'text-[#121227B2] dark:text-[#fff]',
+                      showSaved && i === 1 && 'text-white'
+                    )}
+                  >
                     {e.name}
                   </Text>
                 </Pressable>
               ))}
             </View>
+            {showSaved && <SavedItems savedProducts={savedProducts} />}
             {/* <AdsBanner imgs={imgs} /> */}
             <FeaturedBrands />
             {/* {FeaturedBrands(dummyProducts)} */}
@@ -340,6 +293,10 @@ export default function Home() {
             <ProductCarousel title={'New Arrivals'} type="new" />
             <ProductCarousel title={'Trending Products'} type="trending" />
           </Container.Box>
+          <Container.Box>
+            <DealsSection />
+          </Container.Box>
+
           {categories.length && (
             <Container.Box containerClassName="py-3">
               <Text className="mb-2 text-[18px] font-bold">

@@ -38,3 +38,5 @@ export interface TSingleCategory {
   createdAt: string;
   updatedAt: string;
 }
+
+export type TDeal = {};

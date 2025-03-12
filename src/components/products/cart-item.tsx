@@ -8,6 +8,8 @@ import { twMerge } from 'tailwind-merge';
 import { useAddNote, useUpdateNote } from '@/api/cart';
 import { type TCartItem } from '@/api/cart/types';
 import { useRemoveCartItem } from '@/api/cart/use-remove-cart-item';
+import { type SavedProductResponse } from '@/api/product/use-get-saved-products';
+import { useRemoveFromSaved } from '@/api/product/use-remove-from-saved';
 import { useSaveProduct } from '@/api/product/use-save-product';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
@@ -21,6 +23,7 @@ import QuantitySelect from './quantity-select';
 
 interface CartItemProps extends Partial<PressableProps> {
   item: TCartItem;
+  savedProducts?: SavedProductResponse;
   containerClassname?: string | undefined;
   note?: string;
 }
@@ -42,6 +45,10 @@ function CartItem(props: CartItemProps) {
   const [note, setNote] = useState(cart_item?.note || '');
 
   const [quantity, setQuantity] = useState<number>(props?.item?.quantity);
+
+  const itemIsSaved = props?.savedProducts?.savedProducts?.find(
+    (item) => item?.productId === props?.item?.productOption?.productId
+  );
 
   const { mutate } = useAddNote({
     onSuccess() {
@@ -83,6 +90,17 @@ function CartItem(props: CartItemProps) {
   const { mutate: saveProduct } = useSaveProduct({
     onSuccess: () => {
       setSuccess('Product saved for later');
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+  const { mutate: removeFromSaved } = useRemoveFromSaved({
+    onSuccess: () => {
+      setSuccess('Product removed from saved');
     },
     onError: (error) => {
       setError(error?.response?.data);
@@ -166,15 +184,24 @@ function CartItem(props: CartItemProps) {
           <View className="mt-5 flex-row gap-10 self-end">
             <Text
               className="text-[16px] font-medium underline color-[#0F3D30]"
+              adjustsFontSizeToFit
               onPress={() => {
                 if (token) {
-                  saveProduct({ productId: props?.item?.id });
+                  if (itemIsSaved) {
+                    removeFromSaved({
+                      productId: itemIsSaved?.product?.id,
+                    });
+                    return;
+                  }
+                  saveProduct({
+                    productId: props?.item?.productOption?.productId,
+                  });
                   return;
                 }
                 redirectToLoginAndBack('/cart');
               }}
             >
-              Save for later
+              {itemIsSaved ? 'Remove from saved' : 'Save for later'}
             </Text>
             <Text
               className="text-[16px] font-medium underline color-[#0F3D30]"

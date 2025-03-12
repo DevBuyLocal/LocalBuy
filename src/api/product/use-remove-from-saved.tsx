@@ -10,24 +10,23 @@ type Variables = {
   productId: number;
 };
 
-export interface TAddCartResponse {}
+export interface TRemoveFromSavedResponse {}
 
-export const useSaveProduct = createMutation<
-  TAddCartResponse,
+export const useRemoveFromSaved = createMutation<
+  TRemoveFromSavedResponse,
   Variables,
   AxiosError
 >({
-  mutationFn: async (variables) => {
-    return client({
-      url: 'api/product/save',
-      method: 'POST',
-      data: variables,
+  mutationFn: async (variables) =>
+    client({
+      url: `api/product/save/${variables.productId}`,
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken()?.access}`,
       },
     }).then(async (response) => {
-      if (response.status === 201) {
+      if (response.status === 200) {
         await queryClient.invalidateQueries({
           predicate: (query) => {
             return query.queryKey[0] === QueryKey.SAVED;
@@ -38,6 +37,5 @@ export const useSaveProduct = createMutation<
         });
         return response.data;
       }
-    });
-  },
+    }),
 });

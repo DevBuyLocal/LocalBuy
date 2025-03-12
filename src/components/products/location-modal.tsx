@@ -3,6 +3,9 @@ import { BackHandler } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { twMerge } from 'tailwind-merge';
 
+import { useUpdateUser } from '@/api';
+import { useLoader } from '@/lib/hooks/general/use-loader';
+
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
 import CustomInput from '../general/custom-input';
@@ -13,6 +16,10 @@ type Props = {
 };
 
 const LocationModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
+  const [address, setAddress] = React.useState('');
+  const { setLoading, loading, setSuccess, setError } = useLoader({
+    showLoadingPage: false,
+  });
   //prevent back press
   useEffect(() => {
     if (!IS_IOS) {
@@ -30,6 +37,25 @@ const LocationModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
     }
   }, [dismiss]);
 
+  const { mutate: mutateUpdate } = useUpdateUser({
+    onSuccess: () => {
+      setSuccess('Address updated');
+      dismiss();
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled() {
+      setLoading(false);
+    },
+  });
+
+  const handleSave = () => {
+    if (!address) return;
+    setLoading(true);
+    mutateUpdate({ address });
+  };
+
   return (
     <Modal ref={ref} snapPoints={['100%']}>
       <Container.Page
@@ -44,6 +70,7 @@ const LocationModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
           <GooglePlacesAutocomplete
             placeholder="Enter your location"
             onPress={(data, details = null) => {
+              setAddress(data.description);
               // 'details' is provided when fetchDetails = true
               console.log(data, details);
             }}
@@ -81,10 +108,9 @@ const LocationModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
       <View className="mb-10 px-5">
         <CustomButton
           label="Save"
-          onPress={() => {
-            //TODO: apply filters
-            dismiss();
-          }}
+          disabled={!address}
+          loading={loading}
+          onPress={handleSave}
         />
       </View>
     </Modal>

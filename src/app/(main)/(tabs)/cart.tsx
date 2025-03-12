@@ -5,7 +5,9 @@ import { Alert, FlatList, Pressable } from 'react-native';
 
 import { useGetProducts } from '@/api';
 import { useGetCartItems } from '@/api/cart/use-get-cart-items';
+import { useRemoveCartItem } from '@/api/cart/use-remove-cart-item';
 import { useCheckoutOrder } from '@/api/order';
+import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import Empty from '@/components/general/empty';
@@ -21,9 +23,10 @@ export default function Cart() {
   const { push } = useRouter();
   const { token } = useAuth();
   const { clearCart, products_in_cart } = useCart(CartSelector);
-  const { setError, setLoading, loading, setLoadingText } = useLoader({
-    showLoadingPage: true,
-  });
+  const { setError, setLoading, loading, setSuccess, setLoadingText } =
+    useLoader({
+      showLoadingPage: true,
+    });
 
   useGetProducts({})();
   const { data, error } = useGetCartItems();
@@ -31,6 +34,8 @@ export default function Cart() {
     () => (token ? data?.items : products_in_cart) || [],
     [token, data, products_in_cart]
   );
+
+  const { data: savedProducts } = useGetSavedProducts()();
 
   const sortCartItemsByCreatedAt = React.useMemo(
     () =>
@@ -49,6 +54,18 @@ export default function Cart() {
       ),
     [sortCartItemsByCreatedAt]
   );
+
+  const { mutate: removeItem } = useRemoveCartItem({
+    onSuccess: () => {
+      // setLoading(false);
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      // setLoading(false);
+    },
+  });
 
   const { mutate } = useCheckoutOrder({
     onSuccess: (data) => {
@@ -100,11 +117,23 @@ export default function Cart() {
                 [
                   {
                     text: 'Yes',
-                    onPress: () => {
+                    onPress: async () => {
                       if (token) {
-                        return;
+                        setLoading(true);
+                        await Promise.all(
+                          sortCartItemsByCreatedAt.map((item) =>
+                            removeItem({ cartItemId: item?.id })
+                          )
+                        )
+                          .then(() => {
+                            setSuccess('Cart cleared');
+                          })
+                          .finally(() => {
+                            setLoading(false);
+                          });
+                      } else {
+                        clearCart();
                       }
-                      clearCart();
                     },
                   },
                   { text: 'Cancel', style: 'destructive' },
@@ -122,7 +151,9 @@ export default function Cart() {
         <FlatList
           data={sortCartItemsByCreatedAt}
           keyExtractor={(_, i) => i?.toString()}
-          renderItem={({ item }) => <CartItem item={item} />}
+          renderItem={({ item }) => (
+            <CartItem item={item} savedProducts={savedProducts} />
+          )}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <Empty

@@ -5,10 +5,12 @@ import { format, parseISO } from 'date-fns';
 import React from 'react';
 import { FlatList } from 'react-native';
 
+import { useGetNotifications } from '@/api/notifications/use-get-notifications';
 import Container from '@/components/general/container';
 import Empty from '@/components/general/empty';
 import { Text, View } from '@/components/ui';
 
+// eslint-disable-next-line unused-imports/no-unused-vars
 const dummyNotifi = [
   {
     icon: OrderIcon,
@@ -41,6 +43,9 @@ const dummyNotifi = [
 ];
 
 function Notifications() {
+  const { data: notifications } = useGetNotifications()();
+  console.log('🚀 ~ Notifications ~ notifications:', notifications?.data);
+
   const NotificationItem = ({ item }: any) => {
     const date = format(parseISO(item?.createdAt), 'MMM dd, yyyy • hh:mm a');
     return (
@@ -59,7 +64,7 @@ function Notifications() {
     <Container.Page showHeader headerTitle="Notifications">
       <Container.Box>
         <FlatList
-          data={dummyNotifi || []}
+          data={notifications?.data || []}
           keyExtractor={(_, index) => index.toString()}
           renderItem={({ item }) => <NotificationItem item={item} />}
           showsVerticalScrollIndicator={false}

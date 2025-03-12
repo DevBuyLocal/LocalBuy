@@ -2,6 +2,7 @@ import Feather from '@expo/vector-icons/build/Feather';
 import Entypo from '@expo/vector-icons/Entypo';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList } from 'react-native';
 import Accordion from 'react-native-collapsible/Accordion';
@@ -11,13 +12,16 @@ import { twMerge } from 'tailwind-merge';
 
 import { type TProduct } from '@/api';
 import { useAddCartItem, useGetCartItems } from '@/api/cart';
+import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
+import { useRemoveFromSaved } from '@/api/product/use-remove-from-saved';
+import { useSaveProduct } from '@/api/product/use-save-product';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
-import { Image, Pressable, Radio, Text, View, WIDTH } from '../ui';
+import { colors, Image, Pressable, Radio, Text, View, WIDTH } from '../ui';
 import QuantitySelect from './quantity-select';
 
 // eslint-disable-next-line max-lines-per-function
@@ -34,6 +38,7 @@ export default function DetailsModal({
   const [activeIndex, setActiveIndex] = React.useState<number>(0);
   const [activeSections, setActiveSections] = React.useState<any[]>([]);
 
+  const { push } = useRouter();
   const [quantity, setQuantity] = React.useState<number>(1);
 
   const ref = React.useRef<any>(null);
@@ -67,6 +72,12 @@ export default function DetailsModal({
     getFirstValidOption(item?.options)
   );
 
+  const { data: savedProducts } = useGetSavedProducts()();
+
+  const itemIsSaved = savedProducts?.savedProducts?.find(
+    (item) => item?.productId === selectedOption?.productId
+  );
+
   const foundItem = cartItems.find(
     (item) => item?.productOption?.id === selectedOption?.id
   );
@@ -94,6 +105,29 @@ export default function DetailsModal({
   const { mutate } = useAddCartItem({
     onSuccess: () => {
       setSuccess('Item added to cart');
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+
+  const { mutate: saveProduct } = useSaveProduct({
+    onSuccess: () => {
+      setSuccess('Product saved for later');
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
+  const { mutate: removeFromSaved } = useRemoveFromSaved({
+    onSuccess: () => {
+      setSuccess('Product removed from saved');
     },
     onError: (error) => {
       setError(error?.response?.data);
@@ -184,10 +218,33 @@ export default function DetailsModal({
     },
     {
       title: (
-        <View className="flex-row justify-between">
-          <Text className="text-[14px]">Save for later</Text>
-          <Ionicons name="bookmark-outline" size={24} color="black" />
-        </View>
+        <Pressable
+          className="flex-row justify-between"
+          onPress={() => {
+            if (token) {
+              if (itemIsSaved) {
+                removeFromSaved({
+                  productId: itemIsSaved?.product?.id,
+                });
+                return;
+              }
+              saveProduct({
+                productId: item?.id,
+              });
+              return;
+            }
+            push('/login');
+          }}
+        >
+          <Text className="text-[14px]">
+            {itemIsSaved ? 'Remove from saved' : 'Save for later'}
+          </Text>
+          <Ionicons
+            name={itemIsSaved ? 'bookmark-sharp' : 'bookmark-outline'}
+            size={24}
+            color={itemIsSaved ? colors.primaryText : 'black'}
+          />
+        </Pressable>
       ),
       content: <></>,
     },

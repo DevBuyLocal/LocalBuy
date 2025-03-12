@@ -19,10 +19,18 @@ interface AdsHeaderProps {
   scroll?: Animated.Value;
   height?: number;
   locationPresent: (data?: any) => void;
+  notifications: any;
+  user: any;
 }
 
 const AdsHeader = memo(
-  ({ scroll, height = 300, locationPresent }: AdsHeaderProps) => {
+  ({
+    scroll,
+    height = 300,
+    locationPresent,
+    notifications,
+    user,
+  }: AdsHeaderProps) => {
     const { push } = useRouter();
     const { token } = useAuth();
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -85,25 +93,34 @@ const AdsHeader = memo(
       [scaleImg]
     );
 
-    const notificationUnread = true;
+    const notificationUnread = Boolean(
+      notifications?.data.filter((e: any) => !e?.read).length > 0
+    );
 
     return (
       <View className="w-full overflow-hidden bg-[#0F3D30] p-5">
         <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="mb-1 w-[70px]  rounded-sm bg-[#FFFFFF1A] px-2 text-[14px] text-white">
-              Address
-            </Text>
-            <Pressable
-              className=" flex-row items-center gap-2"
-              onPress={locationPresent}
-            >
-              <Text className="text-[14px] font-medium text-white">
-                Ojo, abeokuta road
+          {token && (
+            <View>
+              <Text className="mb-1 w-[70px]  rounded-sm bg-[#FFFFFF1A] px-2 text-[14px] text-white">
+                Address
               </Text>
-              <FontAwesome5 name="chevron-down" size={10} color="white" />
-            </Pressable>
-          </View>
+              <Pressable
+                className=" flex-row items-center gap-2"
+                onPress={locationPresent}
+              >
+                <Text
+                  className="max-w-[90%] text-[14px] font-medium text-white"
+                  numberOfLines={1}
+                >
+                  {user?.type === 'individual'
+                    ? user?.profile?.address || 'Add delivery address'
+                    : user?.profile?.businessAddress || 'Add business address'}
+                </Text>
+                <FontAwesome5 name="chevron-down" size={10} color="white" />
+              </Pressable>
+            </View>
+          )}
           {token && (
             <Pressable
               className="rounded-full bg-[#FFFFFF1A] p-2"
