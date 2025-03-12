@@ -24,6 +24,7 @@ function CompleteProfile() {
   const { data: categories } = useGetCategories()();
 
   const { data: user, refetch } = useGetUser();
+  console.log('🚀 ~ CompleteProfile ~ user:', user);
   const isBusiness = user?.type === UserType.Business;
   const { setSuccess, setError, setLoading, loading } = useLoader({
     showLoadingPage: false,
@@ -36,10 +37,22 @@ function CompleteProfile() {
   const [howDid, setHowDid] = React.useState(
     user?.profile?.howDidYouHear || ''
   );
+  const [businessName, setBusinessName] = React.useState(
+    user?.profile?.businessName || ''
+  );
+
+  const [businessAddress, setBusinessAddress] = React.useState(
+    user?.profile?.businessAddress || ''
+  );
+  const [cacNumber, setCacNumber] = React.useState(
+    user?.profile?.cacNumber || ''
+  );
+
   const [selectedPref, setSelectedPref] = React.useState<string[]>([]);
   const { mutate: mutateUpdate } = useUpdateUser({
-    onSuccess: () => {
+    onSuccess: async () => {
       setPage(page + 1);
+      await refetch();
       setSuccess('Successfully updated');
     },
     onError: (error) => {
@@ -97,7 +110,10 @@ function CompleteProfile() {
                   }
                   setLoading(true);
                   mutateUpdate({
-                    deliveryPhone: phone,
+                    deliveryPhone:
+                      user?.type === 'individual' ? phone : undefined,
+                    businessPhone:
+                      user?.type === 'business' ? phone : undefined,
                   });
                 }}
               />
@@ -163,16 +179,55 @@ function CompleteProfile() {
             <Text className="mt-2 text-[16px] opacity-75">
               Enter your business details as in your official documents
             </Text>
-            <CustomInput placeholder="Full name" />
-            <CustomInput placeholder="Business name" />
-            <CustomInput placeholder="Business address" />
-            <CustomInput placeholder="CAC number (optional)" />
-            <CustomInput placeholder="How did you hear about us" />
+            <CustomInput
+              placeholder="Full name"
+              value={fullName}
+              onChangeText={setFullName}
+            />
+            <CustomInput
+              placeholder="Business name"
+              value={businessName}
+              onChangeText={setBusinessName}
+            />
+            <CustomInput
+              placeholder="Business phone (eg. 08012121212)"
+              keyboardType="number-pad"
+              maxLength={11}
+              value={phone}
+              onChangeText={setPhone}
+            />
+            <CustomInput
+              placeholder="Business address"
+              value={businessAddress}
+              onChangeText={setBusinessAddress}
+            />
+            <CustomInput
+              placeholder="CAC number (optional)"
+              value={cacNumber}
+              onChangeText={setCacNumber}
+            />
+            <CustomInput
+              placeholder="How did you hear about us"
+              value={howDid}
+              onChangeText={setHowDid}
+            />
             <View className="absolute bottom-[120px] w-full">
               <CustomButton
                 label="Continue"
+                disabled={
+                  !fullName || !businessName || !phone || !businessAddress
+                }
+                loading={loading}
                 onPress={() => {
-                  setPage(page + 1);
+                  setLoading(true);
+                  mutateUpdate({
+                    fullName,
+                    businessAddress,
+                    businessPhone: phone,
+                    businessName,
+                    cacNumber,
+                    howDidYouFindUs: howDid,
+                  });
                 }}
               />
             </View>
@@ -226,6 +281,7 @@ function CompleteProfile() {
               <CustomButton
                 label="Save"
                 disabled={!selectedPref.length}
+                loading={loading}
                 onPress={() => {
                   setLoading(true);
                   mutate({

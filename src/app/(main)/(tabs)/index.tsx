@@ -72,7 +72,9 @@ export default function Home() {
   const phoneNumberAvailable = Boolean(user?.profile?.deliveryPhone);
   const detailsProvided = () => {
     if (user?.type === UserType.Business) {
-      return Boolean(user?.businessProfile);
+      return Boolean(
+        user?.profile?.businessPhone && user?.profile?.businessName
+      );
     }
     if (user?.type === UserType.Individual) {
       return Boolean(user?.profile?.fullName && user?.profile?.deliveryPhone);
@@ -82,7 +84,7 @@ export default function Home() {
   const preferencesProvided = true;
 
   const currentStep = () => {
-    if (phoneNumberAvailable && detailsProvided() && preferencesProvided) {
+    if (detailsProvided() && preferencesProvided) {
       return;
     }
     if (detailsProvided()) {
