@@ -5,4 +5,5 @@ export interface TPutUser {
   dob: string;
   cac: string;
   howDidYouFindUs: string;
+  deliveryPhone: string;
 }

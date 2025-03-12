@@ -39,4 +39,28 @@ export interface TSingleCategory {
   updatedAt: string;
 }
 
-export type TDeal = {};
+export interface TDeal {
+  id: number;
+  name: string;
+  image: string;
+  description: string;
+  type: string;
+  value: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  products: TDealProduct[];
+  categories: TSingleCategory[];
+}
+
+export interface TDealProduct {
+  id: number;
+  name: string;
+  description: string;
+  categoryId: number;
+  manufacturerId: number;
+  createdAt: string;
+  updatedAt: string;
+}

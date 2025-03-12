@@ -21,7 +21,6 @@ export const useGetUser = createQuery<Response, void, AxiosError>({
         if (response.status === 200) {
           setUser(response?.data?.data);
         }
-
         return response?.data?.data;
       })
       .catch((error: any) => {

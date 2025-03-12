@@ -6,8 +6,15 @@ import { accessToken } from '@/lib';
 import { client } from '../common';
 import { QueryKey } from '../types';
 
-type TNotification = {
+export type TNotification = {
+  createdAt: string;
   id: number;
+  isRead: boolean;
+  message: string;
+  title: string;
+  updatedAt: string;
+  userId: number;
+  type: any;
 };
 
 export type NotificationResponse = { data: TNotification[]; count: number };

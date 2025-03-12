@@ -5,10 +5,15 @@ import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import React, { useCallback } from 'react';
-import { Animated, FlatList, RefreshControl } from 'react-native';
+import {
+  Animated,
+  FlatList,
+  RefreshControl,
+  type ScrollView,
+} from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
-import { queryClient, QueryKey } from '@/api';
+import { queryClient, QueryKey, useGetUser } from '@/api';
 import { useGetNotifications } from '@/api/notifications/use-get-notifications';
 import { useGetCategories } from '@/api/product/use-get-categories';
 import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
@@ -39,7 +44,10 @@ export default function Home() {
   const { token } = useAuth();
 
   const { push } = useRouter();
-  const { user } = useAuth();
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
+  const { data: user, refetch } = useGetUser();
+
   const { colorScheme } = useColorScheme();
   const [showSaved, setShowSaved] = React.useState(false);
 
@@ -61,19 +69,17 @@ export default function Home() {
     dismiss: locationDismiss,
   } = useModal();
 
-  const phoneNumberAvailable = Boolean(user?.phoneNumber);
+  const phoneNumberAvailable = Boolean(user?.profile?.deliveryPhone);
   const detailsProvided = () => {
     if (user?.type === UserType.Business) {
       return Boolean(user?.businessProfile);
     }
     if (user?.type === UserType.Individual) {
-      return Boolean(
-        user?.profile?.fullName && user?.profile?.address && user?.profile
-      );
+      return Boolean(user?.profile?.fullName && user?.profile?.deliveryPhone);
     }
-    return false;
+    return true;
   };
-  const preferencesProvided = false;
+  const preferencesProvided = true;
 
   const currentStep = () => {
     if (phoneNumberAvailable && detailsProvided() && preferencesProvided) {
@@ -134,7 +140,13 @@ export default function Home() {
           color={colorScheme === 'dark' ? 'white' : '#12121270'}
         />
       ),
-      onPress: () => {},
+      onPress: () => {
+        // to scroll to the Deals section using the id of the section
+        scrollViewRef?.current?.scrollTo({
+          y: 1500,
+          animated: true,
+        });
+      },
     },
   ];
 
@@ -189,6 +201,7 @@ export default function Home() {
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
+        ref={scrollViewRef}
         scrollEventThrottle={16}
         stickyHeaderIndices={[1]}
         refreshControl={
@@ -293,9 +306,7 @@ export default function Home() {
             <ProductCarousel title={'New Arrivals'} type="new" />
             <ProductCarousel title={'Trending Products'} type="trending" />
           </Container.Box>
-          <Container.Box>
-            <DealsSection />
-          </Container.Box>
+          <DealsSection />
 
           {categories.length && (
             <Container.Box containerClassName="py-3">
@@ -326,7 +337,11 @@ export default function Home() {
           )}
         </Container.Page>
         <FilterModal ref={ref} dismiss={dismiss} />
-        <LocationModal ref={locationRef} dismiss={locationDismiss} />
+        <LocationModal
+          ref={locationRef}
+          dismiss={locationDismiss}
+          refetch={refetch}
+        />
       </Animated.ScrollView>
     </View>
   );

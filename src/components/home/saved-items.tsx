@@ -10,7 +10,6 @@ type Props = {
 };
 
 const SavedItems = (props: Props) => {
-  console.log('🚀 ~ SavedItems ~ props:', props?.savedProducts?.savedProducts);
   return (
     <FlatList
       data={props.savedProducts?.savedProducts || []}

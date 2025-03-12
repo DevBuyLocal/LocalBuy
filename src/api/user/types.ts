@@ -24,4 +24,6 @@ export interface Profile {
   businessName: null;
   businessAddress: null;
   cacNumber: null;
+  deliveryPhone: string | null;
+  businessPhone: string | null;
 }

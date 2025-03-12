@@ -22,11 +22,17 @@ export const useUpdateUser = createMutation<Response, Variables, AxiosError>({
       },
     })
       .then(async (response) => {
-        // console.log('🚀 ~ file: use:', response?.data);
-        await queryClient.invalidateQueries({ queryKey: [QueryKey.USER] });
-        await queryClient.refetchQueries({
-          queryKey: [QueryKey.USER],
-        });
+        if (response.status === 200) {
+          await queryClient.invalidateQueries({
+            predicate: (query) => {
+              return query.queryKey[0] === QueryKey.USER;
+            },
+          });
+          await queryClient.refetchQueries({
+            queryKey: [QueryKey.USER],
+          });
+        }
+
         return response.data;
       })
       .catch((err) => {
