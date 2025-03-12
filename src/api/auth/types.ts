@@ -5,7 +5,7 @@ export interface TPutUser {
   businessPhone: string;
   address: string;
   dob: string;
-  cacNumber: string;
+  cac: string;
   howDidYouFindUs: string;
   deliveryPhone: string;
 }

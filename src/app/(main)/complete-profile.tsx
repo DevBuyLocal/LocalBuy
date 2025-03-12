@@ -222,10 +222,10 @@ function CompleteProfile() {
                   setLoading(true);
                   mutateUpdate({
                     fullName,
-                    businessAddress,
+                    address: businessAddress,
                     businessPhone: phone,
                     businessName,
-                    cacNumber,
+                    cac: cacNumber,
                     howDidYouFindUs: howDid,
                   });
                 }}

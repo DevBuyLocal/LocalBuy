@@ -1,6 +1,6 @@
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { memo, useState } from 'react';
+import React, { useState } from 'react';
 import { Animated, Pressable, View } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import { twMerge } from 'tailwind-merge';
@@ -168,4 +168,4 @@ const AdsHeader = ({
   );
 };
 
-export default memo(AdsHeader);
+export default AdsHeader;

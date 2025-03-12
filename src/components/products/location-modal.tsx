@@ -4,7 +4,6 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { twMerge } from 'tailwind-merge';
 
 import { useUpdateUser } from '@/api';
-import { useAuth } from '@/lib';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import Container from '../general/container';
@@ -23,7 +22,6 @@ const LocationModal = React.forwardRef<any, Props>(
     const { setLoading, loading, setSuccess, setError } = useLoader({
       showLoadingPage: false,
     });
-    const { user } = useAuth();
     //prevent back press
     useEffect(() => {
       if (!IS_IOS) {
@@ -43,8 +41,8 @@ const LocationModal = React.forwardRef<any, Props>(
 
     const { mutate: mutateUpdate } = useUpdateUser({
       onSuccess: async () => {
-        setSuccess('Address updated');
         await refetch();
+        setSuccess('Address updated');
         dismiss();
       },
       onError: (error) => {
@@ -59,8 +57,7 @@ const LocationModal = React.forwardRef<any, Props>(
       if (!address) return;
       setLoading(true);
       mutateUpdate({
-        address: user?.type === 'individual' ? address : undefined,
-        businessAddress: user?.type === 'business' ? address : undefined,
+        address,
       });
     };
 
