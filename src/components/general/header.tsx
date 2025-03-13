@@ -66,7 +66,7 @@ function Header(props: HeaderProps) {
 
       {props.showCart && (
         <Pressable
-          onPress={() => push('/(bottom-tabs)/cart')}
+          onPress={() => push('/(tabs)/cart')}
           className="absolute right-5 top-2 z-10 my-3 size-[40px] items-center justify-center rounded-full bg-[#F7F7F7]"
         >
           <SimpleLineIcons name="basket" size={24} color="black" />

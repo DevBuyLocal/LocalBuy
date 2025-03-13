@@ -20,7 +20,7 @@ export const Text = ({
 }: Props) => {
   const fontClass =
     className.split(' ').find((cls) => fontFamilyMapping[cls]) ??
-    'dm-sans-regular-regular';
+    'dm-sans-regular';
 
   const textStyle = React.useMemo(
     () =>

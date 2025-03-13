@@ -34,7 +34,6 @@ export const useInitializePayment = createMutation<
         Authorization: `Bearer ${accessToken()?.access}`,
       },
     }).then(async (response) => {
-      console.log('🚀 ~ response:', response?.data);
       if (response.status === 200) {
         return response.data;
       }

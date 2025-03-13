@@ -19,7 +19,7 @@ function Verify() {
   const { replace } = useRouter();
   const { mutate } = useVerify();
   const { mutate: ResendCode } = useResendCode();
-  const { setSuccess, setLoading, setError } = useLoader({
+  const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
   });
 
@@ -93,6 +93,7 @@ function Verify() {
           <CustomButton
             label="Continue"
             disabled={!code}
+            loading={loading}
             onPress={handleSubmit}
           />
         </View>

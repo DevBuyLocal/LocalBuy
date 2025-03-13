@@ -5,15 +5,6 @@ import { client } from '../common';
 import { QueryKey } from '../types';
 import { type TSingleCategory } from './types';
 
-// export type PaginateQueryCategory<T> = {
-//   data: T[];
-//   pagination: {
-//     totalCategories: number;
-//     totalPages: number;
-//     currentPage: number;
-//   };
-// };
-
 type Response = { data: TSingleCategory[] };
 
 export const useGetCategories = () => {

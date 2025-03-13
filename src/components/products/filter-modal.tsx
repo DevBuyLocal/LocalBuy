@@ -1,6 +1,9 @@
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { useRouter } from 'expo-router';
 import React from 'react';
 
+import { useGetManufacturers } from '@/api/manufacturers';
+import { useGetCategories } from '@/api/product/use-get-categories';
 import { useUtility, UtilitySelector } from '@/lib/utility';
 
 import Container from '../general/container';
@@ -14,26 +17,22 @@ type Props = {
 const FilterModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
   const [brandIndex, setBrandIndex] = React.useState<number | null>(null);
   const [catIndex, setCatIndex] = React.useState<number | null>(null);
+
+  const { push } = useRouter();
   const { clearFilters } = useUtility(UtilitySelector);
-  const brandsFilters = [
-    { id: 'hhsgwnw', name: 'UAC' },
-    { id: 'siwjwks', name: 'Erisco' },
-    { id: 'djdkjss', name: 'Dangote' },
-    { id: 'dkieiee', name: 'Marina' },
-  ];
-  const catFilters = [
-    { id: 'sksks', name: 'All categories' },
-    { id: 'siejie', name: 'Home' },
-    { id: 'rdvcdv', name: 'Food' },
-    { id: 'vfyyrr', name: 'Furniture' },
-    { id: 'pppaom', name: 'Clothing' },
-  ];
+
+  const { data: cate } = useGetCategories()();
+
+  const categories = cate?.data || [];
+
+  const { data } = useGetManufacturers({ limit: 10, page: 1 })();
+  const brands = React.useMemo(() => data?.pages[0]?.data || [], [data]);
 
   return (
     <Modal ref={ref} snapPoints={['100%']}>
       <BottomSheetScrollView showsVerticalScrollIndicator={false}>
         <Container.Page
-          containerClassName="pt-10"
+          // containerClassName="pt-10"
           showHeader
           backPress={dismiss}
           headerTitle="Filter and sort"
@@ -46,7 +45,7 @@ const FilterModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
             <Text className="mb-2 text-[18px] font-medium">
               Filter By Brand:
             </Text>
-            {brandsFilters.map((e, i) => (
+            {brands.map((e, i) => (
               <Radio.Root
                 key={e?.id}
                 checked={i === catIndex}
@@ -61,7 +60,7 @@ const FilterModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
             <Text className="mb-2 mt-5 text-[18px] font-medium">
               Product Categories:
             </Text>
-            {catFilters.map((e, i) => (
+            {categories.map((e, i) => (
               <Radio.Root
                 key={e?.id}
                 checked={i === brandIndex}
@@ -90,8 +89,17 @@ const FilterModal = React.forwardRef<any, Props>(({ dismiss }, ref) => {
         </Text>
         <CustomButton
           label="Apply"
+          disabled={brandIndex === null && catIndex === null}
           onPress={() => {
             //TODO: apply filters
+            const selectedCategory = categories[catIndex!]?.id;
+            const selectedBrand = brands[brandIndex!]?.id;
+            if (selectedCategory && selectedBrand) {
+              push(
+                `/all-products?category=${selectedCategory}&brand=${selectedBrand}`
+              );
+            }
+
             dismiss();
           }}
         />

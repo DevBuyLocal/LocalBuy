@@ -1,6 +1,8 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import debounce from 'lodash.debounce';
 import React from 'react';
+import { twMerge } from 'tailwind-merge';
 
 import { useGetProducts } from '@/api';
 import { useSearchProducts } from '@/api/product/use-search-products';
@@ -23,26 +25,21 @@ function Search() {
   const [focused, setIsFocused] = React.useState<boolean>(false);
   const { addToRecent, recent_search, clearRecent } =
     useUtility(UtilitySelector);
-
   const { data, isFetching } = useGetProducts({
     limit: 8,
   })();
   const prods = React.useMemo(() => data?.pages[0]?.data || [], [data]);
-
   const { data: searchResult, isFetching: searchIsFetching } =
     useSearchProducts({ query: searchTerm })();
   const result = React.useMemo(
     () => searchResult?.pages[0] || [],
     [searchResult]
   );
-
   const products = React.useMemo(
     () => (Boolean(result.length) ? result : prods) || [],
     [result, prods]
   );
-
   const resultAvailable = Boolean(result.length && search && !searchIsFetching);
-
   const handleSearch = React.useCallback(
     (term: string) => {
       setSearchTerm(term);
@@ -50,18 +47,15 @@ function Search() {
     },
     [addToRecent]
   );
-
   const debouncedHandleSearch = React.useMemo(
-    () => debounce(handleSearch, 500),
+    () => debounce(handleSearch, 800),
     [handleSearch]
   );
-
   React.useEffect(() => {
     return () => {
       debouncedHandleSearch.cancel();
     };
   }, [debouncedHandleSearch]);
-
   const ListFooterComponent = (
     <View>
       <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-10">
@@ -70,7 +64,6 @@ function Search() {
       <View className="mb-20" />
     </View>
   );
-
   return (
     <Container.Page
       showHeader
@@ -95,21 +88,41 @@ function Search() {
                   color={colors.primaryText}
                   className="mt-1"
                 />
-              ) : undefined
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    setSearch('');
+                    setSearchTerm('');
+                  }}
+                  className={twMerge(
+                    'pl-2 py-2',
+                    !search.length && 'opacity-0'
+                  )}
+                >
+                  <MaterialCommunityIcons
+                    name="close-circle"
+                    size={18}
+                    color={'black'}
+                  />
+                </Pressable>
+              )
             }
           />
         </View>
       }
     >
       {Boolean(
-        !resultAvailable && Boolean(recent_search.length) && focused
+        !resultAvailable &&
+          Boolean(recent_search.length) &&
+          focused &&
+          search.length
       ) && (
         <Container.Box containerClassName="">
           <Text className="my-3 text-[16px] font-medium">Recently viewed</Text>
-
           {recent_search.map(
             (e, i) =>
-              e !== '' && (
+              e !== '' &&
+              e.length > 2 && (
                 <Text
                   key={i.toString()}
                   onPress={() => {
@@ -131,7 +144,6 @@ function Search() {
           </Text>
         </Container.Box>
       )}
-
       <Container.Box containerClassName="flex-1 bg-[#F7F7F7]">
         {resultAvailable && (
           <View className="my-5 flex-row items-center justify-between">

@@ -23,7 +23,7 @@ import { useIsFirstTime } from '@/lib/hooks';
 export default function Onboarding() {
   // HOOKS FOR MANAGING APP STATE AND NAVIGATION
   const [_, setIsFirstTime] = useIsFirstTime();
-  const { replace } = useRouter();
+  const { replace, push } = useRouter();
   const { ref, present, dismiss } = useModal();
   // STATE FOR MANAGING SELECTED USER ROLE
   const [selectedRole, setSelectedRole] = React.useState<UserType>(
@@ -87,17 +87,7 @@ export default function Onboarding() {
             setIsFirstTime(false);
             replace('/(main)');
           }}
-          // ONPRESS={() => PUSH('/LOGIN')}
         />
-        {/* <TEXT
-          CLASSNAME="SELF-CENTER PX-10 FONT-BOLD COLOR-PRIMARYTEXT"
-          ONPRESS={() => {
-            SETISFIRSTTIME(FALSE);
-            PUSH('/(MAIN)');
-          }}
-        >
-          SKIP
-        </TEXT> */}
       </Container.Box>
       {/* USER TYPE SELECTION MODAL */}
       <Modal ref={ref} title="Are you an individual or a business owner?">
@@ -121,7 +111,7 @@ export default function Onboarding() {
             label={'Continue'}
             onPress={() => {
               setIsFirstTime(false);
-              replace(`/sign-up?role=${selectedRole}`);
+              push(`/sign-up?role=${selectedRole}`);
               dismiss();
             }}
           />

@@ -24,6 +24,8 @@ function ProductItem(props: ProductItemProps) {
   const { loading, setLoading, setSuccess, setError } = useLoader({
     showLoadingPage: false,
   });
+  const [loadingId, setLoadingId] = React.useState<number | null>(null);
+
   const { addToCart, products_in_cart } = useCart(CartSelector);
   const { data } = useGetCartItems();
   const cartItems = token ? data?.items || [] : products_in_cart || [];
@@ -70,6 +72,7 @@ function ProductItem(props: ProductItemProps) {
     },
     onSettled: () => {
       setLoading(false);
+      setLoadingId(null);
     },
   });
 
@@ -176,11 +179,12 @@ function ProductItem(props: ProductItemProps) {
           <CustomButton
             label={itemIsInCart ? 'Added to cart' : 'Add to cart'}
             disabled={Boolean(itemIsInCart)}
-            loading={loading}
+            loading={loading && loadingId === props.item.id}
             containerClassname="border-primaryText h-[29px] rounded-[4px]"
             textClassName="text-white font-normal text-[12px]"
             onPress={() => {
               if (token && selectedOption) {
+                setLoadingId(props.item.id);
                 setLoading(true);
                 mutate({
                   productOptionId: selectedOption?.id,

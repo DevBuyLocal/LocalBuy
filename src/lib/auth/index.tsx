@@ -4,6 +4,7 @@ import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 
 import { type TUser } from '@/api/user/types';
 
+import { setKeepSignedIn } from '../utility';
 import { createSelectors } from '../utils';
 import type { TokenType } from './utils';
 import { getToken, removeToken, setToken } from './utils';
@@ -32,6 +33,7 @@ const _useAuth = create<AuthState>()(
         signOut: () => {
           removeToken();
           setUser(null);
+          setKeepSignedIn(false);
           // queryClient.removeQueries({ queryKey: [QueryKey.USER] });
           set({ status: 'signOut', token: null });
         },

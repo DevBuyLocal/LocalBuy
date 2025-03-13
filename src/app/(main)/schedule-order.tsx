@@ -1,25 +1,59 @@
 import Entypo from '@expo/vector-icons/Entypo';
+import { parseISO } from 'date-fns';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { twMerge } from 'tailwind-merge';
 
+import { useScheduleOrder } from '@/api/order/use-schedule-order';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import { Pressable, Radio, ScrollView, Text, View } from '@/components/ui';
 import GetHourlyTimes from '@/lib/get-hourly-times';
 import NextFiveDays from '@/lib/get-next-days';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 
 function ScheduleOrder() {
+  const { replace } = useRouter();
+  const { setLoading, setError, setSuccess } = useLoader({
+    showLoadingPage: false,
+  });
   const [selectedDayIndex, setSelectedDayIndex] = React.useState(0);
   const [selectedTimeIndex, setSelectedTimeIndex] = React.useState(0);
   const [date, setDate] = React.useState<Date>(new Date());
+
   const [open, setOpen] = React.useState<boolean>(false);
   const getHourlyTimes = GetHourlyTimes();
+
+  const { orderId }: { orderId: string } = useLocalSearchParams();
+
+  const { mutate: mutateSchedule, isPending: schedulePending } =
+    useScheduleOrder({
+      onSuccess: () => {
+        setSuccess('Order scheduled successfully!');
+        replace('/(tabs)/scheduled');
+      },
+      onError: (error) => {
+        setError(error?.response?.data);
+      },
+      onSettled: () => {
+        setLoading(false);
+      },
+    });
+
+  const handleSchedule = () => {
+    setLoading(true);
+    mutateSchedule({
+      orderId: Number(orderId),
+      scheduledDate: date,
+    });
+  };
+
   return (
     <Container.Page showHeader headerTitle="Schedule Order">
       <Container.Box>
-        <Text>
+        <Text className="mt-4">
           Need it later? Schedule your delivery for a date and time that suits
           you.
         </Text>
@@ -41,7 +75,11 @@ function ScheduleOrder() {
                   ? 'border-primaryText'
                   : 'border-[#1212121A]'
               )}
-              onPress={() => setSelectedDayIndex(i)}
+              onPress={() => {
+                // console.log(day);
+                setDate(parseISO(day.isoString));
+                setSelectedDayIndex(i);
+              }}
             >
               <View className="flex-1 p-5">
                 <Text>{day.formatted}</Text>
@@ -55,7 +93,9 @@ function ScheduleOrder() {
           data={getHourlyTimes}
           renderItem={({ item, index }) => (
             <Pressable
-              onPress={() => setSelectedTimeIndex(index)}
+              onPress={() => {
+                setSelectedTimeIndex(index);
+              }}
               className="flex-row items-center gap-2 py-5"
             >
               <Radio.Icon checked={selectedTimeIndex === index} />
@@ -69,12 +109,17 @@ function ScheduleOrder() {
           ListFooterComponent={<View className="mb-5" />}
         />
       </Container.Box>
-      <View className="absolute bottom-0 w-full flex-1 p-5">
-        <CustomButton label="Continue" />
+      <View className="absolute bottom-8 w-full flex-1 p-5">
+        <CustomButton
+          label="Continue"
+          loading={schedulePending}
+          disabled={schedulePending}
+          onPress={handleSchedule}
+        />
       </View>
 
       <Pressable
-        className="absolute bottom-32 right-5 size-[60px] items-center justify-center rounded-[12px] bg-primaryText shadow-black"
+        className="absolute bottom-36 right-5 size-[60px] items-center justify-center rounded-[12px] bg-primaryText shadow-black"
         onPress={() => setOpen(true)}
         style={{
           shadowColor: '#000',

@@ -7,11 +7,12 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'nativewind';
 import React from 'react';
+import { useEffectOnceWhen } from 'rooks';
 
 import Providers from '@/components/providers';
-import { hydrateAuth, loadSelectedTheme } from '@/lib';
+import { hydrateAuth, loadSelectedTheme, signOut } from '@/lib';
+import { useUtility } from '@/lib/utility';
 // import { v4 as uuidv4 } from 'uuid';
-
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
@@ -35,6 +36,7 @@ SplashScreen.setOptions({
 export default function RootLayout() {
   // const theme = useThemeConfig();
   const { setColorScheme } = useColorScheme();
+  const { keepSignedIn } = useUtility();
 
   const [loaded, error] = useFonts({
     'dm-sans-regular': require('../../assets/fonts/DMSans-Regular.ttf'),
@@ -45,6 +47,12 @@ export default function RootLayout() {
   React.useEffect(() => {
     setColorScheme('light');
   }, [setColorScheme]);
+
+  useEffectOnceWhen(() => {
+    if (!keepSignedIn) {
+      signOut();
+    }
+  }, true);
 
   if (!loaded && !error) {
     return null;

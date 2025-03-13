@@ -21,4 +21,9 @@ export interface Profile {
   id: any;
   updatedAt: any;
   userId: number;
+  businessName: null;
+  businessAddress: null;
+  cacNumber: null;
+  deliveryPhone: string | null;
+  businessPhone: string | null;
 }

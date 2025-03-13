@@ -16,6 +16,7 @@ export default function ResetPassword() {
   const { setSuccess, setLoading, setError } = useLoader({
     showLoadingPage: false,
   });
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const { back } = useRouter();
   const [pass, setPass] = React.useState({
@@ -53,7 +54,15 @@ export default function ResetPassword() {
     },
   });
   function SendCode() {
-    if (!email) return;
+    if (!email) {
+      setError('Please enter your email');
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
     setLoading(true);
     mutate({
       email,
@@ -85,12 +94,13 @@ export default function ResetPassword() {
           onChangeText={setEmail}
         />
         <CountdownTimer
-          countFrom={Env.APP_ENV === 'development' ? 5 : 60}
+          countFrom={Env.APP_ENV === 'development' ? 60 : 60}
           onCountdownComplete={() => {}}
           resend={SendCode}
           text1="Click to receive code"
           text2="Send"
-          disabled={!email}
+          disabled={!email || !emailRegex.test(email)}
+          invalidMsg="Please provide a valid email"
         />
 
         {codeSent && (

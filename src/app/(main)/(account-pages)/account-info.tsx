@@ -6,7 +6,7 @@ import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { AvoidSoftInputView } from 'react-native-avoid-softinput';
 
-import { useUpdateUser } from '@/api';
+import { useGetUser, useUpdateUser } from '@/api';
 import { useResetPassword } from '@/api/auth/use-reset-password';
 import { useUpdatePassword } from '@/api/auth/use-update-password';
 import AccountItem from '@/components/account/account-item';
@@ -141,20 +141,24 @@ const Default = ({
 
 /* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
-  const { setSuccess, setLoading, setError } = useLoader({
+  const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
   });
-  const { user } = useAuth();
+  const { data: user, refetch } = useGetUser();
 
   const [details, setDetails] = React.useState({
     fullName: user?.profile?.fullName,
     email: user?.email,
-    phoneNumber: user?.phoneNumber,
+    phoneNumber:
+      user?.type === 'individual'
+        ? user?.profile?.deliveryPhone
+        : user?.profile?.businessPhone || '',
   });
 
   const { mutate: mutateUpdate } = useUpdateUser({
-    onSuccess: () => {
-      setSuccess('Phone number updated');
+    onSuccess: async () => {
+      await refetch();
+      setSuccess('Successfully updated');
     },
     onError: (error) => {
       setError(error?.response?.data);
@@ -174,7 +178,9 @@ const Edit = () => {
         contentContainerClassName="flex-1 h-full"
       >
         <View className="my-5 size-[90px] items-center justify-center self-center rounded-full border border-primaryText bg-[#EC9F0130]">
-          <Text className="text-[50px] font-bold color-primaryText">D</Text>
+          <Text className="text-[50px] font-bold uppercase color-primaryText">
+            {details?.fullName?.charAt(0)}
+          </Text>
         </View>
 
         <CustomInput
@@ -194,7 +200,8 @@ const Edit = () => {
         <CustomInput
           placeholder="Phone number"
           keyboardType="number-pad"
-          value={details?.phoneNumber}
+          maxLength={11}
+          value={details?.phoneNumber as string}
           onChangeText={(e) => {
             setDetails({ ...details, phoneNumber: e });
           }}
@@ -202,10 +209,11 @@ const Edit = () => {
         <View className="absolute bottom-[120px] w-full">
           <CustomButton
             label="Update"
+            loading={loading}
             onPress={() => {
               setLoading(true);
               mutateUpdate({
-                phoneNumber: details?.phoneNumber,
+                deliveryPhone: details?.phoneNumber as string,
                 fullName: details?.fullName,
               });
             }}
@@ -218,7 +226,7 @@ const Edit = () => {
 
 /* PASSWORD MANAGEMENT SECTION - HANDLES PASSWORD UPDATES */
 const Password = () => {
-  const { setSuccess, setLoading, setError } = useLoader({
+  const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
   });
   const { user } = useAuth();
@@ -320,6 +328,7 @@ const Password = () => {
             label="Update"
             disabled={code.length < 6 || pass.password !== pass.confirmPassword}
             onPress={UpdatePassword}
+            loading={loading}
           />
         </View>
       </ScrollView>

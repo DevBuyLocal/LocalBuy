@@ -72,7 +72,7 @@ function ControlledCustomInput<T extends FieldValues>({
 
   const labelStyle = {
     left: 16,
-    top: interpolate(animatedValue, 0, 1, 20, -8),
+    top: interpolate(animatedValue, 0, 1, 20, -13),
     opacity: interpolate(animatedValue, 0, 1, 0, 1),
     fontSize: interpolate(animatedValue, 0, 1, 16, 14),
     color: interpolate(
@@ -82,17 +82,13 @@ function ControlledCustomInput<T extends FieldValues>({
       '#12121233',
       error ? '#E84343' : '#EC9F01BF'
     ),
+    // backgroundColor: 'red',
     backgroundColor: colorScheme === 'dark' ? '#282828' : '#FFFFFF',
     zIndex: 1,
   };
   const style = styles(error, colorScheme);
   return (
     <View className={twMerge('mt-3 w-full', containerClass)}>
-      {!isSearch && (
-        <Animated.Text className={'absolute'} style={labelStyle}>
-          {placeholder}
-        </Animated.Text>
-      )}
       {onPress && (
         <Pressable
           onPress={onPress}
@@ -109,7 +105,7 @@ function ControlledCustomInput<T extends FieldValues>({
         secureTextEntry={isPassword && !show}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        placeholder={isFocused ? '' : placeholder}
+        placeholder={isFocused ? undefined : placeholder}
         leftIcon={
           isSearch ? (
             <Feather
@@ -145,10 +141,15 @@ function ControlledCustomInput<T extends FieldValues>({
         className={twMerge(
           isSearch
             ? 'bg-[#F7F7F7] w-full rounded-[32px] h-[50px] pl-[35px] placeholder:color-[#12121280] dark:placeholder:color-[#f5f5f5] text-[16px]'
-            : 'h-[48px] w-full rounded-[6px] border border-[#12121233] px-[10px] dark:placeholder:color-[#f5f5f5] placeholder:color-[#12121280] text-[16px]'
+            : 'h-[48px] w-full rounded-[6px] border border-[#12121233] px-[10px] dark:placeholder:color-[#f5f5f5] placeholder:color-[#12121280] text-[16px] leading-2'
         )}
         {...props}
       />
+      {!isSearch && isFocused && (
+        <Animated.Text className={'absolute -z-10'} style={labelStyle}>
+          {placeholder}
+        </Animated.Text>
+      )}
       {(fieldState?.error || error) && (
         <View className="flex-row items-center">
           <AntDesign name="exclamationcircle" size={10} color="#E84343" />
