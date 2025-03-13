@@ -25,12 +25,10 @@ function Search() {
   const [focused, setIsFocused] = React.useState<boolean>(false);
   const { addToRecent, recent_search, clearRecent } =
     useUtility(UtilitySelector);
-
   const { data, isFetching } = useGetProducts({
     limit: 8,
   })();
   const prods = React.useMemo(() => data?.pages[0]?.data || [], [data]);
-
   const { data: searchResult, isFetching: searchIsFetching } =
     useSearchProducts({ query: searchTerm })();
   const result = React.useMemo(
@@ -49,18 +47,15 @@ function Search() {
     },
     [addToRecent]
   );
-
   const debouncedHandleSearch = React.useMemo(
     () => debounce(handleSearch, 800),
     [handleSearch]
   );
-
   React.useEffect(() => {
     return () => {
       debouncedHandleSearch.cancel();
     };
   }, [debouncedHandleSearch]);
-
   const ListFooterComponent = (
     <View>
       <Container.Box containerClassName="bg-[#F7F7F7] px-0 pb-10">
@@ -117,7 +112,10 @@ function Search() {
       }
     >
       {Boolean(
-        !resultAvailable && Boolean(recent_search.length) && focused
+        !resultAvailable &&
+          Boolean(recent_search.length) &&
+          focused &&
+          search.length
       ) && (
         <Container.Box containerClassName="">
           <Text className="my-3 text-[16px] font-medium">Recently viewed</Text>

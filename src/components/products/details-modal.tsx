@@ -22,6 +22,7 @@ import { useLoader } from '@/lib/hooks/general/use-loader';
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
 import { colors, Image, Pressable, Radio, Text, View, WIDTH } from '../ui';
+import ProductSuggestCarousel from './product-suggest-carousel';
 import QuantitySelect from './quantity-select';
 
 // eslint-disable-next-line max-lines-per-function
@@ -201,7 +202,7 @@ export default function DetailsModal({
         </View>
       ),
       content: selectedOption?.moq ? (
-        <View className={twMerge('mt-5 pt-5')}>
+        <View className={twMerge('mt-5')}>
           <QuantitySelect
             quantity={quantity}
             setQuantity={setQuantity}
@@ -329,10 +330,6 @@ export default function DetailsModal({
             N{selectedOption?.price?.toLocaleString()}
           </Text>
 
-          <Text numberOfLines={1} className="text-[14px] text-primaryText">
-            Minimum purchase: {selectedOption?.moq}
-          </Text>
-
           <Accordion
             sections={SECTIONS}
             activeSections={activeSections}
@@ -353,7 +350,11 @@ export default function DetailsModal({
             }}
             containerStyle={{ marginTop: 10 }}
           />
-          <View className="mt-10">
+          <Text numberOfLines={1} className="mt-5 text-[16px]">
+            Minimum purchase: {selectedOption?.moq} {selectedOption?.unit}
+          </Text>
+
+          <View className="mt-5">
             {/* {foundItem ? (
               <CustomButton label={'Proceed to checkout'} />
             ) : ( */}
@@ -402,7 +403,7 @@ export default function DetailsModal({
           </View>
         </Container.Box>
         <Container.Box containerClassName="bg-[#F7F7F7]">
-          {/* <ProductCarousel title={'Suggested Products'} /> */}
+          <ProductSuggestCarousel title={'Suggested Products'} />
         </Container.Box>
         <View className="mb-10" />
       </BottomSheetScrollView>

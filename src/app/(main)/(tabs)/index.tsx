@@ -145,7 +145,7 @@ export default function Home() {
       onPress: () => {
         // to scroll to the Deals section using the id of the section
         scrollViewRef?.current?.scrollTo({
-          y: 1500,
+          y: 1800,
           animated: true,
         });
       },
@@ -307,6 +307,7 @@ export default function Home() {
           <Container.Box containerClassName="bg-[#F7F7F7] dark:bg-[#282828] pb-5">
             <ProductCarousel title={'New Arrivals'} type="new" />
             <ProductCarousel title={'Trending Products'} type="trending" />
+            <ProductCarousel title={'Popular Groceries'} type="popular" />
           </Container.Box>
           <DealsSection />
 

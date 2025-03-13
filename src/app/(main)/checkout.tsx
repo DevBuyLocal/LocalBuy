@@ -3,12 +3,12 @@ import React from 'react';
 import { ActivityIndicator, Modal } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 
+import { useGetUser } from '@/api';
 import { useInitializePayment } from '@/api/order/use-initialize-payment';
 import { useVerifyPayment } from '@/api/order/use-verify-payment';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import { colors, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
-import { useAuth } from '@/lib';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 // eslint-disable-next-line max-lines-per-function
@@ -16,8 +16,8 @@ function Checkout() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [showModal, setShowModal] = React.useState(false);
   const [checkoutUri, setCheckoutUri] = React.useState('');
-  const { user } = useAuth();
   const { push, replace } = useRouter();
+  const { data: user } = useGetUser();
   const { setError, loading, setLoading, setSuccess } = useLoader({
     showLoadingPage: true,
   });
@@ -125,11 +125,17 @@ function Checkout() {
                 user?.email}
             </Text>
             <Text className="w-[90%] text-[16px] opacity-75">
-              64 Ilogbo Road, Furniture Bus Stop, Ajangbadi, Ojo, Lagos. Imam
-              Raji Central.
+              {user?.type === 'individual'
+                ? user?.profile?.address
+                : user?.profile?.businessAddress}
             </Text>
 
-            <Text className="mt-5 text-[16px] opacity-85">+2340000000000</Text>
+            <Text className="mt-5 text-[16px] opacity-85">
+              +234{' '}
+              {user?.type === 'individual'
+                ? user?.profile?.deliveryPhone
+                : user?.profile?.businessPhone}
+            </Text>
           </View>
 
           {/* ================================= */}
@@ -179,7 +185,7 @@ function Checkout() {
         animationType="slide"
         transparent={false}
       >
-        <SafeAreaView className="flex-1 p-5">
+        <SafeAreaView className="flex-1 p-5" edges={['top']}>
           <WebView
             source={{ uri: checkoutUri }}
             onMessage={(e) => {

@@ -59,14 +59,16 @@ function QuantitySelect(props: QuantitySelectProps) {
   let updateQuantityDebounce = React.useMemo(
     () =>
       debounce((itemId: number, quantity: number) => {
-        setLoading(true);
+        // setLoading(true);
         mutate({ cartItemId: itemId, quantity });
       }, 700),
-    [setLoading, mutate]
+    [mutate]
   );
 
   const handleDecrease = React.useCallback(() => {
-    if (inQuantity <= 1) return;
+    // if (inQuantity <= 1) return;
+    if (Number(props?.moq) <= inQuantity) return;
+
     if (token && props.cartItemId) {
       setInQuantity((prev) => prev - 1);
       updateQuantityDebounce(props.cartItemId, inQuantity - 1);
@@ -102,10 +104,7 @@ function QuantitySelect(props: QuantitySelectProps) {
       )}
       {...props}
     >
-      <Pressable
-        onPress={handleDecrease}
-        // className="px-[25px]"
-      >
+      <Pressable onPress={handleDecrease} hitSlop={10} className="pr-10">
         <Text className="text-[20px] font-bold">-</Text>
       </Pressable>
       {loading ? (
@@ -116,10 +115,7 @@ function QuantitySelect(props: QuantitySelectProps) {
         </Text>
       )}
 
-      <Pressable
-        onPress={handleIncrease}
-        // className="px-[25px] py-px"
-      >
+      <Pressable onPress={handleIncrease} hitSlop={10} className="pl-10">
         <Text className="text-[20px] font-bold">+</Text>
       </Pressable>
     </View>
