@@ -213,7 +213,6 @@ export default function Home() {
             tintColor={colors.primaryText}
           />
         }
-        // className={'bg-white dark:bg-[#282828]'}
       >
         <AdsHeader
           scroll={scrollOffset}
@@ -300,9 +299,7 @@ export default function Home() {
               ))}
             </View>
             {showSaved && <SavedItems savedProducts={savedProducts} />}
-            {/* <AdsBanner imgs={imgs} /> */}
             <FeaturedBrands />
-            {/* {FeaturedBrands(dummyProducts)} */}
           </Container.Box>
           <Container.Box containerClassName="bg-[#F7F7F7] dark:bg-[#282828] pb-5">
             <ProductCarousel title={'New Arrivals'} type="new" />
@@ -311,7 +308,7 @@ export default function Home() {
           </Container.Box>
           <DealsSection />
 
-          {categories.length && (
+          {Boolean(categories.length) && (
             <Container.Box containerClassName="py-3">
               <Text className="mb-2 text-[18px] font-bold">
                 Store Categories

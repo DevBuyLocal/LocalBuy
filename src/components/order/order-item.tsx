@@ -81,7 +81,9 @@ function OrderItem({ item, onPress, isHistory }: Props) {
         </View>
       </View>
 
-      {isHistory && <MaterialCommunityIcons name="chevron-right" size={20} />}
+      {Boolean(isHistory) && (
+        <MaterialCommunityIcons name="chevron-right" size={20} />
+      )}
     </Pressable>
     // </Swipeable>
   );

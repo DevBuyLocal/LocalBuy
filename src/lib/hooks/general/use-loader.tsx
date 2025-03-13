@@ -60,24 +60,6 @@ export const LoaderProvider = ({ children }: { children: ReactNode }) => {
   return (
     <LoaderContext.Provider value={contextValue}>
       {children}
-      {/* {loading && showPage && (
-        <Container.Page
-          containerClassName="items-center justify-center bg-[#12121299] dark:bg-[#28282880] px-0 flex-0"
-          style={StyleSheet.absoluteFillObject}
-        >
-          <View className="items-center rounded-[16px] bg-white px-8 py-4 dark:bg-[#282828]">
-            <ActivityIndicator
-              animating
-              size="large"
-              color={colors.primaryText}
-              style={{ transform: [{ scale: 1.5 }], padding: 5 }}
-            />
-            <Text className="mt-2 text-[16px] font-semibold text-black">
-              {loadingText || 'Loading'}
-            </Text>
-          </View>
-        </Container.Page>
-      )} */}
     </LoaderContext.Provider>
   );
 };

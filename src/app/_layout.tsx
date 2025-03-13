@@ -13,7 +13,6 @@ import Providers from '@/components/providers';
 import { hydrateAuth, loadSelectedTheme, signOut } from '@/lib';
 import { useUtility } from '@/lib/utility';
 // import { v4 as uuidv4 } from 'uuid';
-
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {

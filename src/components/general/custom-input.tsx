@@ -64,7 +64,7 @@ function CustomInput({
 
   return (
     <View className={twMerge('mt-3 w-full', containerClass)}>
-      {!isSearch && (
+      {!isSearch && isFocused && (
         <Animated.Text className={'absolute'} style={labelStyle}>
           {placeholder}
         </Animated.Text>

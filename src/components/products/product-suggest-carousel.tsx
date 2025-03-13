@@ -1,3 +1,4 @@
+import { useBottomSheetModal } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { ScrollView, View } from 'moti';
 import { Skeleton } from 'moti/skeleton';
@@ -16,9 +17,11 @@ type ProductSuggestCarouselProps = {
 function ProductSuggestCarousel(props: ProductSuggestCarouselProps) {
   const { push } = useRouter();
 
+  const { dismissAll } = useBottomSheetModal();
+
   const { data, isFetching } = useGetProducts({
     type: props.type || 'trending',
-    limit: 20,
+    limit: 5,
   })();
   // const products = normalizePages(data?.pages);
   const products = React.useMemo(() => data?.pages?.[0]?.data || [], [data]);
@@ -28,7 +31,7 @@ function ProductSuggestCarousel(props: ProductSuggestCarouselProps) {
 
   if (isFetching && Boolean(products?.length)) {
     return (
-      <ScrollView horizontal contentContainerClassName="mt-5">
+      <ScrollView horizontal contentContainerClassName="my-5">
         {Array.from({ length: 3 }).map((_, i) => (
           <View key={i.toString()} className="mr-5 ">
             <Skeleton width={158} height={220} radius={5} colorMode={'light'} />
@@ -43,13 +46,16 @@ function ProductSuggestCarousel(props: ProductSuggestCarouselProps) {
       <>
         <ViewAll
           title={props.title}
-          onPress={() =>
-            push(`/(main)/all-products?type=${props.type}&title=${props.title}`)
-          }
+          onPress={() => {
+            dismissAll();
+            push(
+              `/(main)/all-products?type=${props.type}&title=${props.title}`
+            );
+          }}
         />
         <ScrollView
           horizontal
-          className="mt-5"
+          className="my-5"
           showsHorizontalScrollIndicator={false}
         >
           {products.map((e, i) => (

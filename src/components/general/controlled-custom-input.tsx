@@ -89,11 +89,6 @@ function ControlledCustomInput<T extends FieldValues>({
   const style = styles(error, colorScheme);
   return (
     <View className={twMerge('mt-3 w-full', containerClass)}>
-      {!isSearch && (
-        <Animated.Text className={'absolute'} style={labelStyle}>
-          {placeholder}
-        </Animated.Text>
-      )}
       {onPress && (
         <Pressable
           onPress={onPress}
@@ -110,7 +105,7 @@ function ControlledCustomInput<T extends FieldValues>({
         secureTextEntry={isPassword && !show}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        placeholder={isFocused ? '' : placeholder}
+        placeholder={isFocused ? undefined : placeholder}
         leftIcon={
           isSearch ? (
             <Feather
@@ -150,6 +145,11 @@ function ControlledCustomInput<T extends FieldValues>({
         )}
         {...props}
       />
+      {!isSearch && isFocused && (
+        <Animated.Text className={'absolute -z-10'} style={labelStyle}>
+          {placeholder}
+        </Animated.Text>
+      )}
       {(fieldState?.error || error) && (
         <View className="flex-row items-center">
           <AntDesign name="exclamationcircle" size={10} color="#E84343" />
