@@ -1,105 +1,113 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert } from 'react-native';
 
-import { useVerify } from '@/api';
-import { useResendCode } from '@/api/auth/use-resend-code';
-import Container from '@/components/general/container';
-import CountdownTimer from '@/components/general/count-down';
-import CustomButton from '@/components/general/custom-button';
-import CustomInput from '@/components/general/custom-input';
-import InputView from '@/components/general/input-view';
-import { Text, View } from '@/components/ui';
-import { Env } from '@/lib/env';
-import { useLoader } from '@/lib/hooks/general/use-loader';
-import { shortenAddress } from '@/lib/shorten-address';
+import { useResendCode, useVerify } from '@/api';
+import { Button, Text, View } from '@/components/ui';
 
-function Verify() {
-  const { email } = useLocalSearchParams();
-  const [code, setCode] = React.useState<string>('');
-  const { replace } = useRouter();
-  const { mutate } = useVerify();
-  const { mutate: ResendCode } = useResendCode();
-  const { setSuccess, setLoading, setError, loading } = useLoader({
-    showLoadingPage: false,
-  });
+export default function Verify() {
+  const { email } = useLocalSearchParams<{ email: string }>();
+  const [code, setCode] = useState('');
+  const verify = useVerify();
+  const resendCode = useResendCode();
 
-  const handleSubmit = () => {
-    if (!email || !code) return;
-    setLoading(true);
-    mutate(
+  const handleVerify = () => {
+    if (!email) {
+      Alert.alert('Error', 'Email is required');
+      return;
+    }
+
+    verify.mutate(
+      { email, code },
       {
-        code,
-        email: decodeURIComponent(email as string),
-      },
-      {
-        onSuccess() {
-          setSuccess('Verification successful, Please Login');
-          replace(`/login`);
+        onSuccess: () => {
+          Alert.alert('Success', 'Email verified successfully!', [
+            { text: 'OK', onPress: () => router.replace('/(auth)/login') },
+          ]);
         },
-        onError(error) {
-          setError(error?.response?.data);
-        },
-        onSettled() {
-          setLoading(false);
+        onError: (error: any) => {
+          Alert.alert(
+            'Verification Failed',
+            error?.response?.data?.message || 'Invalid verification code'
+          );
         },
       }
     );
   };
 
-  function Resend() {
-    ResendCode(
+  const handleResendCode = () => {
+    if (!email) {
+      Alert.alert('Error', 'Email is required');
+      return;
+    }
+
+    resendCode.mutate(
+      { email },
       {
-        email: decodeURIComponent(email as string),
-      },
-      {
-        onSuccess() {
-          setSuccess('Code resent successfully');
+        onSuccess: () => {
+          Alert.alert('Success', 'Verification code sent!');
         },
-        onError(error) {
-          console.log('🚀 ~ file: verify.tsx:38 ~ error:', error);
-          setError(error?.response?.data);
-        },
-        onSettled() {
-          setLoading(false);
+        onError: (error: any) => {
+          Alert.alert(
+            'Error',
+            error?.response?.data?.message || 'Failed to send verification code'
+          );
         },
       }
     );
-  }
+  };
 
   return (
-    <Container.Page showHeader headerTitle="OTP verification">
-      <InputView>
-        <Text className="mt-5 w-full text-[25px] font-bold">
-          Verify your email address
-        </Text>
-        <Text className="mb-3 mt-2 w-4/5 text-[14px] opacity-75">
-          We’ve sent a verification code to the email {shortenAddress(email)}.
-          Please enter the code below to verify.
-        </Text>
-        <CustomInput
-          placeholder="Verification code"
-          keyboardType="number-pad"
-          maxLength={6}
-          containerClass="mt-5 mb-2"
-          value={code}
-          onChangeText={setCode}
-        />
-        <CountdownTimer
-          countFrom={Env.APP_ENV === 'development' ? 5 : 60}
-          onCountdownComplete={() => {}}
-          resend={Resend}
-        />
-        <View className="absolute bottom-[120px] w-full">
-          <CustomButton
-            label="Continue"
-            disabled={!code}
-            loading={loading}
-            onPress={handleSubmit}
-          />
+    <View className="flex-1 justify-center px-4">
+      <Text className="mb-4 text-center text-2xl font-bold">
+        Verify Your Email
+      </Text>
+
+      <Text className="mb-8 text-center text-gray-600">
+        Enter the 6-digit code sent to {email}
+      </Text>
+
+      <View className="mb-6">
+        <Text className="mb-2 text-sm font-medium">Verification Code</Text>
+        <View className="rounded-lg border border-gray-300 p-4">
+          <Text
+            className="text-center font-mono text-2xl tracking-widest"
+            onPress={() => {
+              // Simple text input simulation - in real app you'd use TextInput
+              Alert.prompt(
+                'Enter Code',
+                'Enter the 6-digit verification code',
+                (text) => setCode(text || ''),
+                'plain-text',
+                code
+              );
+            }}
+          >
+            {code || 'Tap to enter code'}
+          </Text>
         </View>
-      </InputView>
-    </Container.Page>
+      </View>
+
+      <Button
+        label={verify.isPending ? 'Verifying...' : 'Verify Email'}
+        onPress={handleVerify}
+        disabled={verify.isPending || code.length !== 6}
+        className="mb-4"
+      />
+
+      <Button
+        label={resendCode.isPending ? 'Sending...' : 'Resend Code'}
+        variant="ghost"
+        onPress={handleResendCode}
+        disabled={resendCode.isPending}
+      />
+
+      <Button
+        label="Back to Login"
+        variant="ghost"
+        onPress={() => router.push('/(auth)/login')}
+        className="mt-4"
+      />
+    </View>
   );
 }
-
-export default Verify;

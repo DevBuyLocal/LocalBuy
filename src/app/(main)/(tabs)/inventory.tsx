@@ -93,47 +93,7 @@ export default function Inventory() {
     </Container.Page>
   );
 
-  return (
-    <Container.Page showHeader headerTitle="Inventory" hideBackButton>
-      {/* <TabView
-        lazy
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={{ width: layout.width }}
-        renderTabBar={(props) => (
-          <TabBar
-            {...props}
-            indicatorStyle={{ backgroundColor: colors.primaryText }}
-            style={{
-              backgroundColor: colorScheme === 'dark' ? 'black' : 'white',
-              marginTop: 14,
-            }}
-            contentContainerStyle={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
-            }}
-            onTabPress={({ route }) => {
-              setIndex(route.key);
-            }}
-            renderTabBarItem={({ route }) => (
-              <Pressable
-                className={twMerge(
-                  'flex-row items-center justify-center gap-2 py-5'
-                )}
-                onPress={() => {
-                  setIndex(routes.findIndex((r) => r.key === route.key));
-                }}
-              >
-                {route.icon}
-                <Text>{route.title}</Text>
-              </Pressable>
-            )}
-          />
-        )}
-      /> */}
-    </Container.Page>
-  );
+
 }
 const Dashboard = () => {
   const { push } = useRouter();

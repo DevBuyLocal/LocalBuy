@@ -34,7 +34,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>exp+buy-local</string>
+          <string>exp+localbuy</string>
         </array>
       </dict>
     </array>

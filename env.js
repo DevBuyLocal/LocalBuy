@@ -1,4 +1,9 @@
 /* eslint-env node */
+/**
+ * @fileoverview Environment configuration file for build-time and client-side variables
+ * This file uses Node.js process.env and should only be imported in build-time contexts
+ */
+
 /*
  * Env file to load and validate env variables
  * Be cautious; this file should not be imported into your source folder.
@@ -17,6 +22,8 @@ const z = require('zod');
 
 const packageJSON = require('./package.json');
 const path = require('path');
+
+/** @type {string} */
 const APP_ENV = process.env.APP_ENV ?? 'development';
 const envPath = path.resolve(__dirname, `.env.${APP_ENV}`);
 

@@ -13,6 +13,7 @@ interface CountdownProps {
   text2?: string;
   disabled?: boolean;
   invalidMsg?: string;
+  autoStart?: boolean; // New prop to control auto-start behavior
 }
 
 const CountdownTimer: FC<CountdownProps> = ({
@@ -23,10 +24,12 @@ const CountdownTimer: FC<CountdownProps> = ({
   text2,
   disabled,
   invalidMsg,
+  autoStart = false, // Default to false to prevent auto-start
 }) => {
   const { setError } = useLoader({ showLoadingPage: false });
   const [countdown, setCountdown] = useState(countFrom);
-  const [isActive, setIsActive] = useState(true); // New state for countdown activity
+  const [isActive, setIsActive] = useState(autoStart); // Use autoStart prop
+  const [hasStarted, setHasStarted] = useState(autoStart); // Track if countdown has ever started
 
   useEffect(() => {
     if (isActive && countdown > 0) {
@@ -51,9 +54,14 @@ const CountdownTimer: FC<CountdownProps> = ({
       setError(invalidMsg || 'Please wait for the timer to finish');
       return;
     }
-    if (countdown > 0) return;
+
+    // If countdown is active, do nothing (user must wait)
+    if (countdown > 0 && isActive) return;
+
+    // Start/restart the countdown and send the code
     setCountdown(countFrom);
     setIsActive(true);
+    setHasStarted(true);
     resend();
   };
 
@@ -62,18 +70,13 @@ const CountdownTimer: FC<CountdownProps> = ({
       <Text className="text-[14px] font-medium opacity-70">
         {text1 || 'Not getting code?'}{' '}
       </Text>
-      {countdown > 0 && !disabled ? (
-        <Text
-          className={twMerge(
-            countdown > 0 ? 'opacity-100' : 'opacity-0',
-            'text-[14px] font-medium color-primaryText'
-          )}
-        >
+      {countdown > 0 && isActive ? (
+        <Text className={twMerge('text-[14px] font-medium color-primaryText')}>
           {formatTime(countdown)}
         </Text>
       ) : (
         <Text className="text-[14px] font-medium color-primaryText">
-          {text2 || 'Resend'}
+          {hasStarted ? text2 || 'Resend' : text2 || 'Send'}
         </Text>
       )}
     </Pressable>

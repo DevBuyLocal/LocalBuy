@@ -5,7 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { isRTL } from '@/lib';
 
-export const ArrowRight = ({ color = '#CCC', style, ...props }: SvgProps) => (
+export const Search = ({ color = '#CCC', style, ...props }: SvgProps) => (
   <Svg
     width={7}
     height={14}

@@ -1,9 +1,10 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useLocalSearchParams } from 'expo-router';
-import StepIndicator from 'react-native-step-indicator';
+import React from 'react';
 
-import { useTrackOrder } from '@/api/order';
+// Removed StepIndicator import - using custom implementation
+// import { useTrackOrder } from '@/api/order'; // Removed unused import
 import { useGetSingleOrder } from '@/api/order/use-get-single-order';
 import Container from '@/components/general/container';
 import { Text, View } from '@/components/ui';
@@ -11,7 +12,6 @@ import { Text, View } from '@/components/ui';
 export default function TrackOrder() {
   const { orderId }: { orderId: string } = useLocalSearchParams();
 
-  const { data: trackOrderData } = useTrackOrder({ variables: { orderId } });
   const { data: singleOrderData } = useGetSingleOrder({
     variables: { orderId },
   });
@@ -23,30 +23,6 @@ export default function TrackOrder() {
     `Out for delivery`,
     `Delivered`,
   ];
-  const customStyles = {
-    stepIndicatorSize: 40,
-    currentStepIndicatorSize: 50,
-    separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 2,
-    stepStrokeCurrentColor: '#0F3D30',
-    stepStrokeWidth: 3,
-    stepStrokeFinishedColor: '#0F3D30',
-    stepStrokeUnFinishedColor: '#aaaaaa',
-    separatorFinishedColor: '#0F3D30',
-    labelAlign: 'flex-start',
-    separatorUnFinishedColor: '#aaaaaa',
-    stepIndicatorFinishedColor: '#0F3D30',
-    stepIndicatorUnFinishedColor: '#ffffff',
-    stepIndicatorCurrentColor: '#ffffff',
-    stepIndicatorLabelFontSize: 13,
-    currentStepIndicatorLabelFontSize: 13,
-    stepIndicatorLabelCurrentColor: '#0F3D30',
-    stepIndicatorLabelFinishedColor: '#ffffff',
-    stepIndicatorLabelUnFinishedColor: '#aaaaaa',
-    labelColor: '#999999',
-    labelSize: 13,
-    currentStepLabelColor: '#0F3D30',
-  };
 
   return (
     <Container.Page
@@ -74,63 +50,60 @@ export default function TrackOrder() {
           <Text className="text-[16px] font-bold">Track order</Text>
           <View className="mt-2 h-px w-full bg-[#12121214]" />
           <View className="h-[350px]">
-            <StepIndicator
-              // @ts-ignore
-              customStyles={customStyles}
-              currentPosition={1}
-              labels={labels}
-              stepCount={5}
-              direction="vertical"
-              renderStepIndicator={({ position, stepStatus }) => {
-                if (position === 0) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="shopping-outline"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                if (position === 1) {
-                  return (
-                    <SimpleLineIcons
-                      name="basket-loaded"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-
-                if (position === 2) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="cart-check"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                if (position === 3) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="golf-cart"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                if (position === 4) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="truck-delivery"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                return <></>;
-              }}
-            />
+            <View className="flex-col space-y-4">
+              {labels.map((label, index) => (
+                <View key={index} className="flex-row items-center space-x-3">
+                  <View
+                    className={`size-[40px] items-center justify-center rounded-full ${
+                      index <= 1 ? 'bg-[#0F3D30]' : 'bg-[#aaaaaa]'
+                    }`}
+                  >
+                    {index === 0 && (
+                      <MaterialCommunityIcons
+                        name="shopping-outline"
+                        size={24}
+                        color={index <= 1 ? '#fff' : '#fff'}
+                      />
+                    )}
+                    {index === 1 && (
+                      <SimpleLineIcons
+                        name="basket-loaded"
+                        size={24}
+                        color={index <= 1 ? '#fff' : '#fff'}
+                      />
+                    )}
+                    {index === 2 && (
+                      <MaterialCommunityIcons
+                        name="cart-check"
+                        size={24}
+                        color={index <= 1 ? '#fff' : '#fff'}
+                      />
+                    )}
+                    {index === 3 && (
+                      <MaterialCommunityIcons
+                        name="golf-cart"
+                        size={24}
+                        color={index <= 1 ? '#fff' : '#fff'}
+                      />
+                    )}
+                    {index === 4 && (
+                      <MaterialCommunityIcons
+                        name="truck-delivery"
+                        size={24}
+                        color={index <= 1 ? '#fff' : '#fff'}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    className={`text-[13px] ${
+                      index <= 1 ? 'text-[#0F3D30]' : 'text-[#999999]'
+                    }`}
+                  >
+                    {label}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
         </Container.Box>
       </Container.Box>

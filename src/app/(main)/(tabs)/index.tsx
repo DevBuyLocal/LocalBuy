@@ -69,6 +69,15 @@ export default function Home() {
     dismiss: locationDismiss,
   } = useModal();
 
+  // Debug logging for modal setup
+  React.useEffect(() => {
+    console.log('🚀 ~ Home ~ Modal setup:', {
+      locationPresent: typeof locationPresent,
+      locationRef: locationRef?.current ? 'exists' : 'null',
+      locationDismiss: typeof locationDismiss,
+    });
+  }, [locationPresent, locationRef, locationDismiss]);
+
   const phoneNumberAvailable = Boolean(user?.profile?.deliveryPhone);
   const detailsProvided = () => {
     if (user?.type === UserType.Business) {
@@ -215,6 +224,7 @@ export default function Home() {
         }
       >
         <AdsHeader
+          key={user?.profile?.address || 'no-address'} // Force re-render when address changes
           scroll={scrollOffset}
           locationPresent={locationPresent}
           notifications={notifications}

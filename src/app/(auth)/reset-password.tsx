@@ -53,6 +53,7 @@ export default function ResetPassword() {
       setLoading(false);
     },
   });
+
   function SendCode() {
     if (!email) {
       setError('Please enter your email');
@@ -68,6 +69,7 @@ export default function ResetPassword() {
       email,
     });
   }
+
   function UpdatePassword() {
     if (!email) return;
     setLoading(true);
@@ -97,10 +99,11 @@ export default function ResetPassword() {
           countFrom={Env.APP_ENV === 'development' ? 60 : 60}
           onCountdownComplete={() => {}}
           resend={SendCode}
-          text1="Click to receive code"
-          text2="Send"
+          text1="Click to receive verification code"
+          text2="Send Code"
           disabled={!email || !emailRegex.test(email)}
           invalidMsg="Please provide a valid email"
+          autoStart={false}
         />
 
         {codeSent && (
@@ -122,7 +125,7 @@ export default function ResetPassword() {
               }}
             />
             <CustomInput
-              placeholder="Code"
+              placeholder="Enter verification code"
               keyboardType="number-pad"
               maxLength={6}
               value={code}

@@ -6,6 +6,7 @@ import Carousel from 'react-native-reanimated-carousel';
 import { twMerge } from 'tailwind-merge';
 
 import { useAuth } from '@/lib';
+import { UserType } from '@/lib/constants';
 
 import { Image, Text, WIDTH } from '../ui';
 
@@ -35,6 +36,22 @@ const AdsHeader = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollHeight = height;
 
+  // Debug logging for address changes only (not on every render)
+  React.useEffect(() => {
+    if (user) {
+      console.log('🚀 ~ AdsHeader ~ User data updated:', {
+        type: user?.type,
+        address: user?.profile?.address,
+        businessAddress: user?.profile?.businessAddress,
+      });
+    }
+  }, [
+    user?.id,
+    user?.type,
+    user?.profile?.address,
+    user?.profile?.businessAddress,
+  ]);
+
   // Memoize scale interpolation
   const scaleImg = React.useMemo(() => {
     if (!scroll) return new Animated.Value(1);
@@ -49,6 +66,17 @@ const AdsHeader = ({
   const handleSnapToItem = React.useCallback((index: number) => {
     setCurrentIndex((prev) => (prev === index ? prev : index) % 3);
   }, []);
+
+  // Add debug function for location press
+  const handleLocationPress = React.useCallback(() => {
+    console.log('🚀 ~ AdsHeader ~ Location pressed!');
+    try {
+      locationPresent();
+      console.log('🚀 ~ AdsHeader ~ locationPresent called successfully');
+    } catch (error) {
+      console.error('🚀 ~ AdsHeader ~ Error calling locationPresent:', error);
+    }
+  }, [locationPresent]);
 
   // Memoize renderItem
   const renderItem = React.useCallback(
@@ -106,15 +134,15 @@ const AdsHeader = ({
             </Text>
             <Pressable
               className=" flex-row items-center gap-2"
-              onPress={locationPresent}
+              onPress={handleLocationPress}
             >
               <Text
                 className="max-w-[90%] text-[14px] font-medium text-white"
                 numberOfLines={1}
               >
-                {user?.type === 'individual'
-                  ? user?.profile?.address || 'Add delivery address'
-                  : user?.profile?.businessAddress || 'Add business address'}
+                {user?.type === UserType.Business
+                  ? user?.profile?.businessAddress || 'Add business address'
+                  : user?.profile?.address || 'Add delivery address'}
               </Text>
               <FontAwesome5 name="chevron-down" size={10} color="white" />
             </Pressable>

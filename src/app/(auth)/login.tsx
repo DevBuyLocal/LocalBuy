@@ -1,156 +1,147 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import React from 'react';
+import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
+import { Alert, ScrollView } from 'react-native';
+import { AvoidSoftInputView } from 'react-native-avoid-softinput';
 
-import { queryClient, QueryKey, useLogin } from '@/api';
+import { useLogin } from '@/api';
 import Container from '@/components/general/container';
-import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
-import CustomCheckbox from '@/components/general/custom-checkbox';
-import InputView from '@/components/general/input-view';
-import { Modal, Pressable, Radio, Text, useModal, View } from '@/components/ui';
-import { useAuth } from '@/lib';
-import { UserType, userType } from '@/lib/constants';
-import { useLoader } from '@/lib/hooks/general/use-loader';
-import { useUtility } from '@/lib/utility';
+import { ControlledInput, Text, View } from '@/components/ui';
+import { setUser, useAuth } from '@/lib';
 
 import { type LoginFormType, loginSchema } from './types';
 
 export default function Login() {
-  const { replace, push, canGoBack, back } = useRouter();
-  const { from } = useLocalSearchParams();
-  const { ref, present, dismiss } = useModal();
-  const [checked, setChecked] = React.useState(false);
-  const { setKeepSignedIn } = useUtility();
-
-  const [selectedRole, setSelectedRole] = React.useState<UserType>(
-    UserType.Individual
-  );
-  const { mutate } = useLogin();
   const { signIn } = useAuth();
-  const { loading, setLoading, setError, setSuccess, setLoadingText } =
-    useLoader({ showLoadingPage: true });
+  const login = useLogin();
+
   const { handleSubmit, control } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
   });
 
-  function handleLogin(data: LoginFormType) {
-    setLoading(true);
-    setLoadingText('Logging in...');
-    mutate(
-      {
-        email: data.email.toLowerCase(),
-        password: data.password,
-      },
-      {
-        async onSuccess(data) {
-          signIn({ access: data?.user?.token, refresh: '' });
-          setKeepSignedIn(checked);
-          await queryClient.fetchQuery({
-            queryKey: [QueryKey.USER, QueryKey.CART],
-          });
-          //TODO: FETCH USER DATA AND STORE IT IN CONTEXT
-          setSuccess('Login successful');
-          replace(from === 'cart' ? '/(tabs)/cart' : `/`);
-        },
-        onError(error) {
-          setError(error?.response?.data);
-        },
-        onSettled() {
-          setLoading(false);
-          setLoadingText('loading');
-        },
-      }
-    );
-  }
-  return (
-    <Container.Page
-      showHeader
-      headerTitle="Log in"
-      backPress={() => {
-        if (canGoBack()) {
-          back();
-        } else {
-          replace('/');
+  const onSubmit: SubmitHandler<LoginFormType> = (data) => {
+    console.log('🚀 ~ Login ~ Form data submitted:', data);
+    login.mutate(data, {
+      onSuccess: (data) => {
+        if (data?.user?.token) {
+          signIn({ access: data.user.token, refresh: data.user.token });
+          setUser(data.user as any);
+          router.replace('/(main)');
         }
-      }}
-    >
-      <InputView>
-        <Container.Box containerClassName="px-0 mt-0">
-          <Text className="mt-5 w-4/5 text-[25px] font-bold">Welcome back</Text>
-          <Text className="mt-2 text-[16px] opacity-75">
-            Login to resume your shopping experience
-          </Text>
-          <ControlledCustomInput<LoginFormType>
-            placeholder="Email address"
-            containerClass="mt-[18px]"
-            keyboardType="email-address"
-            control={control}
-            name="email"
-          />
-          <ControlledCustomInput<LoginFormType>
-            placeholder="Password"
-            isPassword
-            containerClass="mb-2"
-            control={control}
-            name="password"
-          />
-          <View className="mb-4 self-end">
-            <Pressable onPress={() => push('/reset-password')} className="pb-2">
-              <Text className="color-primaryText">Forgot password?</Text>
-            </Pressable>
-          </View>
-          <CustomCheckbox
-            label={'Keep me signed in'}
-            description="By checking this box you won’t have to sign in as often on this device. For your security, we recommend only checking this box on personal devices."
-            checked={checked}
-            onChange={setChecked}
-            isChecked={checked}
-          />
-        </Container.Box>
-        <Container.Box containerClassName="absolute bottom-20 w-full self-center px-0">
-          <CustomButton
-            loading={loading}
-            label="Continue"
-            onPress={handleSubmit(handleLogin)}
-          />
-          <Pressable className="mt-2 flex-row self-center" onPress={present}>
-            <Text className="color-[#121212BF]">Don't have an account? </Text>
-            <Text className="color-primaryText">Sign up</Text>
-          </Pressable>
-        </Container.Box>
-        <Modal ref={ref} title="Are you an individual or a business owner?">
-          <View className="mt-2 px-5">
-            {userType.map((e, i) => (
-              <View key={i.toString()} className="py-5">
-                <Radio.Root
-                  checked={e.value === selectedRole}
-                  onChange={() => setSelectedRole(e.value as UserType)}
-                  accessibilityLabel="radio button"
-                  className="justify-between  pb-2"
-                >
-                  <Radio.Label text={e.name} className="text-[16px]" />
-                  <Radio.Icon checked={selectedRole === e.value} />
-                </Radio.Root>
-                {/* DIVIDER LINE BETWEEN RADIO OPTIONS */}
-                {i === 0 && <View className="top-4 h-px bg-[#1212121A]" />}
-              </View>
-            ))}
+      },
+      onError: (error: any) => {
+        Alert.alert(
+          'Login Failed',
+          error?.response?.data?.message || 'An error occurred during login'
+        );
+      },
+    });
+  };
+
+  return (
+    <Container.Page>
+      <AvoidSoftInputView>
+        <ScrollView
+          className="h-full px-5"
+          contentContainerClassName="flex-1 h-full"
+        >
+          <View className="flex-1 justify-center">
+            {/* Welcome Section */}
+            <View className="mb-8">
+              <Text className="text-center text-[28px] font-bold text-[#121212]">
+                Welcome Back
+              </Text>
+              <Text className="mt-2 text-center text-[16px] text-[#667085]">
+                Sign in to continue shopping for bulk food items
+              </Text>
+            </View>
+
+            {/* Referral Bonus Section */}
+            <View className="mb-6 rounded-[12px] border border-[#FED7AA] bg-[#FFF7ED] p-4">
+              <Text className="mb-2 text-center text-[16px] font-bold text-[#EA580C]">
+                🎉 Referral Bonus Available!
+              </Text>
+              <Text className="text-center text-[14px] text-[#9A3412]">
+                Invite friends and get 2 free deliveries for each friend who
+                places their first order
+              </Text>
+              <CustomButton
+                label="Learn More"
+                containerClassname="mt-3 bg-[#EA580C] rounded-full h-[32px]"
+                textClassName="text-[12px] text-white"
+                onPress={() =>
+                  router.push(
+                    '/(main)/(account-pages)/main-account-page?page=referrals'
+                  )
+                }
+              />
+            </View>
+
+            {/* Login Form */}
+            <View className="mb-6">
+              <ControlledInput
+                control={control}
+                name="email"
+                label="Email"
+                placeholder="Enter your email"
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+
+              <ControlledInput
+                control={control}
+                name="password"
+                label="Password"
+                placeholder="Enter your password"
+                secureTextEntry
+              />
+
+              <ControlledInput
+                control={control}
+                name="referralCode"
+                label="Referral Code (Optional)"
+                placeholder="Enter referral code if you have one"
+              />
+
+              <Text className="mt-1 px-1 text-[12px] text-[#667085]">
+                💡 Have a referral code? Enter it to unlock special rewards!
+              </Text>
+            </View>
+
+            {/* Login Button */}
             <CustomButton
-              label={'Continue'}
-              onPress={() => {
-                replace(`/sign-up?role=${selectedRole}`);
-                dismiss();
-              }}
+              label={login.isPending ? 'Signing In...' : 'Sign In'}
+              onPress={handleSubmit(onSubmit)}
+              disabled={login.isPending}
+              containerClassname="mb-4"
             />
+
+            {/* Secondary Actions */}
+            <View className="items-center space-y-3">
+              <CustomButton.Secondary
+                label="Forgot Password?"
+                onPress={() => router.push('/(auth)/reset-password')}
+                containerClassname="mb-2"
+              />
+
+              <View className="flex-row items-center">
+                <Text className="text-[14px] text-[#667085]">
+                  Don't have an account?
+                </Text>
+                <Text
+                  className="ml-1 text-[14px] font-medium text-[#0F3D30] underline"
+                  onPress={() => router.push('/(auth)/sign-up')}
+                >
+                  Sign Up
+                </Text>
+              </View>
+            </View>
           </View>
-        </Modal>
-      </InputView>
+        </ScrollView>
+      </AvoidSoftInputView>
     </Container.Page>
   );
 }

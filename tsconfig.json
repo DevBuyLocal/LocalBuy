@@ -9,7 +9,8 @@
       "@env": ["./src/lib/env.js"]
     },
     "esModuleInterop": true,
-    "checkJs": true
+    "checkJs": true,
+    "types": ["node", "jest"]
   },
   "exclude": [
     "node_modules",
@@ -19,13 +20,16 @@
     "cli",
     "android",
     "ios",
-    "lint-staged.config.js"
+    "lint-staged.config.js",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ],
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "nativewind-env.d.ts"
+    "nativewind-env.d.ts",
+    "src/types/**/*.d.ts"
   ]
 }

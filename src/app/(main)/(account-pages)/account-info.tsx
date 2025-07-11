@@ -185,7 +185,7 @@ const Edit = () => {
 
         <CustomInput
           placeholder="Full name"
-          value={details?.fullName}
+          value={details?.fullName ?? undefined}
           onChangeText={(e) => {
             setDetails({ ...details, fullName: e });
           }}
@@ -214,7 +214,7 @@ const Edit = () => {
               setLoading(true);
               mutateUpdate({
                 deliveryPhone: details?.phoneNumber as string,
-                fullName: details?.fullName,
+                fullName: details?.fullName ?? undefined,
               });
             }}
           />
@@ -260,6 +260,7 @@ const Password = () => {
       setLoading(false);
     },
   });
+
   function SendCode() {
     if (!user?.email) return;
     setLoading(true);
@@ -267,6 +268,7 @@ const Password = () => {
       email: user?.email,
     });
   }
+
   function UpdatePassword() {
     if (!user?.email) return;
     setLoading(true);
@@ -307,16 +309,22 @@ const Password = () => {
             setPass({ ...pass, confirmPassword: e });
           }}
         />
+
+        <Text className="mb-2 mt-4 text-[16px] color-[#030C0ABF]">
+          We'll send a verification code to your email to confirm this change.
+        </Text>
+
         <CountdownTimer
           countFrom={Env.APP_ENV === 'development' ? 5 : 60}
           onCountdownComplete={() => {}}
           resend={SendCode}
-          text1="Click to receive code"
-          text2="Send"
+          text1="Click to receive verification code"
+          text2="Send Code"
+          autoStart={false}
         />
 
         <CustomInput
-          placeholder="Code"
+          placeholder="Enter verification code"
           keyboardType="number-pad"
           maxLength={6}
           value={code}
@@ -325,8 +333,12 @@ const Password = () => {
 
         <View className="absolute bottom-[120px] w-full">
           <CustomButton
-            label="Update"
-            disabled={code.length < 6 || pass.password !== pass.confirmPassword}
+            label="Update Password"
+            disabled={
+              code.length < 6 ||
+              pass.password !== pass.confirmPassword ||
+              !pass.password
+            }
             onPress={UpdatePassword}
             loading={loading}
           />

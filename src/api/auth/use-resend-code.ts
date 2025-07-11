@@ -9,23 +9,15 @@ type Variables = {
 
 export interface TResendCodeResponse {
   message: string;
-  response: ResendCodeResponse;
+  success: boolean;
 }
 
-export interface ResendCodeResponse {
-  id: number;
-  email: string;
-  isVerified: boolean;
-  type: string;
-  code: string;
-  token: string;
-}
+// Mock response for testing - removed unused function
 
-export const useResendCode = createMutation<any, Variables, AxiosError>({
-  mutationFn: async (variables) =>
-    client({
-      url: '/api/auth/resend',
-      method: 'POST',
-      data: variables,
-    }).then((response) => response.data),
+export const useResendCode = createMutation<Response, Variables, AxiosError>({
+  mutationFn: async (variables) => {
+    return client
+      .post('auth/resend-code', variables)
+      .then((response) => response.data);
+  },
 });

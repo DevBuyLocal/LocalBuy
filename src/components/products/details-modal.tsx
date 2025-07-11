@@ -5,9 +5,9 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList } from 'react-native';
+import { Share } from 'react-native';
 import Accordion from 'react-native-collapsible/Accordion';
 import Lightbox from 'react-native-lightbox-v2';
-import Share from 'react-native-share';
 import { twMerge } from 'tailwind-merge';
 
 import { type TProduct } from '@/api';
@@ -22,7 +22,7 @@ import { useLoader } from '@/lib/hooks/general/use-loader';
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
 import { colors, Image, Pressable, Radio, Text, View, WIDTH } from '../ui';
-import ProductSuggestCarousel from './product-suggest-carousel';
+// import ProductSuggestCarousel from './product-suggest-carousel'; // Removed to break circular dependency
 import QuantitySelect from './quantity-select';
 
 // eslint-disable-next-line max-lines-per-function
@@ -260,12 +260,12 @@ export default function DetailsModal({
 
         <Pressable
           className="py-2 pl-5"
-          onPress={() =>
-            Share.open({
+          onPress={() => {
+            Share.share({
               message: `Buy ${item?.name} from buy-local`,
-              url: 'buylocal.app',
-            })
-          }
+              url: 'https://buylocal.app',
+            });
+          }}
         >
           <Ionicons name="share-social-outline" size={28} color="black" />
         </Pressable>
@@ -403,7 +403,7 @@ export default function DetailsModal({
           </View>
         </Container.Box>
         <Container.Box containerClassName="bg-[#F7F7F7]">
-          <ProductSuggestCarousel title={'Suggested Products'} />
+          {/* ProductSuggestCarousel removed to break circular dependency */}
         </Container.Box>
         <View className="mb-10" />
       </BottomSheetScrollView>

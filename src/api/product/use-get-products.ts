@@ -53,8 +53,9 @@ export const useGetProducts = (_variables: Variables) => {
         throw error;
       }
     },
-    getNextPageParam: (lastPage) => lastPage.pagination.currentPage + 1,
-    getPreviousPageParam: (lastPage) => lastPage.pagination.currentPage - 1,
+    getNextPageParam: (lastPage: any) => lastPage.pagination.currentPage + 1,
+    getPreviousPageParam: (lastPage: any) =>
+      lastPage.pagination.currentPage - 1,
     initialPageParam: 1,
   });
 };

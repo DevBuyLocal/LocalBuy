@@ -7,23 +7,23 @@ export interface TUser {
   id: number;
   isVerified: boolean;
   phoneNumber: any;
-  profile: Profile;
+  profile: Profile | null;
   type: UserType;
   updatedAt: string;
 }
 
 export interface Profile {
-  address: string;
+  address: string | null;
   createdAt: any;
   dob: any;
-  fullName: string;
-  howDidYouHear: string;
+  fullName: string | null;
+  howDidYouHear: string | null;
   id: any;
   updatedAt: any;
   userId: number;
-  businessName: null;
-  businessAddress: null;
-  cacNumber: null;
+  businessName: string | null;
+  businessAddress: string | null;
+  cacNumber: string | null;
   deliveryPhone: string | null;
   businessPhone: string | null;
 }
