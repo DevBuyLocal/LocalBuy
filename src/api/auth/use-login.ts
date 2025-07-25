@@ -10,7 +10,11 @@ type Variables = {
 
 export interface TLoginResponse {
   message: string;
-  user: LoginResponse;
+  success: boolean;
+  data: {
+    token: string;
+    user: LoginResponse;
+  };
 }
 
 export interface LoginResponse {
@@ -18,7 +22,10 @@ export interface LoginResponse {
   email: string;
   isVerified: boolean;
   type: string;
-  token: string;
+  addresses: any[];
+  defaultAddress: any;
+  profile: any;
+  role: any[];
 }
 
 export const useLogin = createMutation<TLoginResponse, Variables, AxiosError>({

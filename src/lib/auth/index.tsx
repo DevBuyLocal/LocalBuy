@@ -41,7 +41,7 @@ const _useAuth = create<AuthState>()(
         hydrate: () => {
           try {
             const userToken = getToken();
-            if (userToken !== null) {
+            if (userToken !== null && userToken.access) {
               get().signIn(userToken);
             } else {
               get().signOut();

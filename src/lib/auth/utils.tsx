@@ -7,6 +7,11 @@ export type TokenType = {
   refresh: string;
 };
 
-export const getToken = () => getItem<TokenType>(TOKEN);
+export const getToken = (): TokenType | null => {
+  const token = getItem<TokenType>(TOKEN);
+  return token;
+};
 export const removeToken = () => removeItem(TOKEN);
-export const setToken = (value: TokenType) => setItem<TokenType>(TOKEN, value);
+export const setToken = (value: TokenType) => {
+  setItem<TokenType>(TOKEN, value);
+};

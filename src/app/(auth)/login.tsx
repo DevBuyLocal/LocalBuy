@@ -49,7 +49,7 @@ export default function Login() {
       },
       {
         async onSuccess(data) {
-          signIn({ access: data?.user?.token, refresh: '' });
+          signIn({ access: data?.data?.token, refresh: '' });
           setKeepSignedIn(checked);
           await queryClient.fetchQuery({
             queryKey: [QueryKey.USER, QueryKey.CART],
