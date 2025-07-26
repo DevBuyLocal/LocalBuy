@@ -6,7 +6,8 @@ import { Alert, FlatList, Pressable } from 'react-native';
 import { useGetProducts } from '@/api';
 import { useGetCartItems } from '@/api/cart/use-get-cart-items';
 import { useRemoveCartItem } from '@/api/cart/use-remove-cart-item';
-import { useCheckoutOrder } from '@/api/order';
+import { useCheckoutOrder } from '@/api/order/use-checkout-order';
+import { useScheduleOrder } from '@/api/order/use-schedule-order';
 import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
@@ -27,12 +28,25 @@ export default function Cart() {
     useLoader({
       showLoadingPage: true,
     });
+  const [isClearingCart, setIsClearingCart] = React.useState(false);
+  const [currentAction, setCurrentAction] = React.useState<'checkout' | 'schedule' | null>(null);
 
   useGetProducts({})();
   const { data, error } = useGetCartItems();
   const cartItems = React.useMemo(
-    () => (token ? data?.items : products_in_cart) || [],
-    [token, data, products_in_cart]
+    () => {
+      const items = token ? data?.data?.items || [] : products_in_cart || [];
+      console.log('🛒 Cart Items Debug:', {
+        token: !!token,
+        backendItems: data?.data?.items?.length || 0,
+        localItems: products_in_cart?.length || 0,
+        finalItems: items.length,
+        sampleItem: items[0],
+        dataStructure: data ? Object.keys(data) : 'no data'
+      });
+      return items;
+    },
+    [token, data?.data?.items, products_in_cart]
   );
 
   const { data: savedProducts } = useGetSavedProducts()();
@@ -40,16 +54,54 @@ export default function Cart() {
   const sortCartItemsByCreatedAt = React.useMemo(
     () =>
       cartItems.sort(
-        (a, b) =>
+        (a: any, b: any) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       ),
     [cartItems]
   );
 
   const totalPrice = React.useMemo(
+    () => {
+      // Use backend calculated total if available, otherwise calculate locally
+      if (token && data?.data?.summary?.totalPrice) {
+        console.log('💰 Cart: Using backend totalPrice:', data.data.summary.totalPrice);
+        console.log('💰 Cart Backend Summary Debug:', {
+          backendTotal: data.data.summary.totalPrice,
+          backendItems: data?.data?.items?.length || 0,
+          backendItemsDetails: data?.data?.items?.map(item => ({
+            productName: item.productOption?.product?.name,
+            quantity: item.quantity,
+            price: item.productOption?.price,
+            total: item.productOption?.price * item.quantity
+          })) || []
+        });
+        return data.data.summary.totalPrice;
+      }
+      // Fallback to local calculation for offline cart
+      const localTotal = sortCartItemsByCreatedAt.reduce(
+        (sum: number, item: any) => sum + item?.productOption?.price * item?.quantity,
+        0
+      );
+      console.log('💰 Cart: Using local totalPrice:', localTotal, {
+        cartItems: sortCartItemsByCreatedAt.length,
+        token: !!token,
+        backendData: data?.data?.summary,
+        localItemsDetails: sortCartItemsByCreatedAt.map(item => ({
+          productName: item.productOption?.product?.name,
+          quantity: item.quantity,
+          price: item.productOption?.price,
+          total: item.productOption?.price * item.quantity
+        }))
+      });
+      return localTotal;
+    },
+    [token, data?.data?.summary?.totalPrice, sortCartItemsByCreatedAt]
+  );
+
+  const totalQuantity = React.useMemo(
     () =>
       sortCartItemsByCreatedAt.reduce(
-        (sum, item) => sum + item?.productOption?.price * item?.quantity,
+        (sum: number, item: any) => sum + item?.quantity,
         0
       ),
     [sortCartItemsByCreatedAt]
@@ -67,17 +119,39 @@ export default function Cart() {
     },
   });
 
-  const { mutate } = useCheckoutOrder({
+  const { mutate: createOrder } = useCheckoutOrder({
     onSuccess: (data) => {
-      const item = data?.order;
-      if (item) {
-        push(`/checkout?orderId=${item?.id}&price=${item?.totalPrice}`);
+      const orderId = data?.order?.id;
+      console.log('🛒 Cart to Checkout Debug:', {
+        orderId,
+        totalPrice,
+        totalPriceType: typeof totalPrice,
+        cartItems: sortCartItemsByCreatedAt.length,
+        fullResponse: data,
+        responseKeys: data ? Object.keys(data) : 'no data'
+      });
+      if (orderId) {
+        // Navigate based on the current action
+        if (currentAction === 'checkout') {
+          console.log('🚀 Navigating to checkout with:', { orderId, totalPrice });
+          push(`/checkout?orderId=${orderId}&price=${totalPrice}`);
+        } else if (currentAction === 'schedule') {
+          console.log('🚀 Navigating to schedule with:', { orderId, totalPrice });
+          push(`/schedule-order?orderId=${orderId}&price=${totalPrice}`);
+        }
       } else {
-        setError('No order information available.');
+        setError('Failed to create order');
       }
     },
     onError: (error) => {
-      setError(error?.response?.data);
+      console.log('🚨 Checkout Order Error:', {
+        error,
+        errorMessage: error?.message,
+        errorResponse: error?.response?.data,
+        errorStatus: error?.response?.status,
+        cartItemsAtError: sortCartItemsByCreatedAt.length
+      });
+      setError(error?.response?.data || error?.message || 'Failed to create order');
     },
     onSettled: () => {
       setLoading(false);
@@ -92,13 +166,39 @@ export default function Cart() {
     );
   }
 
-  function redirectToLoginAndBack() {
+  function redirectToCheckout() {
+    console.log('🛒 Checkout Clicked Debug:', {
+      hasToken: !!token?.access,
+      cartItemsLength: sortCartItemsByCreatedAt.length,
+      totalPrice,
+      isLoggedIn: !!token,
+      backendCartItems: data?.data?.items?.length || 0,
+      localCartItems: products_in_cart?.length || 0,
+      cartData: data?.data
+    });
+    
     if (!token?.access) {
       push('/login?from=cart');
     } else {
+      if (sortCartItemsByCreatedAt.length === 0) {
+        setError('No items in cart to checkout');
+        return;
+      }
+      setCurrentAction('checkout');
       setLoading(true);
-      setLoadingText('Checking out');
-      mutate();
+      setLoadingText('Creating order for checkout');
+      createOrder();
+    }
+  }
+
+  function redirectToScheduleOrder() {
+    if (!token?.access) {
+      push('/login?from=cart');
+    } else {
+      setCurrentAction('schedule');
+      setLoading(true);
+      setLoadingText('Creating order for scheduling');
+      createOrder();
     }
   }
   return (
@@ -110,7 +210,10 @@ export default function Cart() {
       rightHeaderIcon={
         sortCartItemsByCreatedAt.length ? (
           <Pressable
-            onPress={() =>
+            onPress={() => {
+              if (isClearingCart) return; // Prevent multiple alerts
+              
+              setIsClearingCart(true);
               Alert.alert(
                 'Empty cart',
                 'Are you sure you want to clear your cart?',
@@ -130,16 +233,22 @@ export default function Cart() {
                           })
                           .finally(() => {
                             setLoading(false);
+                            setIsClearingCart(false);
                           });
                       } else {
                         clearCart();
+                        setIsClearingCart(false);
                       }
                     },
                   },
-                  { text: 'Cancel', style: 'destructive' },
+                  { 
+                    text: 'Cancel', 
+                    style: 'destructive',
+                    onPress: () => setIsClearingCart(false),
+                  },
                 ]
-              )
-            }
+              );
+            }}
             className="absolute right-5 top-2 z-10 my-3 size-[40px] items-center justify-center rounded-full bg-[#F7F7F7]"
           >
             <Ionicons name="trash-outline" size={24} color="black" />
@@ -150,9 +259,13 @@ export default function Cart() {
       <Container.Box containerClassName="flex-1">
         <FlatList
           data={sortCartItemsByCreatedAt}
-          keyExtractor={(_, i) => i?.toString()}
-          renderItem={({ item }) => (
-            <CartItem item={item} savedProducts={savedProducts} />
+          keyExtractor={(item) => item?.id?.toString()}
+          renderItem={({ item }: { item: any }) => (
+            <CartItem 
+              key={item?.id} 
+              item={item} 
+              savedProducts={savedProducts} 
+            />
           )}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -186,17 +299,22 @@ export default function Cart() {
                 <View className="h-px w-full bg-[#F7F7F7]" />
                 <View className="my-3 flex-row justify-between">
                   <Text adjustsFontSizeToFit className="opacity-65">
-                    Number of product(s)
+                    Number of product{totalQuantity === 1 ? '' : 's'}
                   </Text>
                   <Text className="text-[16px] font-bold">
-                    {cartItems?.length}
+                    {totalQuantity}
                   </Text>
                 </View>
                 <CustomButton
                   label={'Checkout'}
                   containerClassname="mt-10"
-                  onPress={() => redirectToLoginAndBack()}
+                  onPress={() => redirectToCheckout()}
                   loading={loading}
+                />
+                <CustomButton.Secondary
+                  label={'Scheduled Order'}
+                  containerClassname="mt-3"
+                  onPress={() => redirectToScheduleOrder()}
                 />
                 <Container.Box containerClassName="px-0 pb-20">
                   <ProductCarousel title={'Frequently bought'} />

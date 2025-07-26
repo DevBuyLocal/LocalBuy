@@ -112,9 +112,10 @@ const AdsHeader = ({
                 className="max-w-[90%] text-[14px] font-medium text-white"
                 numberOfLines={1}
               >
-                {user?.type === 'individual'
-                  ? user?.profile?.address || 'Add delivery address'
-                  : user?.profile?.businessAddress || 'Add business address'}
+                {!user ? 'Loading...' : 
+                  user?.defaultAddress?.addressLine1 || 
+                  (user?.type === 'individual' ? user?.profile?.address : user?.profile?.businessAddress) || 
+                  (user?.type === 'individual' ? 'Add delivery address' : 'Add business address')}
               </Text>
               <FontAwesome5 name="chevron-down" size={10} color="white" />
             </Pressable>

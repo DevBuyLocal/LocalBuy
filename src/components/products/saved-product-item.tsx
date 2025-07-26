@@ -29,7 +29,7 @@ function SavedProductItem(props: SavedProductItemProps) {
   const [loadingId, setLoadingId] = React.useState<number | null>(null);
   const { addToCart, products_in_cart } = useCart(CartSelector);
   const { data } = useGetCartItems();
-  const cartItems = token ? data?.items || [] : products_in_cart || [];
+  const cartItems = token ? data?.data?.items || [] : products_in_cart || [];
   const { present, ref, dismiss } = useModal();
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -49,7 +49,7 @@ function SavedProductItem(props: SavedProductItemProps) {
 
     const matchedOption = options.find((option) => {
       const isInCart = cartItems.some(
-        (item) => item.productOption?.id === option?.id
+        (item: any) => item.productOption?.id === option?.id
       );
       return isInCart;
     });
@@ -97,7 +97,7 @@ function SavedProductItem(props: SavedProductItemProps) {
   );
 
   const foundItem = cartItems.find(
-    (item) => item?.productOption?.id === selectedOption?.id
+    (item: any) => item?.productOption?.id === selectedOption?.id
   );
 
   return (

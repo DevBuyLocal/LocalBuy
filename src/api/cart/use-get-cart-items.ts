@@ -11,11 +11,12 @@ type Response = TCartItemResPonse;
 
 export const useGetCartItems = createQuery<Response, void, AxiosError>({
   queryKey: [QueryKey.CART],
-  fetcher: () =>
-    client
+  fetcher: () => {
+    const token = accessToken()?.access;
+    return client
       .get('api/cart', {
         headers: {
-          Authorization: `Bearer ${accessToken()?.access}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
@@ -26,6 +27,7 @@ export const useGetCartItems = createQuery<Response, void, AxiosError>({
       })
       .catch((error: any) => {
         return error;
-      }),
+      });
+  },
   enabled: !!accessToken()?.access,
 });

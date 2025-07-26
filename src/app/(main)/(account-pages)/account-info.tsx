@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { AvoidSoftInputView } from 'react-native-avoid-softinput';
+import { ScrollView, Text, Pressable, View } from '@/components/ui';
 
 import { useGetUser, useUpdateUser } from '@/api';
 import { useResetPassword } from '@/api/auth/use-reset-password';
@@ -14,10 +15,10 @@ import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
-import { ScrollView, Text, View } from '@/components/ui';
 import { useAuth } from '@/lib';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { validateFullName, validatePhoneNumber } from '@/lib/utils';
 
 /* MAIN ACCOUNT INFORMATION COMPONENT - HANDLES USER PROFILE, PASSWORD, PAYMENT AND SHIPPING DETAILS */
 function AccountInfo() {
@@ -141,19 +142,32 @@ const Default = ({
 
 /* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
+  const { user } = useAuth();
+  const { data: userData, refetch } = useGetUser();
   const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
   });
-  const { data: user, refetch } = useGetUser();
-
   const [details, setDetails] = React.useState({
     fullName: user?.profile?.fullName,
     email: user?.email,
-    phoneNumber:
-      user?.type === 'individual'
-        ? user?.profile?.deliveryPhone
-        : user?.profile?.businessPhone || '',
+    phoneNumber: user?.profile?.deliveryPhone,
   });
+  const [fullNameError, setFullNameError] = React.useState<string | null>(null);
+  const [phoneNumberError, setPhoneNumberError] = React.useState<string | null>(null);
+  
+  // Handle full name changes with validation
+  const handleFullNameChange = (text: string) => {
+    setDetails({ ...details, fullName: text });
+    const error = validateFullName(text);
+    setFullNameError(error);
+  };
+
+  // Handle phone number changes with validation
+  const handlePhoneNumberChange = (text: string) => {
+    setDetails({ ...details, phoneNumber: text });
+    const error = validatePhoneNumber(text);
+    setPhoneNumberError(error);
+  };
 
   const { mutate: mutateUpdate } = useUpdateUser({
     onSuccess: async () => {
@@ -187,9 +201,14 @@ const Edit = () => {
           placeholder="Full name"
           value={details?.fullName}
           onChangeText={(e) => {
-            setDetails({ ...details, fullName: e });
+            handleFullNameChange(e);
           }}
         />
+        {fullNameError && (
+          <Text className="mt-1 text-[12px] text-red-500">
+            {fullNameError}
+          </Text>
+        )}
         <CustomInput
           placeholder="Email address"
           keyboardType="email-address"
@@ -203,13 +222,22 @@ const Edit = () => {
           maxLength={11}
           value={details?.phoneNumber as string}
           onChangeText={(e) => {
-            setDetails({ ...details, phoneNumber: e });
+            handlePhoneNumberChange(e);
           }}
         />
+        {phoneNumberError && (
+          <Text className="mt-1 text-[12px] text-red-500">
+            {phoneNumberError}
+          </Text>
+        )}
+        <Text className="mt-1 text-[12px] text-gray-500">
+          Enter your valid phone number (e.g., 08012345678)
+        </Text>
         <View className="absolute bottom-[120px] w-full">
           <CustomButton
             label="Update"
             loading={loading}
+            disabled={fullNameError !== null || phoneNumberError !== null}
             onPress={() => {
               setLoading(true);
               mutateUpdate({
@@ -233,10 +261,12 @@ const Password = () => {
   const { back } = useRouter();
   const [pass, setPass] = React.useState({ password: '', confirmPassword: '' });
   const [code, setCode] = React.useState('');
+  const [codeSent, setCodeSent] = React.useState(false);
 
   const { mutate } = useResetPassword({
     onSuccess: (data) => {
       setSuccess(data?.message);
+      setCodeSent(true);
     },
     onError: (error) => {
       setError(error?.response?.data);
@@ -251,6 +281,7 @@ const Password = () => {
       setSuccess(data?.message);
       setPass({ password: '', confirmPassword: '' });
       setCode('');
+      setCodeSent(false);
       back();
     },
     onError: (error) => {
@@ -307,13 +338,26 @@ const Password = () => {
             setPass({ ...pass, confirmPassword: e });
           }}
         />
-        <CountdownTimer
-          countFrom={Env.APP_ENV === 'development' ? 5 : 60}
-          onCountdownComplete={() => {}}
-          resend={SendCode}
-          text1="Click to receive code"
-          text2="Send"
-        />
+        
+        {codeSent ? (
+          <CountdownTimer
+            countFrom={60}
+            onCountdownComplete={() => {}}
+            resend={SendCode}
+            text1="Click to receive code"
+            text2="Resend"
+            initialText="Send"
+          />
+        ) : (
+          <Pressable onPress={SendCode} className="flex-row items-center">
+            <Text className="text-[14px] font-medium opacity-70">
+              Click to receive code{' '}
+            </Text>
+            <Text className="text-[14px] font-medium color-primaryText">
+              Send
+            </Text>
+          </Pressable>
+        )}
 
         <CustomInput
           placeholder="Code"

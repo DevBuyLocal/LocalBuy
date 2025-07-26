@@ -18,8 +18,8 @@ export const useAddCartItem = createMutation<
   Variables,
   AxiosError
 >({
-  mutationFn: async (variables) =>
-    client({
+  mutationFn: async (variables) => {
+    return client({
       url: 'api/cart',
       method: 'POST',
       data: variables,
@@ -35,5 +35,6 @@ export const useAddCartItem = createMutation<
         });
         return response.data;
       }
-    }),
+    });
+  },
 });

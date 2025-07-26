@@ -8,6 +8,7 @@ import { useGetProducts } from '@/api';
 import { useSearchProducts } from '@/api/product/use-search-products';
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
+import FilterModal from '@/components/products/filter-modal';
 import GridProducts from '@/components/products/grid-products';
 import ProductCarousel from '@/components/products/product-carousel';
 import {
@@ -15,6 +16,7 @@ import {
   colors,
   Pressable,
   Text,
+  useModal,
   View,
 } from '@/components/ui';
 import { useUtility, UtilitySelector } from '@/lib/utility';
@@ -25,6 +27,10 @@ function Search() {
   const [focused, setIsFocused] = React.useState<boolean>(false);
   const { addToRecent, recent_search, clearRecent } =
     useUtility(UtilitySelector);
+  
+  // Filter modal state
+  const { present: filterPresent, ref: filterRef, dismiss: filterDismiss } = useModal();
+  
   const { data, isFetching } = useGetProducts({
     limit: 8,
   })();
@@ -150,7 +156,10 @@ function Search() {
             <Text className="text-[18px] font-medium">
               {result.length} results
             </Text>
-            <Pressable className=" flex-row items-center justify-between gap-2">
+            <Pressable 
+              className=" flex-row items-center justify-between gap-2"
+              onPress={filterPresent}
+            >
               <Ionicons name="filter-sharp" size={20} color="#black" />
               <Text className="opacity-65">Filter</Text>
             </Pressable>
@@ -162,6 +171,7 @@ function Search() {
           ListFooterComponent={ListFooterComponent}
         />
       </Container.Box>
+      <FilterModal ref={filterRef} dismiss={filterDismiss} />
     </Container.Page>
   );
 }

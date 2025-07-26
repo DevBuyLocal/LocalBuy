@@ -44,52 +44,59 @@ const _useCart = create<CartState>()(
             note: '',
             ...payload,
           } as TCartItem;
-          get().calculateTotalPrice(
-            products_in_cart.length ? [...products_in_cart, newItem] : [newItem]
-          );
+          const updatedCart = [...products_in_cart, newItem];
+          get().calculateTotalPrice(updatedCart);
           set({
-            products_in_cart: [...products_in_cart, newItem],
-            total: products_in_cart.length + 1,
+            products_in_cart: updatedCart,
+            total: updatedCart.reduce((sum, item) => sum + item.quantity, 0),
           });
         },
         removeFromCart: (itemId: number) => {
           const { products_in_cart } = get();
-          get().calculateTotalPrice(products_in_cart);
+          const updatedCart = products_in_cart.filter(
+            (item: any) => item.id !== itemId
+          );
+          get().calculateTotalPrice(updatedCart);
           set({
-            products_in_cart: products_in_cart.filter(
-              (item: any) => item.id !== itemId
-            ),
-            total: products_in_cart.length - 1,
+            products_in_cart: updatedCart,
+            total: updatedCart.reduce((sum, item) => sum + item.quantity, 0),
           });
         },
         increaseQuantity: (itemId: number) => {
           const { products_in_cart } = get();
-          get().calculateTotalPrice(products_in_cart);
+          const updatedCart = products_in_cart.map((item: any) =>
+            item.id === itemId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+          get().calculateTotalPrice(updatedCart);
           set({
-            products_in_cart: products_in_cart.map((item: any) =>
-              item.id === itemId
-                ? { ...item, quantity: item.quantity + 1 }
-                : item
-            ),
+            products_in_cart: updatedCart,
+            total: updatedCart.reduce((sum, item) => sum + item.quantity, 0),
           });
         },
         decreaseQuantity: (itemId: number, removeOnZero = true) => {
           const { products_in_cart } = get();
-          get().calculateTotalPrice(products_in_cart);
-          const newProduct = products_in_cart.map((item: any) =>
+          const updatedCart = products_in_cart.map((item: any) =>
             item.id === itemId
               ? {
                   ...item,
                   quantity: removeOnZero
-                    ? item.quantity - 1
+                    ? Math.max(0, item.quantity - 1)
                     : Math.max(1, item.quantity - 1),
                 }
               : item
           );
+          
+          // Filter out items with quantity <= 0 if removeOnZero is true
+          const finalCart = removeOnZero 
+            ? updatedCart.filter((item: any) => item.quantity > 0)
+            : updatedCart;
+            
+          get().calculateTotalPrice(finalCart);
           set({
-            products_in_cart: newProduct.filter(
-              (item: any) => item.quantity > 0
-            ), // Remove items with quantity <= 0
+            products_in_cart: finalCart,
+            total: finalCart.reduce((sum, item) => sum + item.quantity, 0),
           });
         },
         addNote: (itemId: number, note: string) => {

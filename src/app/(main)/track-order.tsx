@@ -11,11 +11,55 @@ import { Text, View } from '@/components/ui';
 export default function TrackOrder() {
   const { orderId }: { orderId: string } = useLocalSearchParams();
 
-  const { data: trackOrderData } = useTrackOrder({ variables: { orderId } });
-  const { data: singleOrderData } = useGetSingleOrder({
+  const { data: singleOrderData, isLoading } = useGetSingleOrder({
     variables: { orderId },
   });
 
+  // Determine the current step based on order status
+  const getCurrentStep = () => {
+    const orderStatus = singleOrderData?.order?.status;
+    const isScheduled = singleOrderData?.order?.scheduledDate;
+    
+    // For scheduled orders, use 6 steps with "Awaiting Payment" as step 0
+    if (isScheduled) {
+      switch (orderStatus) {
+        case 'PENDING':
+          return 0; // Awaiting Payment
+        case 'PLACED':
+          return 1; // Order Placed
+        case 'PROCESSING':
+          return 2; // Order Processing
+        case 'READY_TO_SHIP':
+          return 3; // Ready to Ship
+        case 'OUT_FOR_DELIVERY':
+          return 4; // Out for delivery
+        case 'DELIVERED':
+          return 5; // Delivered
+        default:
+          return 0; // Default to Awaiting Payment for scheduled orders
+      }
+    }
+    
+    // For regular orders, use 5 steps
+    switch (orderStatus) {
+      case 'PENDING':
+        return 0; // Order Placed
+      case 'PROCESSING':
+        return 1; // Order Processing
+      case 'READY_TO_SHIP':
+        return 2; // Ready to Ship
+      case 'OUT_FOR_DELIVERY':
+        return 3; // Out for delivery
+      case 'DELIVERED':
+        return 4; // Delivered
+      default:
+        return 0; // Default to Order Placed
+    }
+  };
+
+  const currentStep = getCurrentStep();
+  const isScheduled = singleOrderData?.order?.scheduledDate;
+  
   const labels = [
     `Order Placed `,
     `Order Processing`,
@@ -23,6 +67,18 @@ export default function TrackOrder() {
     `Out for delivery`,
     `Delivered`,
   ];
+
+  const scheduledLabels = [
+    `Awaiting Payment`,
+    `Order Placed`,
+    `Order Processing`,
+    `Ready to Ship`,
+    `Out for delivery`,
+    `Delivered`,
+  ];
+  
+  const currentLabels = isScheduled ? scheduledLabels : labels;
+  const stepCount = isScheduled ? 6 : 5;
   const customStyles = {
     stepIndicatorSize: 40,
     currentStepIndicatorSize: 50,
@@ -73,65 +129,84 @@ export default function TrackOrder() {
         <Container.Box containerClassName="bg-white p-5 rounded-lg">
           <Text className="text-[16px] font-bold">Track order</Text>
           <View className="mt-2 h-px w-full bg-[#12121214]" />
-          <View className="h-[350px]">
-            <StepIndicator
-              // @ts-ignore
-              customStyles={customStyles}
-              currentPosition={1}
-              labels={labels}
-              stepCount={5}
-              direction="vertical"
-              renderStepIndicator={({ position, stepStatus }) => {
-                if (position === 0) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="shopping-outline"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                if (position === 1) {
-                  return (
-                    <SimpleLineIcons
-                      name="basket-loaded"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
+          
+          {isLoading ? (
+            <View className="h-[350px] items-center justify-center">
+              <Text className="text-[16px]">Loading order details...</Text>
+            </View>
+          ) : (
+            <>
+              {/* Debug info */}
+              <View className="h-[350px]">
+                <StepIndicator
+                  // @ts-ignore
+                  customStyles={customStyles}
+                  currentPosition={currentStep}
+                  labels={currentLabels}
+                  stepCount={stepCount}
+                  direction="vertical"
+                  renderStepIndicator={({ position, stepStatus }) => {
+                    if (position === 0) {
+                      return (
+                        <MaterialCommunityIcons
+                          name={isScheduled ? "clock-outline" : "shopping-outline"}
+                          size={24}
+                          color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                        />
+                      );
+                    }
+                    if (position === 1) {
+                      return (
+                        <SimpleLineIcons
+                          name="basket-loaded"
+                          size={24}
+                          color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                        />
+                      );
+                    }
 
-                if (position === 2) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="cart-check"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                if (position === 3) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="golf-cart"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                if (position === 4) {
-                  return (
-                    <MaterialCommunityIcons
-                      name="truck-delivery"
-                      size={24}
-                      color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
-                    />
-                  );
-                }
-                return <></>;
-              }}
-            />
-          </View>
+                    if (position === 2) {
+                      return (
+                        <MaterialCommunityIcons
+                          name="cart-check"
+                          size={24}
+                          color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                        />
+                      );
+                    }
+                    if (position === 3) {
+                      return (
+                        <MaterialCommunityIcons
+                          name="golf-cart"
+                          size={24}
+                          color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                        />
+                      );
+                    }
+                    if (position === 4) {
+                      return (
+                        <MaterialCommunityIcons
+                          name="truck-delivery"
+                          size={24}
+                          color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                        />
+                      );
+                    }
+                    if (position === 5) {
+                      return (
+                        <MaterialCommunityIcons
+                          name="check-circle"
+                          size={24}
+                          color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                        />
+                      );
+                    }
+                    return <></>;
+                  }}
+                />
+              </View>
+            </>
+          )}
         </Container.Box>
       </Container.Box>
     </Container.Page>

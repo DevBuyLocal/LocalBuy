@@ -27,8 +27,6 @@ function OrderItem({ item, onPress, isHistory }: Props) {
   // };
   const [imgSrc, setImgSrc] = React.useState(null);
 
-  const date = format(parseISO(item?.createdAt), 'dd - MMM yyyy • hh:mm a');
-
   return (
     // <Swipeable
     //   overshootLeft={false}
@@ -68,9 +66,12 @@ function OrderItem({ item, onPress, isHistory }: Props) {
         <View className="h-[75px] justify-between ">
           <View>
             <Text numberOfLines={2} className="w-[70%] font-medium">
-              Order:# {item?.id}
+              {item?.items?.length > 0 
+                ? item.items.length === 1 
+                  ? item.items[0].product.name
+                  : `${item.items[0].product.name} +${item.items.length - 1} more`
+                : 'No products'}
             </Text>
-            <Text className="text-[13px] font-normal opacity-60">{date}</Text>
           </View>
 
           <Text className="text-[12px]">

@@ -50,7 +50,7 @@ export default function DetailsModal({
     showLoadingPage: false,
   });
 
-  const cartItems = token ? data?.items || [] : products_in_cart || [];
+  const cartItems = token ? data?.data?.items || [] : products_in_cart || [];
 
   const onFlatListUpdate = React.useCallback(({ viewableItems }: any) => {
     if (viewableItems?.length > 0) {
@@ -80,7 +80,7 @@ export default function DetailsModal({
   );
 
   const foundItem = cartItems.find(
-    (item) => item?.productOption?.id === selectedOption?.id
+    (item: any) => item?.productOption?.id === selectedOption?.id
   );
   // console.log('🚀 ~ foundItem:', foundItem);
 

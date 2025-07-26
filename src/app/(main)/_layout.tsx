@@ -58,40 +58,78 @@ export default function MainLayout() {
   }, [hideSplash, status, token]);
   useEffect(() => {
     (async () => {
+      console.log('🛒 Cart Sync Debug:', {
+        productsInCartLength: products_in_cart.length,
+        hasToken: !!token,
+        backendItemsLength: data?.data?.items?.length || 0,
+        localItems: products_in_cart.map(item => item?.productOption?.id),
+        backendItems: data?.data?.items?.map((item: any) => item?.productOption?.id) || []
+      });
+      
+      // Only sync if there are local cart items that need to be synced
+      // This prevents clearing the cart when navigating back from checkout
       if (products_in_cart.length && token) {
+        console.log('🔄 Starting cart sync...');
         setLoading(true);
         setLoadingText('Syncing cart items...');
-        for (let item of products_in_cart) {
-          await syncCartItems({
-            productOptionId: item?.productOption?.id,
-            quantity: item?.quantity,
-          });
-          if (data?.items) {
-            await Promise.all(
-              data.items.map(async (cartItem) => {
-                if (cartItem.productOption?.id === item?.productOption?.id) {
-                  if (item.note) {
-                    await addNoteMutate({
-                      cartItemId: cartItem?.id,
-                      note: item.note,
-                    });
-                  }
-                }
-              })
-            );
+        
+        // Get existing backend cart items
+        const backendItemIds = data?.data?.items?.map((item: any) => item?.productOption?.id) || [];
+        
+        // Check if any local items need syncing
+        const itemsToSync = products_in_cart.filter(item => 
+          !backendItemIds.includes(item?.productOption?.id)
+        );
+        
+        if (itemsToSync.length > 0) {
+          console.log(`🔄 Syncing ${itemsToSync.length} new items...`);
+          
+          // Sync items that don't exist in backend cart
+          for (let item of itemsToSync) {
+            console.log('➕ Syncing new item:', item?.productOption?.id);
+            await syncCartItems({
+              productOptionId: item?.productOption?.id,
+              quantity: item?.quantity,
+            });
+            
+            // Add note if present
+            if (item.note) {
+              // Fetch updated cart to get the new item's ID
+              const updatedCart: any = await queryClient.fetchQuery({
+                queryKey: [QueryKey.CART],
+              });
+              const newCartItem = updatedCart?.data?.items?.find(
+                (cartItem: any) => cartItem.productOption?.id === item?.productOption?.id
+              );
+              if (newCartItem) {
+                await addNoteMutate({
+                  cartItemId: newCartItem?.id,
+                  note: item.note,
+                });
+              }
+            }
           }
+          
+          setSuccess('Cart items synced');
+          console.log('🗑️ Clearing local cart after sync...');
+          clearCart();
+          
+          // Refresh cart data
+          await queryClient.fetchQuery({
+            queryKey: [QueryKey.CART],
+          });
+        } else {
+          console.log('✅ All local items already exist in backend - no sync needed');
+          // Don't clear local cart if no items to sync - user might be returning from checkout
         }
-        setSuccess('Cart items synced');
-        clearCart();
-        queryClient.fetchQuery({
-          queryKey: [QueryKey.USER, QueryKey.CART],
-        });
+      } else {
+        console.log('⏭️ Skipping cart sync - no local items or not logged in');
       }
     })();
   }, [
     addNoteMutate,
     clearCart,
-    data?.items,
+    data?.data?.items,
     products_in_cart,
     setLoading,
     setLoadingText,
@@ -102,6 +140,12 @@ export default function MainLayout() {
   if (isFirstTime) {
     return <Redirect href="/onboarding" />;
   }
+  
+  // Redirect unverified users to login page
+  if (!token?.access) {
+    return <Redirect href="/login" />;
+  }
+  
   // if (status === 'signOut') {
   //   return <Redirect href="/login" />;
   // }

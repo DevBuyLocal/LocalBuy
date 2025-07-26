@@ -38,6 +38,11 @@ function CartItem(props: CartItemProps) {
   const [imgSrc, setImgSrc] = React.useState<string[] | null>(
     cart_item?.productOption?.image || []
   );
+  
+  // Update image source when cart item changes
+  React.useEffect(() => {
+    setImgSrc(cart_item?.productOption?.image || []);
+  }, [cart_item?.productOption?.image]);
   const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
@@ -45,6 +50,11 @@ function CartItem(props: CartItemProps) {
   const [note, setNote] = useState(cart_item?.note || '');
 
   const [quantity, setQuantity] = useState<number>(props?.item?.quantity);
+
+  // Sync quantity state with cart item
+  React.useEffect(() => {
+    setQuantity(props?.item?.quantity);
+  }, [props?.item?.quantity]);
 
   const itemIsSaved = props?.savedProducts?.savedProducts?.find(
     (item) => item?.productId === props?.item?.productOption?.productId

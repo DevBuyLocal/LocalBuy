@@ -39,7 +39,7 @@ export default function Scheduled() {
           data={filteredOrders}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <OrderItem item={item} handleDelete={() => {}} />
+            <OrderItem item={item} handleDelete={() => {}} isHistory={true} />
           )}
           ListFooterComponent={<View className="mb-60" />}
           ListEmptyComponent={
@@ -52,6 +52,20 @@ export default function Scheduled() {
             </View>
           }
         />
+
+        <View className="absolute bottom-4 w-full self-center">
+          <CustomButton
+            label="Checkout"
+            onPress={() => {
+              if (filteredOrders.length > 0) {
+                const firstOrder = filteredOrders[0];
+                push(`/checkout?orderId=${firstOrder.id}&price=${firstOrder.totalPrice}&scheduledDate=${firstOrder.scheduledDate}`);
+              } else {
+                push('/checkout');
+              }
+            }}
+          />
+        </View>
       </Container.Box>
     </Container.Page>
   );

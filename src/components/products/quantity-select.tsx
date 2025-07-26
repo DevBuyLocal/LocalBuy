@@ -33,16 +33,25 @@ function QuantitySelect(props: QuantitySelectProps) {
   const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
-  const cartItems = token ? data?.items || [] : products_in_cart || [];
+  
+  const cartItems = token ? data?.data?.items || [] : products_in_cart || [];
   const foundItem = cartItems.find((item) => item?.id === props?.itemId);
-  const [inQuantity, setInQuantity] = React.useState<number>(
-    foundItem?.quantity || 1
-  );
+  
+  // Get current quantity from props or found item
+  const currentQuantity = props.useWithoutApi 
+    ? (props.quantity || 1)
+    : (foundItem?.quantity || 1);
+  
+  const [localQuantity, setLocalQuantity] = React.useState<number>(currentQuantity);
+  
+  // Update local quantity when props or found item changes
   React.useEffect(() => {
-    if (foundItem && !token) {
-      setInQuantity(foundItem?.quantity);
-    }
-  }, [foundItem, token]);
+    const newQuantity = props.useWithoutApi 
+      ? (props.quantity || 1)
+      : (foundItem?.quantity || 1);
+    setLocalQuantity(newQuantity);
+  }, [props.quantity, foundItem?.quantity, props.useWithoutApi]);
+  
   const { mutate } = useUpdateCartItem({
     onSuccess: () => {
       setSuccess('Item updated');
@@ -56,45 +65,57 @@ function QuantitySelect(props: QuantitySelectProps) {
     },
   });
 
-  let updateQuantityDebounce = React.useMemo(
+  const updateQuantityDebounce = React.useMemo(
     () =>
       debounce((itemId: number, quantity: number) => {
-        // setLoading(true);
+        setLoading(true);
         mutate({ cartItemId: itemId, quantity });
-      }, 700),
-    [mutate]
+      }, 500),
+    [mutate, setLoading]
   );
 
   const handleDecrease = React.useCallback(() => {
-    // if (inQuantity <= 1) return;
-    if (Number(props?.moq) <= inQuantity) return;
-
+    const newQuantity = localQuantity - 1;
+    
+    // Prevent going below 1
+    if (newQuantity < 1) return;
+    
+    // Update local state immediately for responsive UI
+    setLocalQuantity(newQuantity);
+    
     if (token && props.cartItemId) {
-      setInQuantity((prev) => prev - 1);
-      updateQuantityDebounce(props.cartItemId, inQuantity - 1);
-      return;
+      // For logged-in users, update via API
+      updateQuantityDebounce(props.cartItemId, newQuantity);
+    } else if (props.useWithoutApi && props.setQuantity) {
+      // For non-API usage (like product details modal)
+      props.setQuantity(newQuantity);
+    } else {
+      // For offline cart
+      decreaseQuantity(props.itemId, props.removeOnZero);
     }
-    if (props.useWithoutApi && props.quantity) {
-      props.setQuantity?.(Math.max(1, props.quantity - 1));
-      return;
-    }
-    decreaseQuantity(props.itemId, props.removeOnZero);
-  }, [inQuantity, token, props, decreaseQuantity, updateQuantityDebounce]);
+  }, [localQuantity, token, props, decreaseQuantity, updateQuantityDebounce]);
 
   const handleIncrease = React.useCallback(() => {
-    if (Number(props?.moq) <= inQuantity) return;
+    const newQuantity = localQuantity + 1;
+    
+    // Update local state immediately for responsive UI
+    setLocalQuantity(newQuantity);
+    
     if (token && props.cartItemId) {
-      setInQuantity((prev) => prev + 1);
-      updateQuantityDebounce(props.cartItemId, inQuantity + 1);
-      return;
+      // For logged-in users, update via API
+      updateQuantityDebounce(props.cartItemId, newQuantity);
+    } else if (props.useWithoutApi && props.setQuantity) {
+      // For non-API usage (like product details modal)
+      props.setQuantity(newQuantity);
+    } else {
+      // For offline cart
+      increaseQuantity(props.itemId);
     }
-    if (props.useWithoutApi && props.selectedOption && props.quantity) {
-      if (props?.selectedOption?.moq <= props.quantity) return;
-      props.setQuantity?.((prev) => prev + 1);
-      return;
-    }
-    increaseQuantity(props.itemId);
-  }, [props, inQuantity, token, increaseQuantity, updateQuantityDebounce]);
+  }, [localQuantity, token, props, increaseQuantity, updateQuantityDebounce]);
+
+  // Determine if buttons should be disabled
+  const isDecreaseDisabled = localQuantity <= 1;
+  const isIncreaseDisabled = false; // Never disable increase button
 
   return (
     <View
@@ -104,19 +125,34 @@ function QuantitySelect(props: QuantitySelectProps) {
       )}
       {...props}
     >
-      <Pressable onPress={handleDecrease} hitSlop={10} className="pr-10">
-        <Text className="text-[20px] font-bold">-</Text>
+      <Pressable 
+        onPress={handleDecrease} 
+        hitSlop={10} 
+        className={`pr-10 ${isDecreaseDisabled ? 'opacity-50' : ''}`}
+        disabled={isDecreaseDisabled}
+      >
+        <Text className={`text-[20px] font-bold ${isDecreaseDisabled ? 'text-gray-400' : ''}`}>
+          -
+        </Text>
       </Pressable>
+      
       {loading ? (
         <ActivityIndicator className="size-sm" />
       ) : (
         <Text className="text-[20px] font-medium text-black">
-          {props.useWithoutApi ? props.quantity : inQuantity}
+          {localQuantity}
         </Text>
       )}
 
-      <Pressable onPress={handleIncrease} hitSlop={10} className="pl-10">
-        <Text className="text-[20px] font-bold">+</Text>
+      <Pressable 
+        onPress={handleIncrease} 
+        hitSlop={10} 
+        className={`pl-10 ${isIncreaseDisabled ? 'opacity-50' : ''}`}
+        disabled={isIncreaseDisabled}
+      >
+        <Text className={`text-[20px] font-bold ${isIncreaseDisabled ? 'text-gray-400' : ''}`}>
+          +
+        </Text>
       </Pressable>
     </View>
   );

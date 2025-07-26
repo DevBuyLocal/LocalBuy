@@ -8,7 +8,7 @@ import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import InputView from '@/components/general/input-view';
-import { Text, View } from '@/components/ui';
+import { Text, View, Pressable } from '@/components/ui';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 import { shortenAddress } from '@/lib/shorten-address';
@@ -16,6 +16,7 @@ import { shortenAddress } from '@/lib/shorten-address';
 function Verify() {
   const { email } = useLocalSearchParams();
   const [code, setCode] = React.useState<string>('');
+  const [codeResent, setCodeResent] = React.useState(false);
   const { replace } = useRouter();
   const { mutate } = useVerify();
   const { mutate: ResendCode } = useResendCode();
@@ -47,6 +48,7 @@ function Verify() {
   };
 
   function Resend() {
+    setCodeResent(true);
     ResendCode(
       {
         email: decodeURIComponent(email as string),
@@ -73,7 +75,7 @@ function Verify() {
           Verify your email address
         </Text>
         <Text className="mb-3 mt-2 w-4/5 text-[14px] opacity-75">
-          We’ve sent a verification code to the email {shortenAddress(email)}.
+          We've sent a verification code to the email {shortenAddress(email)}.
           Please enter the code below to verify.
         </Text>
         <CustomInput
@@ -84,11 +86,27 @@ function Verify() {
           value={code}
           onChangeText={setCode}
         />
-        <CountdownTimer
-          countFrom={Env.APP_ENV === 'development' ? 5 : 60}
-          onCountdownComplete={() => {}}
-          resend={Resend}
-        />
+        
+        {codeResent ? (
+          <CountdownTimer
+            countFrom={60}
+            onCountdownComplete={() => {}}
+            resend={Resend}
+            text1="Not getting code?"
+            text2="Resend"
+            initialText="Resend"
+          />
+        ) : (
+          <Pressable onPress={Resend} className="flex-row items-center">
+            <Text className="text-[14px] font-medium opacity-70">
+              Not getting code?{' '}
+            </Text>
+            <Text className="text-[14px] font-medium color-primaryText">
+              Resend
+            </Text>
+          </Pressable>
+        )}
+        
         <View className="absolute bottom-[120px] w-full">
           <CustomButton
             label="Continue"

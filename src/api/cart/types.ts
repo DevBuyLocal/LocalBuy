@@ -1,9 +1,24 @@
 export interface TCartItemResPonse {
-  id: number;
-  userId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  items: TCartItem[];
+  data: {
+    id: number;
+    userId: number;
+    createdAt: Date;
+    updatedAt: Date;
+    items: TCartItem[];
+    summary: {
+      bulkItemsCount: number;
+      formatted: any;
+      internal: any;
+      itemCount: number;
+      itemsWithBulkDiscount: number;
+      overallSavingsPercentage: number;
+      totalPrice: number;
+      totalRetailPrice: number;
+      totalSavings: number;
+    };
+  };
+  message: string;
+  success: boolean;
 }
 
 export interface TCartItem {

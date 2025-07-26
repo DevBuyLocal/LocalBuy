@@ -12,8 +12,8 @@ type Variables = Partial<TUser & TPutUser>;
 type Response = TUser;
 
 export const useUpdateUser = createMutation<Response, Variables, AxiosError>({
-  mutationFn: async (variables) =>
-    client({
+  mutationFn: async (variables) => {
+    return client({
       url: 'api/auth/update-profile',
       method: 'PUT',
       data: variables,
@@ -38,5 +38,6 @@ export const useUpdateUser = createMutation<Response, Variables, AxiosError>({
       .catch((err) => {
         console.log('🚀 ~ file: use-update-user.ts:16 ~ err:', err);
         throw err;
-      }),
+      });
+  },
 });

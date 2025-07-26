@@ -10,10 +10,27 @@ export interface TUser {
   profile: Profile;
   type: UserType;
   updatedAt: string;
+  defaultAddress?: {
+    addressLine1: string;
+    addressLine2: string | null;
+    addressType: string;
+    city: string;
+    country: string;
+    createdAt: string;
+    id: number;
+    isActive: boolean;
+    isDefault: boolean;
+    phoneNumber: string | null;
+    postalCode: string;
+    stateProvince: string;
+    updatedAt: string;
+    userId: number;
+  };
 }
 
 export interface Profile {
   address: string;
+  addressLine2?: string;
   createdAt: any;
   dob: any;
   fullName: string;

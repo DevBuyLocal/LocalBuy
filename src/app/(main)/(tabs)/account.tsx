@@ -20,7 +20,8 @@ import { signOut } from '@/lib';
 const accountItems = (
   push: (href: Href, options?: NavigationOptions) => void,
   colorScheme?: 'dark' | 'light',
-  indicator?: number
+  indicator?: number,
+  handleLogout?: () => void
 ) => [
   {
     label: 'Account Information',
@@ -32,6 +33,17 @@ const accountItems = (
       />
     ),
     onPress: () => push('/main-account-page?page=account-information'),
+  },
+  {
+    label: 'Complete Profile',
+    icon: (
+      <MaterialIcons
+        name="person-add"
+        size={24}
+        color={colorScheme === 'dark' ? '#fff' : 'black'}
+      />
+    ),
+    onPress: () => push('/complete-profile'),
   },
   {
     label: 'Manage Order',
@@ -117,27 +129,14 @@ const accountItems = (
         color={colorScheme === 'dark' ? '#fff' : 'black'}
       />
     ),
-    onPress: () => {
-      Alert.alert('Logout', 'Are you sure you want to logout?', [
-        {
-          text: 'Cancel',
-          style: 'destructive',
-        },
-        {
-          text: 'Logout',
-          onPress: () => {
-            signOut();
-            push('/');
-          },
-        },
-      ]);
-    },
+    onPress: handleLogout || (() => {}),
   },
 ];
 
 export default function Account() {
   const { push } = useRouter();
   const { colorScheme } = useColorScheme();
+  const [isLogoutConfirming, setIsLogoutConfirming] = React.useState(false);
 
   const { data: orderData } = useGetAllOrders();
   const orders = React.useMemo(
@@ -145,7 +144,28 @@ export default function Account() {
     [orderData]
   );
 
-  const accountI = accountItems(push, colorScheme, orders.length || 0);
+  const handleLogout = React.useCallback(() => {
+    if (isLogoutConfirming) return; // Prevent multiple alerts
+    
+    setIsLogoutConfirming(true);
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      {
+        text: 'Cancel',
+        style: 'destructive',
+        onPress: () => setIsLogoutConfirming(false),
+      },
+      {
+        text: 'Logout',
+        onPress: () => {
+          signOut();
+          push('/login');
+          setIsLogoutConfirming(false);
+        },
+      },
+    ]);
+  }, [isLogoutConfirming, push]);
+
+  const accountI = accountItems(push, colorScheme, orders.length || 0, handleLogout);
 
   return (
     <Container.Page headerTitle="Account" showHeader hideBackButton>

@@ -21,7 +21,7 @@ export const useScheduleOrder = createMutation<
   mutationFn: async ({ orderId, scheduledDate }) =>
     client({
       url: `api/orders/${orderId}/schedule`,
-      method: 'PATCH',
+      method: 'POST',
       data: { scheduledDate },
       headers: {
         'Content-Type': 'application/json',

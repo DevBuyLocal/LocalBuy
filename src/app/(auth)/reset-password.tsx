@@ -7,7 +7,7 @@ import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
-import { Text } from '@/components/ui';
+import { Text, Pressable } from '@/components/ui';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
@@ -93,15 +93,28 @@ export default function ResetPassword() {
           value={email}
           onChangeText={setEmail}
         />
-        <CountdownTimer
-          countFrom={Env.APP_ENV === 'development' ? 60 : 60}
-          onCountdownComplete={() => {}}
-          resend={SendCode}
-          text1="Click to receive code"
-          text2="Send"
-          disabled={!email || !emailRegex.test(email)}
-          invalidMsg="Please provide a valid email"
-        />
+        
+        {codeSent ? (
+          <CountdownTimer
+            countFrom={60}
+            onCountdownComplete={() => {}}
+            resend={SendCode}
+            text1="Click to receive code"
+            text2="Resend"
+            initialText="Send"
+            disabled={!email || !emailRegex.test(email)}
+            invalidMsg="Please provide a valid email"
+          />
+        ) : (
+          <Pressable onPress={SendCode} className="flex-row items-center">
+            <Text className="text-[14px] font-medium opacity-70">
+              Click to receive code{' '}
+            </Text>
+            <Text className="text-[14px] font-medium color-primaryText">
+              Send
+            </Text>
+          </Pressable>
+        )}
 
         {codeSent && (
           <>

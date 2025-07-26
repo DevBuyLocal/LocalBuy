@@ -11,6 +11,7 @@ interface CountdownProps {
   resend: () => void;
   text1?: string;
   text2?: string;
+  initialText?: string;
   disabled?: boolean;
   invalidMsg?: string;
 }
@@ -21,6 +22,7 @@ const CountdownTimer: FC<CountdownProps> = ({
   resend,
   text1,
   text2,
+  initialText,
   disabled,
   invalidMsg,
 }) => {
@@ -73,7 +75,7 @@ const CountdownTimer: FC<CountdownProps> = ({
         </Text>
       ) : (
         <Text className="text-[14px] font-medium color-primaryText">
-          {text2 || 'Resend'}
+          {countdown === 0 ? (text2 || 'Resend') : (initialText || 'Send')}
         </Text>
       )}
     </Pressable>

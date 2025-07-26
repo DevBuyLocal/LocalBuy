@@ -28,7 +28,7 @@ function ProductItem(props: ProductItemProps) {
 
   const { addToCart, products_in_cart } = useCart(CartSelector);
   const { data } = useGetCartItems();
-  const cartItems = token ? data?.items || [] : products_in_cart || [];
+  const cartItems = token ? data?.data?.items || [] : products_in_cart || [];
   const { present, ref, dismiss } = useModal();
   // const isInCart = products_in_cart?.find(
   //   (item: any) => item?.id === props?.item?.id
@@ -51,7 +51,7 @@ function ProductItem(props: ProductItemProps) {
 
     const matchedOption = options.find((option) => {
       const isInCart = cartItems.some(
-        (item) => item.productOption?.id === option?.id
+        (item: any) => item.productOption?.id === option?.id
       );
       // if (isInCart) {
       //   console.log(`Variant in cart: ${option?.id}`);
@@ -120,7 +120,7 @@ function ProductItem(props: ProductItemProps) {
   );
 
   const foundItem = cartItems.find(
-    (item) => item?.productOption?.id === selectedOption?.id
+    (item: any) => item?.productOption?.id === selectedOption?.id
   );
 
   // console.log('🚀 ~ ProductItem ~ fem:', foundItem);

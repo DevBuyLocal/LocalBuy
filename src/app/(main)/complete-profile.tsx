@@ -14,6 +14,7 @@ import InputView from '@/components/general/input-view';
 import { Image, Pressable, ScrollView, Text } from '@/components/ui';
 import { UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { validateFullName, validatePhoneNumber, validateBusinessAddress, validateCACNumber } from '@/lib/utils';
 
 // eslint-disable-next-line max-lines-per-function
 function CompleteProfile() {
@@ -30,10 +31,12 @@ function CompleteProfile() {
     showLoadingPage: false,
   });
   const [page, setPage] = React.useState<number>(0);
+  const [fullName, setFullName] = React.useState(user?.profile?.fullName || '');
+  const [fullNameError, setFullNameError] = React.useState<string | null>(null);
   const [phone, setPhone] = React.useState<string>(
     user?.profile?.deliveryPhone || ''
   );
-  const [fullName, setFullName] = React.useState(user?.profile?.fullName || '');
+  const [phoneError, setPhoneError] = React.useState<string | null>(null);
   const [howDid, setHowDid] = React.useState(
     user?.profile?.howDidYouHear || ''
   );
@@ -47,8 +50,39 @@ function CompleteProfile() {
   const [cacNumber, setCacNumber] = React.useState(
     user?.profile?.cacNumber || ''
   );
+  const [businessAddressError, setBusinessAddressError] = React.useState<string | null>(null);
+  const [cacNumberError, setCacNumberError] = React.useState<string | null>(null);
 
   const [selectedPref, setSelectedPref] = React.useState<string[]>([]);
+  
+  // Handle full name changes with validation
+  const handleFullNameChange = (text: string) => {
+    setFullName(text);
+    const error = validateFullName(text);
+    setFullNameError(error);
+  };
+  
+  // Handle phone number changes with validation
+  const handlePhoneChange = (text: string) => {
+    setPhone(text);
+    const error = validatePhoneNumber(text);
+    setPhoneError(error);
+  };
+  
+  // Handle business address changes with validation
+  const handleBusinessAddressChange = (text: string) => {
+    setBusinessAddress(text);
+    const error = validateBusinessAddress(text);
+    setBusinessAddressError(error);
+  };
+  
+  // Handle CAC number changes with validation
+  const handleCACNumberChange = (text: string) => {
+    setCacNumber(text);
+    const error = validateCACNumber(text);
+    setCacNumberError(error);
+  };
+
   const { mutate: mutateUpdate } = useUpdateUser({
     onSuccess: async () => {
       setPage(page + 1);
@@ -93,11 +127,16 @@ function CompleteProfile() {
               keyboardType="number-pad"
               maxLength={11}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={handlePhoneChange}
             />
+            {phoneError && (
+              <Text className="mt-1 text-[12px] text-red-500">
+                {phoneError}
+              </Text>
+            )}
             <View className="absolute bottom-[120px] w-full">
               <CustomButton
-                disabled={!phone}
+                disabled={!phone || phoneError !== null}
                 label="Continue"
                 loading={loading}
                 onPress={() => {
@@ -135,15 +174,28 @@ function CompleteProfile() {
             <CustomInput
               placeholder="Full name"
               value={fullName}
-              onChangeText={setFullName}
+              onChangeText={handleFullNameChange}
             />
+            {fullNameError && (
+              <Text className="mt-1 text-[12px] text-red-500">
+                {fullNameError}
+              </Text>
+            )}
             <CustomInput
               placeholder="eg. 08012121212"
               keyboardType="number-pad"
               maxLength={11}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={handlePhoneChange}
             />
+            {phoneError && (
+              <Text className="mt-1 text-[12px] text-red-500">
+                {phoneError}
+              </Text>
+            )}
+            <Text className="mt-1 text-[12px] text-gray-500">
+              Enter your valid phone number (e.g., 08012345678)
+            </Text>
             <CustomInput
               placeholder="How did you hear about us (eg.social media)"
               value={howDid}
@@ -152,7 +204,7 @@ function CompleteProfile() {
             <View className="absolute bottom-[120px] w-full">
               <CustomButton
                 label="Continue"
-                disabled={!fullName || !phone}
+                disabled={!fullName || !phone || fullNameError !== null || phoneError !== null}
                 loading={loading}
                 onPress={() => {
                   if (
@@ -182,8 +234,13 @@ function CompleteProfile() {
             <CustomInput
               placeholder="Full name"
               value={fullName}
-              onChangeText={setFullName}
+              onChangeText={handleFullNameChange}
             />
+            {fullNameError && (
+              <Text className="mt-1 text-[12px] text-red-500">
+                {fullNameError}
+              </Text>
+            )}
             <CustomInput
               placeholder="Business name"
               value={businessName}
@@ -194,18 +251,36 @@ function CompleteProfile() {
               keyboardType="number-pad"
               maxLength={11}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={handlePhoneChange}
             />
+            {phoneError && (
+              <Text className="mt-1 text-[12px] text-red-500">
+                {phoneError}
+              </Text>
+            )}
+            <Text className="mt-1 text-[12px] text-gray-500">
+              Enter your valid business phone number (e.g., 08012345678)
+            </Text>
             <CustomInput
-              placeholder="Business address"
+              placeholder="Business address (optional)"
               value={businessAddress}
-              onChangeText={setBusinessAddress}
+              onChangeText={handleBusinessAddressChange}
             />
+            {businessAddressError && (
+              <Text className="mt-1 text-[12px] text-red-500">
+                {businessAddressError}
+              </Text>
+            )}
             <CustomInput
               placeholder="CAC number (optional)"
               value={cacNumber}
-              onChangeText={setCacNumber}
+              onChangeText={handleCACNumberChange}
             />
+            {cacNumberError && (
+              <Text className="mt-1 text-[12px] text-red-500">
+                {cacNumberError}
+              </Text>
+            )}
             <CustomInput
               placeholder="How did you hear about us"
               value={howDid}
@@ -215,7 +290,7 @@ function CompleteProfile() {
               <CustomButton
                 label="Continue"
                 disabled={
-                  !fullName || !businessName || !phone || !businessAddress
+                  !fullName || !businessName || !phone || fullNameError !== null || phoneError !== null || businessAddressError !== null || cacNumberError !== null
                 }
                 loading={loading}
                 onPress={() => {

@@ -28,7 +28,9 @@ function Header(props: HeaderProps) {
 
   const { data } = useGetCartItems();
 
-  const noInCart = token ? data?.items?.length : total;
+  const noInCart = token 
+    ? data?.data?.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0
+    : total;
 
   return (
     <View

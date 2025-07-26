@@ -94,30 +94,30 @@ export const Modal = React.forwardRef(
     //   },
     //   [onChange]
     // );
-    const modal = useModal();
     const { colorScheme } = useColorScheme();
 
     const snapPoints = React.useMemo(() => _snapPoints, [_snapPoints]);
 
-    React.useImperativeHandle(
-      ref,
-      () => (modal.ref.current as BottomSheetModal) || null
-    );
+    // Create a local ref for the modal
+    const modalRef = React.useRef<BottomSheetModal>(null);
+
+    // Use the passed ref or the local ref
+    const finalRef = (ref as React.RefObject<BottomSheetModal>) || modalRef;
 
     const renderHandleComponent = React.useCallback(
       () => (
         <>
           {padTheTop && <View className="mb-8 mt-2" />}
-          <ModalHeader title={title} dismiss={modal.dismiss} />
+          <ModalHeader title={title} dismiss={() => finalRef.current?.dismiss()} />
         </>
       ),
-      [title, modal.dismiss, padTheTop]
+      [title, finalRef, padTheTop]
     );
 
     return (
       <BottomSheetModal
         {...detachedProps}
-        ref={modal.ref}
+        ref={finalRef}
         index={0}
         // onChange={handleChange}
         snapPoints={snapPoints}
