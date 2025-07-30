@@ -18,6 +18,7 @@ import { useSaveProduct } from '@/api/product/use-save-product';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { calculateBulkPricing, formatBulkSavings, formatBulkSavingsPercentage } from '@/lib/utils';
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
@@ -326,9 +327,64 @@ export default function DetailsModal({
           <Text className="my-3 text-[16px] font-[200] opacity-75">
             {item?.name}
           </Text>
-          <Text className="mb-3 text-[24px] font-medium">
-            N{selectedOption?.price?.toLocaleString()}
+          
+                      {/* Bulk Pricing Display */}
+            {(() => {
+              const bulkInfo = calculateBulkPricing(
+                quantity,
+                selectedOption?.price || 0,
+                selectedOption?.bulkPrice,
+                selectedOption?.bulkMoq
+              );
+              
+              // Debug logging for bulk pricing
+              console.log('🔍 Bulk Pricing Debug:', {
+                productName: item?.name,
+                quantity,
+                regularPrice: selectedOption?.price,
+                bulkPrice: selectedOption?.bulkPrice,
+                bulkMoq: selectedOption?.bulkMoq,
+                currentPrice: bulkInfo.currentPrice,
+                isBulkActive: bulkInfo.isBulkActive,
+                savings: bulkInfo.savings
+              });
+              
+              return (
+              <View className="mb-3">
+                {/* Price Display */}
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-[24px] font-medium">
+                    N{bulkInfo.currentPrice?.toLocaleString()}
+                  </Text>
+                  {bulkInfo.isBulkActive && (
+                    <Text className="text-[16px] font-medium text-gray-500 line-through">
+                      N{bulkInfo.originalPrice?.toLocaleString()}
           </Text>
+                  )}
+                </View>
+                
+                {/* Bulk Pricing Info */}
+                {selectedOption?.bulkPrice && selectedOption?.bulkMoq && (
+                  <View className="mt-2">
+                    {!bulkInfo.isBulkActive ? (
+                      <Text className="text-[14px] text-orange-600 font-medium">
+                        Buy {selectedOption.bulkMoq} or more to unlock distributor price at N{selectedOption.bulkPrice?.toLocaleString()} each
+                      </Text>
+                    ) : (
+                      <View>
+                        <Text className="text-[14px] text-green-600 font-semibold">
+                          Bulk discount applied: You saved {formatBulkSavings(bulkInfo.savings)} per unit
+                        </Text>
+                        <Text className="text-[12px] text-green-600">
+                          ({formatBulkSavingsPercentage(bulkInfo.savingsPercentage)} off)
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+            );
+          })()}
 
           <Accordion
             sections={SECTIONS}

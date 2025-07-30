@@ -60,17 +60,12 @@ export default function Home() {
   const categories = data?.data || [];
 
   const { present, ref, dismiss } = useModal();
+  const { present: presentLocation, ref: locationRef, dismiss: dismissLocation } = useModal();
   const { setSuccess } = useLoader({
     showLoadingPage: false,
   });
-  const [showLocationModal, setShowLocationModal] = React.useState(false);
 
-  const handleAddressSaved = (address: string) => {
-    console.log('📍 Address saved from homepage:', address);
-    setShowLocationModal(false);
-    // Refetch user data to update the address display
-    refetch();
-  };
+  // No need for handleAddressSaved anymore - the modal handles it internally
 
   const phoneNumberAvailable = Boolean(user?.profile?.deliveryPhone);
   const detailsProvided = () => {
@@ -219,7 +214,10 @@ export default function Home() {
       >
                     <AdsHeader
               scroll={scrollOffset}
-              locationPresent={() => setShowLocationModal(true)}
+              locationPresent={() => {
+                console.log('📍 Location button pressed');
+                presentLocation();
+              }}
               notifications={notifications}
               user={user}
             />
@@ -340,12 +338,14 @@ export default function Home() {
           )}
         </Container.Page>
         <FilterModal ref={ref} dismiss={dismiss} />
-        <LocationModal
-          visible={showLocationModal}
-          onDismiss={() => setShowLocationModal(false)}
-          onAddressSaved={handleAddressSaved}
-        />
       </Animated.ScrollView>
+      
+      {/* Location Modal - Outside ScrollView to prevent rendering issues */}
+      <LocationModal
+        ref={locationRef}
+        dismiss={dismissLocation}
+        refetch={refetch}
+      />
     </View>
   );
 }

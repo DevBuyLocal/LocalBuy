@@ -1,244 +1,147 @@
-import React from 'react';
-import { Pressable, Text, TextInput, View, Modal, ScrollView } from 'react-native';
+import React, { useEffect, useCallback, useMemo } from 'react';
+import { BackHandler, TextInput } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
-import { useGetUser } from '@/api';
-import { useUpdateUser } from '@/api/user/use-update-user';
-import CustomButton from '@/components/general/custom-button';
-import { colors, SafeAreaView } from '@/components/ui';
-import { validateBusinessAddress } from '@/lib/utils';
+import { useUpdateUser } from '@/api';
+import { useLoader } from '@/lib/hooks/general/use-loader';
 
-interface LocationModalProps {
+import Container from '../general/container';
+import CustomButton from '../general/custom-button';
+import { IS_IOS, Modal, Text, View } from '../ui';
+
+type Props = {
+  dismiss: () => void;
+  refetch: any;
   onAddressSaved?: (address: string) => void;
-  mode?: 'add' | 'select' | 'edit';
   initialAddress?: string;
-  visible?: boolean;
   onDismiss?: () => void;
-}
+};
 
-export default function LocationModal({ 
-  onAddressSaved, 
-  mode = 'add',
-  initialAddress = '',
-  visible = false,
-  onDismiss
-}: LocationModalProps) {
-  const { data: user } = useGetUser();
-  const { mutate: updateUser, isPending } = useUpdateUser();
+const LocationModal = React.forwardRef<any, Props>(
+  ({ dismiss, refetch, onAddressSaved, initialAddress, onDismiss }, ref) => {
+    const [address, setAddress] = React.useState(initialAddress || '');
+    const { setLoading, loading, setSuccess, setError } = useLoader({
+      showLoadingPage: false,
+    });
 
-  const [address, setAddress] = React.useState(initialAddress);
-  const [addressError, setAddressError] = React.useState<string | null>(null);
-  const [isEditing, setIsEditing] = React.useState(mode === 'edit');
-
-  // Debug modal props
-  console.log('📍 LocationModal Debug:', {
-    mode,
-    initialAddress,
-    visible,
-    isEditing,
-    userType: user?.type,
-    userProfile: user?.profile,
-    defaultAddress: user?.defaultAddress
-  });
-
-  React.useEffect(() => {
-    if (initialAddress) {
-      setAddress(initialAddress);
-    }
-  }, [initialAddress]);
-
-  React.useEffect(() => {
-    if (visible) {
-      console.log('📍 Opening address modal...');
-      // Set the initial address when modal opens
-      if (initialAddress) {
+    // Update address when initialAddress changes - only if it's different
+    React.useEffect(() => {
+      if (initialAddress && initialAddress !== address) {
         setAddress(initialAddress);
       }
-      // If in edit mode, show editing interface immediately
-      if (mode === 'edit') {
-        setIsEditing(true);
+    }, [initialAddress, address]);
+
+    // Remove debug logging that might cause re-renders
+    // React.useEffect(() => {
+    //   console.log('📍 Address state changed:', address);
+    // }, [address]);
+
+    //prevent back press
+    useEffect(() => {
+      if (!IS_IOS) {
+        const backAction = () => {
+          if (onDismiss) {
+            onDismiss();
+          } else {
+            dismiss();
+          }
+          return true; // Prevents default back behavior
+        };
+
+        const backHandler = BackHandler.addEventListener(
+          'hardwareBackPress',
+          backAction
+        );
+
+        return () => backHandler.remove();
       }
-    } else {
-      console.log('📍 Closing address modal...');
-      // Reset to selection mode when modal closes
-      setIsEditing(false);
-    }
-  }, [visible, initialAddress, mode]);
+    }, [dismiss, onDismiss]);
 
-  const handleDismiss = () => {
-    console.log('📍 Dismissing address modal...');
-    onDismiss?.();
-  };
-
-  const handleAddressChange = (text: string) => {
-    setAddress(text);
-    if (addressError) {
-      const error = validateBusinessAddress(text);
-      setAddressError(error);
-    }
-  };
-
-  const handleSave = () => {
-    const error = validateBusinessAddress(address);
-    setAddressError(error);
-
-    if (!error) {
-      const updateData = {
-        ...(user?.type === 'individual' 
-          ? { address: address.trim() }
-          : { businessAddress: address.trim() }
-        ),
-      };
-
-      updateUser(updateData, {
-        onSuccess: () => {
-          handleDismiss();
-          onAddressSaved?.(address.trim());
+    const { mutate: mutateUpdate } = useUpdateUser({
+      onSuccess: async (data) => {
+        console.log('📍 Address update successful:', data);
+        await refetch();
+        setSuccess('Address updated successfully');
+        
+        // Call onAddressSaved if provided (for checkout page)
+        if (onAddressSaved) {
+          onAddressSaved(address.trim());
+        }
+        
+        // Use onDismiss if provided, otherwise use dismiss
+        if (onDismiss) {
+          onDismiss();
+        } else {
+          dismiss();
+        }
         },
         onError: (error) => {
-          console.error('Failed to update address:', error);
-          setAddressError('Failed to save address. Please try again.');
+        console.error('📍 Address update failed:', error);
+        setError(error?.response?.data || 'Failed to update address');
         },
+      onSettled() {
+        setLoading(false);
+      },
+    });
+
+    const handleSave = () => {
+      if (!address) return;
+      setLoading(true);
+      console.log('📍 Saving address:', address);
+      mutateUpdate({
+        address: address.trim(),
+        addressLine2: '', // Set as empty for now
       });
-    }
-  };
+    };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setAddress('');
-    setAddressError('');
-  };
+    // Memoize the onChangeText handler to prevent re-renders
+    const handleAddressChange = useCallback((text: string) => {
+      setAddress(text);
+    }, []);
 
-  const currentAddress = user?.type === 'individual' 
-    ? user?.profile?.address 
-    : user?.profile?.businessAddress;
-
-  const savedAddresses = React.useMemo(() => {
-    const addresses = [];
-    if (currentAddress) {
-      addresses.push({ id: 'current', address: currentAddress, isDefault: true });
-    }
-    if (user?.defaultAddress?.addressLine1 && user.defaultAddress.addressLine1 !== currentAddress) {
-      addresses.push({ id: 'default', address: user.defaultAddress.addressLine1, isDefault: false });
-    }
-    return addresses;
-  }, [currentAddress, user?.defaultAddress?.addressLine1]);
-
-  const renderAddressSelection = () => (
-    <View className="p-5">
-      <Text className="mb-4 text-lg font-semibold">Select Delivery Address</Text>
-      
-      {savedAddresses.length > 0 && (
-        <View className="mb-4">
-          <Text className="mb-2 text-sm font-medium text-gray-600">Saved Addresses</Text>
-          {savedAddresses.map((address, _index) => (
-            <Pressable
-              key={address.id}
-              className="mb-2 rounded-lg border border-gray-200 bg-white p-3"
-              onPress={() => {
-                onAddressSaved?.(address.address);
-                handleDismiss();
-              }}
-            >
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1">
-                  <Text className="text-sm font-medium">{address.address}</Text>
-                  {address.isDefault && (
-                    <Text className="text-xs text-blue-600">Default Address</Text>
-                  )}
-                </View>
-                <Text className="text-xs text-gray-500">Select</Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      )}
-
-      <View className="mb-4">
-        <Text className="mb-2 text-sm font-medium text-gray-600">Add New Address</Text>
-        <Pressable
-          className="rounded-lg border border-gray-200 bg-white p-3"
-          onPress={() => setIsEditing(true)}
+    return (
+      <Modal ref={ref} snapPoints={['100%']}>
+        <Container.Page
+          containerClassName={twMerge(IS_IOS && 'pt-5')}
+          showHeader
+          backPress={onDismiss || dismiss}
+          headerTitle="Delivery location"
         >
-          <Text className="text-center text-blue-600">+ Add New Address</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
+          <Container.Box containerClassName="w-full">
+            <Text className="mt-5 text-[18px]">Enter your delivery address</Text>
 
-  const renderAddressEdit = () => (
-    <View className="p-5">
-      <View className="mb-4">
-        <Text className="mb-2 text-sm font-medium text-gray-600">
-          {user?.type === 'individual' ? 'Delivery Address' : 'Business Address'}
-        </Text>
-        <TextInput
-          value={address}
-          onChangeText={handleAddressChange}
-          placeholder={`Enter your ${user?.type === 'individual' ? 'delivery' : 'business'} address`}
-          className="rounded-lg border border-gray-200 bg-white p-3 text-base"
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-          autoFocus={true}
-        />
-        {addressError && (
-          <Text className="mt-1 text-xs text-red-500">{addressError}</Text>
-        )}
-      </View>
-
-      <View className="flex-row space-x-3">
-        <CustomButton.Secondary
-          label="Cancel"
-          onPress={mode === 'edit' ? handleCancel : handleDismiss}
-          containerClassname="flex-1 mr-1"
-        />
-        <CustomButton
-          label="Save"
-          onPress={handleSave}
-          loading={isPending}
-          containerClassname="flex-1 ml-1"
-        />
-      </View>
-    </View>
-  );
-
-  return (
-    <Modal
-      visible={visible}
-      onRequestClose={handleDismiss}
-      transparent
-      animationType="slide"
-    >
-      <View className="flex-1 bg-black/50 justify-end">
-        <SafeAreaView className="bg-white rounded-t-3xl max-h-[80%]">
-          {/* Modal Header */}
-          <View className="flex-row items-center justify-between p-4 border-b border-gray-200">
-            <View className="flex-row items-center space-x-2">
-              {isEditing && mode === 'edit' && (
-                <Pressable
-                  onPress={() => setIsEditing(false)}
-                  className="rounded-lg bg-blue-50 px-3 py-1 mr-2"
-                >
-                  <Text className="text-sm text-blue-600">← Back</Text>
-                </Pressable>
-              )}
-              <Text className="text-lg font-semibold">
-                {isEditing ? 'Edit Address' : 'Select Address'}
-              </Text>
+            <View className="mt-4">
+              <TextInput
+                placeholder="Enter your delivery address"
+                placeholderTextColor="#12121280"
+                value={address}
+                onChangeText={handleAddressChange}
+                style={{
+                  height: 48,
+                  width: '100%',
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  borderColor: '#12121233',
+                  paddingHorizontal: 10,
+                  fontSize: 16,
+                  color: '#282828',
+                  backgroundColor: '#FFFFFF',
+                }}
+              />
             </View>
-            <Pressable
-              onPress={handleDismiss}
-              className="rounded-full bg-gray-100 p-2"
-            >
-              <Text className="text-gray-600 font-semibold">✕</Text>
-            </Pressable>
-          </View>
-          
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {isEditing ? renderAddressEdit() : renderAddressSelection()}
-          </ScrollView>
-        </SafeAreaView>
-      </View>
-    </Modal>
-  );
+          </Container.Box>
+        </Container.Page>
+        <View className="mb-10 px-5">
+          <CustomButton
+            label="Save"
+            disabled={!address}
+            loading={loading}
+            onPress={handleSave}
+          />
+        </View>
+      </Modal>
+    );
 }
+);
+
+export default LocationModal;

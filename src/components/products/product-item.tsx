@@ -8,6 +8,7 @@ import { useAddCartItem, useGetCartItems } from '@/api/cart';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { calculateBulkPricing } from '@/lib/utils';
 
 import CustomButton from '../general/custom-button';
 import { Modal, Pressable, Text, useModal, View } from '../ui';
@@ -167,12 +168,32 @@ function ProductItem(props: ProductItemProps) {
                 {displayInfo?.name}
               </Text>
             </View>
+            
+            {/* Bulk Pricing Display */}
+            {(() => {
+              const bulkInfo = calculateBulkPricing(
+                1, // Default quantity for product listing
+                displayInfo?.options?.price || 0,
+                displayInfo?.options?.bulkPrice,
+                displayInfo?.options?.bulkMoq
+              );
+              
+              return (
+                <View>
             <Text className="text-[14px] font-bold">
-              N{Number(displayInfo?.options?.price).toLocaleString()}
+                    N{bulkInfo.currentPrice?.toLocaleString()}
+                  </Text>
+                  {displayInfo?.options?.bulkPrice && displayInfo?.options?.bulkMoq && (
+                    <Text numberOfLines={1} className="text-[10px] text-orange-600">
+                      Buy {displayInfo.options.bulkMoq}+ for N{displayInfo.options.bulkPrice?.toLocaleString()} each
             </Text>
+                  )}
             <Text numberOfLines={1} className="text-[10px] text-primaryText">
               Minimum purchase: {displayInfo?.options?.moq}
             </Text>
+                </View>
+              );
+            })()}
           </View>
         </View>
         <View>

@@ -16,6 +16,8 @@ export interface Option {
   value: string;
   price: number;
   moq: number;
+  bulkPrice?: number;     // Bulk discounted price
+  bulkMoq?: number;       // Bulk MOQ threshold
   image: string[];
   productId: number;
   unit: string;

@@ -158,3 +158,56 @@ export function validateCACNumber(cac: string): string | null {
   
   return null;
 }
+
+// Bulk Pricing Utilities
+export interface BulkPricingInfo {
+  currentPrice: number;
+  originalPrice: number;
+  savings: number;
+  savingsPercentage: number;
+  isBulkActive: boolean;
+  bulkThreshold: number;
+  bulkPrice: number;
+}
+
+export const calculateBulkPricing = (
+  quantity: number,
+  regularPrice: number,
+  bulkPrice?: number,
+  bulkMoq?: number
+): BulkPricingInfo => {
+  const hasBulkPricing = bulkPrice && bulkMoq && bulkPrice < regularPrice;
+  
+  if (!hasBulkPricing || quantity < bulkMoq) {
+    return {
+      currentPrice: regularPrice,
+      originalPrice: regularPrice,
+      savings: 0,
+      savingsPercentage: 0,
+      isBulkActive: false,
+      bulkThreshold: bulkMoq || 0,
+      bulkPrice: bulkPrice || regularPrice,
+    };
+  }
+
+  const savings = regularPrice - bulkPrice;
+  const savingsPercentage = (savings / regularPrice) * 100;
+
+  return {
+    currentPrice: bulkPrice,
+    originalPrice: regularPrice,
+    savings,
+    savingsPercentage,
+    isBulkActive: true,
+    bulkThreshold: bulkMoq,
+    bulkPrice,
+  };
+};
+
+export const formatBulkSavings = (savings: number): string => {
+  return `₦${savings.toLocaleString()}`;
+};
+
+export const formatBulkSavingsPercentage = (percentage: number): string => {
+  return `${percentage.toFixed(0)}%`;
+};

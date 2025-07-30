@@ -11,6 +11,7 @@ import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import { Pressable, Text, View } from '../ui';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface QuantitySelectProps extends Partial<ViewProps> {
   itemId: number;
@@ -120,39 +121,53 @@ function QuantitySelect(props: QuantitySelectProps) {
   return (
     <View
       className={twMerge(
-        'flex-row items-center justify-between overflow-hidden rounded-[4px] px-4 py-1 border dark:border-[#fff]',
+        'flex-row items-center justify-between overflow-hidden rounded-[8px] px-3 py-2 border border-gray-200 bg-white',
         props.containerClass
       )}
       {...props}
     >
       <Pressable 
         onPress={handleDecrease} 
-        hitSlop={10} 
-        className={`pr-10 ${isDecreaseDisabled ? 'opacity-50' : ''}`}
+        hitSlop={15}
+        className={`flex-row items-center justify-center w-8 h-8 rounded-full ${
+          isDecreaseDisabled 
+            ? 'bg-gray-100 opacity-50' 
+            : 'bg-gray-100 active:bg-gray-200'
+        }`}
         disabled={isDecreaseDisabled}
       >
-        <Text className={`text-[20px] font-bold ${isDecreaseDisabled ? 'text-gray-400' : ''}`}>
-          -
-        </Text>
+        <Ionicons 
+          name="remove" 
+          size={16} 
+          color={isDecreaseDisabled ? '#9CA3AF' : '#374151'} 
+        />
       </Pressable>
       
+      <View className="flex-row items-center justify-center min-w-[40px]">
       {loading ? (
-        <ActivityIndicator className="size-sm" />
+          <ActivityIndicator size="small" color="#374151" />
       ) : (
-        <Text className="text-[20px] font-medium text-black">
+          <Text className="text-[18px] font-semibold text-gray-900">
           {localQuantity}
         </Text>
       )}
+      </View>
 
       <Pressable 
         onPress={handleIncrease} 
-        hitSlop={10} 
-        className={`pl-10 ${isIncreaseDisabled ? 'opacity-50' : ''}`}
+        hitSlop={15}
+        className={`flex-row items-center justify-center w-8 h-8 rounded-full ${
+          isIncreaseDisabled 
+            ? 'bg-gray-100 opacity-50' 
+            : 'bg-gray-100 active:bg-gray-200'
+        }`}
         disabled={isIncreaseDisabled}
       >
-        <Text className={`text-[20px] font-bold ${isIncreaseDisabled ? 'text-gray-400' : ''}`}>
-          +
-        </Text>
+        <Ionicons 
+          name="add" 
+          size={16} 
+          color={isIncreaseDisabled ? '#9CA3AF' : '#374151'} 
+        />
       </Pressable>
     </View>
   );

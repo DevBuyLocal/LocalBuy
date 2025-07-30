@@ -114,7 +114,8 @@ const AdsHeader = ({
               >
                 {!user ? 'Loading...' : 
                   user?.defaultAddress?.addressLine1 || 
-                  (user?.type === 'individual' ? user?.profile?.address : user?.profile?.businessAddress) || 
+                  user?.profile?.address || 
+                  user?.profile?.businessAddress || 
                   (user?.type === 'individual' ? 'Add delivery address' : 'Add business address')}
               </Text>
               <FontAwesome5 name="chevron-down" size={10} color="white" />

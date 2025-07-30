@@ -44,7 +44,7 @@ function OrderItem({ item, onPress, isHistory }: Props) {
           return;
         }
         if (item?.status !== 'PENDING') {
-          push(`/track-order?orderId=${item?.id}`);
+          push(`/track-order?orderId=${item?.id}&price=${item?.totalPrice}`);
           return;
         }
         onPress && onPress();

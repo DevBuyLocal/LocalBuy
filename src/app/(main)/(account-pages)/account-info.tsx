@@ -143,7 +143,7 @@ const Default = ({
 /* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
   const { user } = useAuth();
-  const { data: userData, refetch } = useGetUser();
+  const { refetch } = useGetUser();
   const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
   });

@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
+import { Dimensions } from 'react-native';
 
 import { useGetManufacturers } from '@/api/manufacturers';
 import { type TSingleManufacturers } from '@/api/manufacturers/types';
@@ -39,6 +40,26 @@ const FeaturedBrands = () => {
   const { push } = useRouter();
   const { data } = useGetManufacturers({ limit: 10, page: 1 })();
   const brands = React.useMemo(() => data?.pages[0]?.data || [], [data]);
+  
+  // Calculate responsive layout for 3 items per row
+  const screenWidth = Dimensions.get('window').width;
+  const itemWidth = 112; // Width of each brand item
+  const horizontalPadding = 20; // Padding from container
+  const availableWidth = screenWidth - (horizontalPadding * 2);
+  const itemsPerRow = 3; // Fixed to 3 items per row
+  const gap = (availableWidth - (itemsPerRow * itemWidth)) / (itemsPerRow - 1);
+  
+  // Debug logging for layout calculations
+  console.log('🔍 FeaturedBrands Layout Debug:', {
+    screenWidth,
+    availableWidth,
+    itemsPerRow,
+    gap,
+    itemWidth,
+    totalBrands: brands.length,
+    displayedBrands: Math.min(brands.length, 6)
+  });
+  
   if (!brands.length) return null;
 
   return (
@@ -49,9 +70,17 @@ const FeaturedBrands = () => {
         seeAllBg="#F7F7F7"
       />
 
-      <View className="mb-5 flex-row flex-wrap justify-between">
-        {brands.map((e, i) => (
-          <Item e={e} key={i.toString()} />
+      <View className="mb-5 flex-row flex-wrap">
+        {brands.slice(0, 6).map((e, i) => (
+          <View 
+            key={i.toString()} 
+            style={{ 
+              marginBottom: 12,
+              marginRight: (i + 1) % itemsPerRow !== 0 ? gap : 0
+            }}
+          >
+            <Item e={e} />
+          </View>
         ))}
       </View>
     </View>

@@ -10,6 +10,7 @@ export interface TUser {
   profile: Profile;
   type: UserType;
   updatedAt: string;
+  referralCode?: string; // Add referral code to user type
   defaultAddress?: {
     addressLine1: string;
     addressLine2: string | null;
@@ -43,4 +44,18 @@ export interface Profile {
   cacNumber: null;
   deliveryPhone: string | null;
   businessPhone: string | null;
+}
+
+// Referral types
+export interface ReferralData {
+  referralCode: string;
+  referralCount?: number;
+  totalEarnings?: number;
+  pendingEarnings?: number;
+}
+
+export interface ReferralResponse {
+  data: ReferralData;
+  message: string;
+  status: string;
 }

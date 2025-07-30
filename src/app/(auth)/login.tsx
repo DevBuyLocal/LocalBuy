@@ -18,7 +18,7 @@ import { useUtility } from '@/lib/utility';
 import { type LoginFormType, loginSchema } from './types';
 
 export default function Login() {
-  const { replace, push, canGoBack, back } = useRouter();
+  const { replace, push } = useRouter();
   const { from } = useLocalSearchParams();
   const { ref, present, dismiss } = useModal();
   const [checked, setChecked] = React.useState(false);
@@ -72,13 +72,7 @@ export default function Login() {
     <Container.Page
       showHeader
       headerTitle="Log in"
-      backPress={() => {
-        if (canGoBack()) {
-          back();
-        } else {
-          replace('/');
-        }
-      }}
+      hideBackButton
     >
       <InputView>
         <Container.Box containerClassName="px-0 mt-0">

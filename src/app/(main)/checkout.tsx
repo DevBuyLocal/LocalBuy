@@ -22,7 +22,7 @@ function Checkout() {
   const [showAddressModal, setShowAddressModal] = React.useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = React.useState<'card' | 'ussd' | 'transfer'>('card');
   const { replace } = useRouter();
-  const { data: user, isLoading: userLoading } = useGetUser();
+  const { data: user, isLoading: userLoading, refetch } = useGetUser();
   const { setError, loading, setLoading, setSuccess } = useLoader({
     showLoadingPage: true,
   });
@@ -32,7 +32,8 @@ function Checkout() {
   const {
     orderId,
     price,
-  }: { orderId: string; price: string } =
+    hasDeliveryFee,
+  }: { orderId: string; price: string; hasDeliveryFee?: string } =
     useLocalSearchParams();
 
   const { data: order, isLoading: orderLoading } = useGetSingleOrder({
@@ -202,7 +203,7 @@ function Checkout() {
   );
 
   return (
-    <Container.Page showHeader headerTitle="Checkout">
+    <Container.Page showHeader headerTitle="Your order">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerClassName="flex-1"
@@ -254,14 +255,10 @@ function Checkout() {
           {/* ================================= */}
           <Text className="mt-8 text-[16px] font-medium">Order summary</Text>
           <View className="mt-4 rounded-lg bg-white p-5">
-            <View className="mb-4">
-              <Text className="text-[14px] opacity-65">Delivery Address</Text>
-              <Text className="text-[14px] font-medium mt-1">
-                {currentAddress || 'No address selected'}
-              </Text>
-            </View>
             <View className="flex-row items-center justify-between">
-              <Text className="text-[16px] opacity-65">Subtotal</Text>
+              <Text className="text-[16px] opacity-65">
+                {hasDeliveryFee === 'true' ? 'Total amount' : 'Subtotal'}
+              </Text>
               <Text className="text-[16px] font-medium">
                 {orderLoading ? (
                   'Loading...'
@@ -277,6 +274,16 @@ function Checkout() {
             <View className="flex-row items-center justify-between">
               <Text className="text-[16px] opacity-65">Discount</Text>
               <Text className="text-[16px] font-medium">N0.00</Text>
+            </View>
+            <View className="flex-row items-center justify-between pt-4 border-t border-gray-200 mt-4">
+              <Text className="text-[18px] font-semibold">Order Total</Text>
+              <Text className="text-[18px] font-semibold">
+                {orderLoading ? (
+                  'Loading...'
+                ) : (
+                  `N${Number(displayPrice)?.toLocaleString()}`
+                )}
+              </Text>
             </View>
           </View>
 
@@ -403,10 +410,10 @@ function Checkout() {
       {/* Address Selection Modal */}
       <LocationModal
         onAddressSaved={handleAddressSaved}
-        mode="edit"
         initialAddress={currentAddress || ''}
-        visible={showAddressModal}
         onDismiss={() => setShowAddressModal(false)}
+        dismiss={() => setShowAddressModal(false)}
+        refetch={refetch}
       />
     </Container.Page>
   );
