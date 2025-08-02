@@ -12,7 +12,7 @@ import { Image } from '@/components/ui';
 import React from 'react';
 
 export default function TrackOrder() {
-  const { orderId, price }: { orderId: string; price?: string } = useLocalSearchParams();
+  const { orderId, price, paymentMethod }: { orderId: string; price?: string; paymentMethod?: string } = useLocalSearchParams();
   const { push } = useRouter();
 
   const { data: singleOrderData, isLoading, error } = useGetSingleOrder({
@@ -30,6 +30,15 @@ export default function TrackOrder() {
   
   // Use fallback order if single order API fails
   const orderData = singleOrderData?.order || fallbackOrder;
+
+  // Split payment detection and calculation
+  const isSplitPayment = paymentMethod === 'payOnDelivery' || 
+    ((orderData as any)?.transactions?.length === 1 && (orderData as any).transactions[0].amount === 1000);
+  const deliveryFee = 1000;
+  const productPrice = isSplitPayment ? (orderData?.totalPrice || 0) : (price ? Number(price) : orderData?.totalPrice || 0);
+  const totalOrderValue = isSplitPayment ? (productPrice + deliveryFee) : (price ? Number(price) : orderData?.totalPrice || 0);
+  const paidAmount = isSplitPayment ? deliveryFee : totalOrderValue;
+  const remainingAmount = isSplitPayment ? productPrice : 0;
 
   // Determine the current step based on order status
   const getCurrentStep = () => {
@@ -209,19 +218,49 @@ export default function TrackOrder() {
 
             {/* Total Price */}
             <View className="mt-4 pt-3 border-t border-gray-200">
-              <View className="flex-row justify-between items-center">
-                <Text className="text-[16px] font-semibold">Total Amount</Text>
-                <Text className="text-[18px] font-bold text-green-600">
-                  N{(price ? Number(price) : orderData?.totalPrice)?.toLocaleString()}
-                </Text>
-              </View>
+              {isSplitPayment ? (
+                // Split Payment Breakdown
+                <>
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-[16px] font-semibold">Total Order Value</Text>
+                    <Text className="text-[18px] font-bold text-green-600">
+                      N{totalOrderValue?.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View className="flex-row justify-between items-center py-1">
+                    <Text className="text-[14px] text-gray-600">Paid (Delivery Fee)</Text>
+                    <Text className="text-[14px] font-medium text-green-600">
+                      N{paidAmount?.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View className="flex-row justify-between items-center py-1">
+                    <Text className="text-[14px] text-gray-600">Remaining Balance</Text>
+                    <Text className="text-[14px] font-medium text-orange-600">
+                      N{remainingAmount?.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View className="mt-2 pt-2 border-t border-gray-100">
+                    <Text className="text-[12px] text-orange-600 font-medium">
+                      Status: Awaiting Full Payment
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                // Regular Payment Display
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-[16px] font-semibold">Total Amount</Text>
+                  <Text className="text-[18px] font-bold text-green-600">
+                    N{(price ? Number(price) : orderData?.totalPrice)?.toLocaleString()}
+                  </Text>
+                </View>
+              )}
               
               {/* Scheduled Date for Scheduled Orders */}
               {isScheduled && orderData?.scheduledDate && (
                 <View className="mt-2 pt-2 border-t border-gray-100">
                   <Text className="text-[12px] text-gray-500">
                     Scheduled for: {new Date(orderData.scheduledDate).toLocaleDateString()}
-          </Text>
+                  </Text>
                 </View>
               )}
             </View>
@@ -262,7 +301,8 @@ export default function TrackOrder() {
                     onPress={() => {
                       // Navigate to payment page with order details
                       const paymentPrice = price ? Number(price) : orderData?.totalPrice;
-                      push(`/checkout?orderId=${orderId}&price=${paymentPrice}&scheduledDate=${orderData?.scheduledDate}`);
+                      const productPrice = orderData?.totalPrice || 0;
+                      push(`/checkout?orderId=${orderId}&price=${paymentPrice}&scheduledDate=${orderData?.scheduledDate}&paymentMethod=${paymentMethod || 'payNow'}&productPrice=${productPrice}`);
                     }}
                   >
                     <Text className="text-white text-center font-semibold">

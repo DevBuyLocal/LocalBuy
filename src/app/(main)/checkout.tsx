@@ -33,7 +33,9 @@ function Checkout() {
     orderId,
     price,
     hasDeliveryFee,
-  }: { orderId: string; price: string; hasDeliveryFee?: string } =
+    paymentMethod,
+    productPrice: passedProductPrice,
+  }: { orderId: string; price: string; hasDeliveryFee?: string; paymentMethod?: string; productPrice?: string } =
     useLocalSearchParams();
 
   const { data: order, isLoading: orderLoading } = useGetSingleOrder({
@@ -53,14 +55,32 @@ function Checkout() {
 
   // Use order total price if available, otherwise use passed price
   const calculatedTotal = order?.order?.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
-  const displayPrice = calculatedTotal > 0 ? calculatedTotal : (order?.order?.totalPrice || price || 0);
+  const displayPrice = calculatedTotal > 0 ? calculatedTotal : (order?.order?.totalPrice || Number(price) || 0);
+
+  // Split payment calculation for Pay on Delivery
+  const isSplitPayment = paymentMethod === 'payOnDelivery';
+  const deliveryFee = 1000; // Fixed delivery fee
+  
+  // For split payment: use passed product price, otherwise calculate from order data
+  const productPrice = isSplitPayment 
+    ? (Number(passedProductPrice) || calculatedTotal || order?.order?.totalPrice || 0)
+    : displayPrice;
+  const totalOrderValue = isSplitPayment ? (productPrice + deliveryFee) : displayPrice;
+  const amountToPayNow = isSplitPayment ? deliveryFee : displayPrice;
+  const remainingOnDelivery = isSplitPayment ? productPrice : 0;
 
   // Additional debug for price comparison
   console.log('💰 Checkout Price Debug:', {
     orderTotalPrice: order?.order?.totalPrice,
     passedPrice: price,
+    passedProductPrice,
     calculatedTotal,
     displayPrice,
+    isSplitPayment,
+    productPrice,
+    totalOrderValue,
+    amountToPayNow,
+    remainingOnDelivery,
     orderItems: order?.order?.items?.length || 0,
     orderItemsDetails: order?.order?.items?.map(item => ({
       productName: item.product?.name,
@@ -255,36 +275,61 @@ function Checkout() {
           {/* ================================= */}
           <Text className="mt-8 text-[16px] font-medium">Order summary</Text>
           <View className="mt-4 rounded-lg bg-white p-5">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-[16px] opacity-65">
-                {hasDeliveryFee === 'true' ? 'Total amount' : 'Subtotal'}
-              </Text>
-              <Text className="text-[16px] font-medium">
-                {orderLoading ? (
-                  'Loading...'
-                ) : (
-                  `N${Number(displayPrice)?.toLocaleString()}`
-                )}
-              </Text>
-            </View>
-            <View className="flex-row items-center justify-between py-5">
-              <Text className="text-[16px] opacity-65">VAT</Text>
-              <Text className="text-[16px] font-medium">N0.00</Text>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <Text className="text-[16px] opacity-65">Discount</Text>
-              <Text className="text-[16px] font-medium">N0.00</Text>
-            </View>
-            <View className="flex-row items-center justify-between pt-4 border-t border-gray-200 mt-4">
-              <Text className="text-[18px] font-semibold">Order Total</Text>
-              <Text className="text-[18px] font-semibold">
-                {orderLoading ? (
-                  'Loading...'
-                ) : (
-                  `N${Number(displayPrice)?.toLocaleString()}`
-                )}
-              </Text>
-            </View>
+            {isSplitPayment ? (
+              // Split Payment Breakdown
+              <>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-[16px] opacity-65">Total Order Value</Text>
+                  <Text className="text-[16px] font-medium">
+                    {orderLoading ? 'Loading...' : `N${Number(totalOrderValue)?.toLocaleString()}`}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between py-3">
+                  <Text className="text-[16px] opacity-65">Amount to Pay Now (Delivery Fee)</Text>
+                  <Text className="text-[16px] font-medium text-green-600">
+                    N{deliveryFee?.toLocaleString()}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between py-3">
+                  <Text className="text-[16px] opacity-65">Remaining Payment on Delivery</Text>
+                  <Text className="text-[16px] font-medium text-orange-600">
+                    N{remainingOnDelivery?.toLocaleString()}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between pt-4 border-t border-gray-200 mt-4">
+                  <Text className="text-[18px] font-semibold">Amount Due Now</Text>
+                  <Text className="text-[18px] font-semibold text-green-600">
+                    N{amountToPayNow?.toLocaleString()}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              // Regular Payment Breakdown
+              <>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-[16px] opacity-65">
+                    {hasDeliveryFee === 'true' ? 'Total amount' : 'Subtotal'}
+                  </Text>
+                  <Text className="text-[16px] font-medium">
+                    {orderLoading ? 'Loading...' : `N${Number(displayPrice)?.toLocaleString()}`}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between py-5">
+                  <Text className="text-[16px] opacity-65">VAT</Text>
+                  <Text className="text-[16px] font-medium">N0.00</Text>
+                </View>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-[16px] opacity-65">Discount</Text>
+                  <Text className="text-[16px] font-medium">N0.00</Text>
+                </View>
+                <View className="flex-row items-center justify-between pt-4 border-t border-gray-200 mt-4">
+                  <Text className="text-[18px] font-semibold">Order Total</Text>
+                  <Text className="text-[18px] font-semibold">
+                    {orderLoading ? 'Loading...' : `N${Number(displayPrice)?.toLocaleString()}`}
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
 
           {/* ================================= */}

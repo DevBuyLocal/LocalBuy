@@ -12,6 +12,7 @@ import { Text, View, Pressable } from '@/components/ui';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 import { shortenAddress } from '@/lib/shorten-address';
+import { accessToken } from '@/lib/auth';
 
 function Verify() {
   const { email } = useLocalSearchParams();
@@ -34,8 +35,16 @@ function Verify() {
       },
       {
         onSuccess() {
-          setSuccess('Verification successful, Please Login');
-          replace(`/login`);
+          setSuccess('Verification successful');
+          // Check if user is already logged in (has token)
+          const token = accessToken();
+          if (token?.access) {
+            // User is already logged in, redirect to main app
+            replace('/');
+          } else {
+            // User needs to login, redirect to login
+            replace('/login');
+          }
         },
         onError(error) {
           setError(error?.response?.data);

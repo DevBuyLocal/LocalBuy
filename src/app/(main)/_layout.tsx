@@ -10,7 +10,7 @@ import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 export default function MainLayout() {
-  const { status, token } = useAuth();
+  const { status, token, user } = useAuth();
   const [isFirstTime] = useIsFirstTime();
 
   const { products_in_cart, clearCart } = useCart(CartSelector);
@@ -22,7 +22,7 @@ export default function MainLayout() {
     await SplashScreen.hideAsync();
   }, []);
 
-  useGetUser();
+  const { data: userData, isLoading: userLoading } = useGetUser();
   const { data } = useGetCartItems();
   useGetAllOrders();
 
@@ -145,7 +145,12 @@ export default function MainLayout() {
   if (!token?.access) {
     return <Redirect href="/login" />;
   }
-  
+
+  // Check if user is verified - redirect to verification page if not verified
+  if (userData && !userData.isVerified && !userLoading) {
+    return <Redirect href={`/verify?email=${encodeURIComponent(userData.email)}`} />;
+  }
+
   // if (status === 'signOut') {
   //   return <Redirect href="/login" />;
   // }

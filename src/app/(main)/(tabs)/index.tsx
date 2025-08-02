@@ -19,6 +19,7 @@ import { useGetCategories } from '@/api/product/use-get-categories';
 import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
+import VerificationBanner from '@/components/general/verification-banner';
 import AdsHeader from '@/components/home/ads-header';
 import DealsSection from '@/components/home/deals-section';
 import FeaturedBrands from '@/components/home/featured-brands';
@@ -239,6 +240,11 @@ export default function Home() {
 
         <Container.Page className="px-0 dark:bg-black">
           <Container.Box>
+            {/* Show verification banner for unverified users */}
+            {user && !user.isVerified && (
+              <VerificationBanner email={user.email} />
+            )}
+
             {token && Boolean(step) && (
               <Pressable
                 onPress={() => {

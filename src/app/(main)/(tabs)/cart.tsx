@@ -4,6 +4,7 @@ import React from 'react';
 import { Alert, FlatList, Pressable, Modal } from 'react-native';
 
 import { useGetProducts } from '@/api';
+import { useGetUser } from '@/api';
 import { useGetCartItems } from '@/api/cart/use-get-cart-items';
 import { useRemoveCartItem } from '@/api/cart/use-remove-cart-item';
 import { useCheckoutOrder } from '@/api/order/use-checkout-order';
@@ -12,6 +13,7 @@ import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import Empty from '@/components/general/empty';
+import VerificationBanner from '@/components/general/verification-banner';
 import CartItem from '@/components/products/cart-item';
 import ProductCarousel from '@/components/products/product-carousel';
 import { Text, View } from '@/components/ui';
@@ -40,6 +42,7 @@ export default function Cart() {
 
   useGetProducts({})();
   const { data, error } = useGetCartItems();
+  const { data: user } = useGetUser();
   const cartItems = React.useMemo(
     () => {
       const items = token ? data?.data?.items || [] : products_in_cart || [];
@@ -175,9 +178,9 @@ export default function Cart() {
 
   // Delivery fee calculation
   const deliveryFee = 1000; // Fixed delivery fee
-  const partialDeliveryFee = deliveryFee / 2; // 500 for split payment
   const totalWithDelivery = totalPrice + deliveryFee;
-  const totalWithPartialDelivery = totalPrice + partialDeliveryFee;
+  // For pay on delivery, only pay delivery fee now, products later
+  const totalWithPartialDelivery = deliveryFee;
 
   // Handle delivery fee selection
   const handlePayNowClick = () => {
@@ -241,11 +244,19 @@ export default function Cart() {
       if (orderId) {
         // Navigate based on the current action
         if (currentAction === 'checkout') {
-          console.log('🚀 Navigating to checkout with:', { orderId, totalWithDelivery });
-          push(`/checkout?orderId=${orderId}&price=${deliveryFeeApplied ? totalWithDelivery : totalPrice}&hasDeliveryFee=${deliveryFeeApplied}`);
+          const checkoutAmount = deliveryFeeApplied 
+            ? (paymentMethod === 'payOnDelivery' ? totalWithPartialDelivery : totalWithDelivery)
+            : totalPrice;
+          const productPrice = totalPrice; // Original product price
+          console.log('🚀 Navigating to checkout with:', { orderId, checkoutAmount, paymentMethod, productPrice });
+          push(`/checkout?orderId=${orderId}&price=${checkoutAmount}&hasDeliveryFee=${deliveryFeeApplied}&paymentMethod=${paymentMethod}&productPrice=${productPrice}`);
         } else if (currentAction === 'schedule') {
-          console.log('🚀 Navigating to schedule with:', { orderId, totalWithDelivery });
-          push(`/schedule-order?orderId=${orderId}&price=${deliveryFeeApplied ? totalWithDelivery : totalPrice}`);
+          const scheduleAmount = deliveryFeeApplied 
+            ? (paymentMethod === 'payOnDelivery' ? totalWithPartialDelivery : totalWithDelivery)
+            : totalPrice;
+          const productPrice = totalPrice; // Original product price
+          console.log('🚀 Navigating to schedule with:', { orderId, scheduleAmount, paymentMethod, productPrice });
+          push(`/schedule-order?orderId=${orderId}&price=${scheduleAmount}&paymentMethod=${paymentMethod}&productPrice=${productPrice}`);
         }
       } else {
         setError('Failed to create order');
@@ -366,6 +377,11 @@ export default function Cart() {
         }
       >
         <Container.Box containerClassName="flex-1">
+          {/* Show verification banner for unverified users */}
+          {user && !user.isVerified && (
+            <VerificationBanner email={user.email} />
+          )}
+
           <FlatList
             data={sortCartItemsByCreatedAt}
             keyExtractor={(item) => item?.id?.toString()}
@@ -608,7 +624,7 @@ export default function Cart() {
             
             <View className="mb-6">
               <Text className="text-[24px] font-bold text-center text-gray-800 mb-4">
-                NGN {isPartialPayment ? partialDeliveryFee : deliveryFee}
+                NGN {isPartialPayment ? totalWithPartialDelivery : deliveryFee}
               </Text>
             </View>
 
