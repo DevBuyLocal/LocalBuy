@@ -32,14 +32,6 @@ export default function Cart() {
   const [currentAction, setCurrentAction] = React.useState<
     'checkout' | 'schedule' | null
   >(null);
-  const [paymentMethod, setPaymentMethod] = React.useState<
-    'payNow' | 'payOnDelivery' | null
-  >(null);
-  const [showDeliveryFeePopup, setShowDeliveryFeePopup] = React.useState(false);
-  const [deliveryFeeApplied, setDeliveryFeeApplied] = React.useState(false);
-  const [isPartialPayment, setIsPartialPayment] = React.useState(false);
-  const [showDeliveryDropdown, setShowDeliveryDropdown] = React.useState(false);
-  const [showCalculatingModal, setShowCalculatingModal] = React.useState(false);
 
   useGetProducts({})();
   const { data, error } = useGetCartItems();
@@ -178,48 +170,6 @@ export default function Cart() {
     [sortCartItemsByCreatedAt]
   );
 
-  // Delivery fee calculation
-  const deliveryFee = 1000; // Fixed delivery fee
-  const totalWithDelivery = totalPrice + deliveryFee;
-  // For pay on delivery, only pay delivery fee now, products later
-  const totalWithPartialDelivery = deliveryFee;
-
-  // Handle delivery fee selection
-  const handlePayNowClick = () => {
-    setPaymentMethod('payNow');
-    setIsPartialPayment(false);
-    setShowCalculatingModal(true);
-
-    // Simulate calculation delay
-    setTimeout(() => {
-      setShowCalculatingModal(false);
-      setShowDeliveryFeePopup(true);
-    }, 2000);
-  };
-
-  const handlePayOnDeliveryClick = () => {
-    setPaymentMethod('payOnDelivery');
-    setIsPartialPayment(true);
-    setShowCalculatingModal(true);
-
-    // Simulate calculation delay
-    setTimeout(() => {
-      setShowCalculatingModal(false);
-      setShowDeliveryFeePopup(true);
-    }, 2000);
-  };
-
-  const handleDeliveryFeeProceed = () => {
-    setDeliveryFeeApplied(true);
-    setShowDeliveryFeePopup(false);
-    setShowDeliveryDropdown(false);
-  };
-
-  const handleDeliveryFeeCancel = () => {
-    setShowDeliveryFeePopup(false);
-    setShowDeliveryDropdown(false);
-  };
-
   const { mutate: removeItem } = useRemoveCartItem({
     onSuccess: () => {
       // setLoading(false);
@@ -235,48 +185,12 @@ export default function Cart() {
   const { mutate: createOrder } = useCheckoutOrder({
     onSuccess: (data) => {
       const orderId = data?.order?.id;
-      // console.log('🛒 Cart to Checkout Debug:', {
-      //   orderId,
-      //   totalPrice,
-      //   totalPriceType: typeof totalPrice,
-      //   cartItems: sortCartItemsByCreatedAt.length,
-      //   fullResponse: data,
-      //   responseKeys: data ? Object.keys(data) : 'no data',
-      // });
       if (orderId) {
         // Navigate based on the current action
         if (currentAction === 'checkout') {
-          const checkoutAmount = deliveryFeeApplied
-            ? paymentMethod === 'payOnDelivery'
-              ? totalWithPartialDelivery
-              : totalWithDelivery
-            : totalPrice;
-          const productPrice = totalPrice; // Original product price
-          // console.log('🚀 Navigating to checkout with:', {
-          //   orderId,
-          //   checkoutAmount,
-          //   paymentMethod,
-          //   productPrice,
-          // });
-          push(
-            `/checkout?orderId=${orderId}&price=${checkoutAmount}&hasDeliveryFee=${deliveryFeeApplied}&paymentMethod=${paymentMethod}&productPrice=${productPrice}`
-          );
+          push(`/checkout?orderId=${orderId}&price=${totalPrice}`);
         } else if (currentAction === 'schedule') {
-          const scheduleAmount = deliveryFeeApplied
-            ? paymentMethod === 'payOnDelivery'
-              ? totalWithPartialDelivery
-              : totalWithDelivery
-            : totalPrice;
-          const productPrice = totalPrice; // Original product price
-          // console.log('🚀 Navigating to schedule with:', {
-          //   orderId,
-          //   scheduleAmount,
-          //   paymentMethod,
-          //   productPrice,
-          // });
-          push(
-            `/schedule-order?orderId=${orderId}&price=${scheduleAmount}&paymentMethod=${paymentMethod}&productPrice=${productPrice}`
-          );
+          push(`/schedule-order?orderId=${orderId}&price=${totalPrice}`);
         }
       } else {
         setError('Failed to create order');
@@ -477,171 +391,11 @@ export default function Cart() {
                     </View>
                   )}
 
-                  {/* Delivery Fee Selection */}
-                  <View className="mb-2 mt-4">
-                    {/* Delivery Dropdown */}
-                    <Pressable
-                      onPress={() =>
-                        setShowDeliveryDropdown(!showDeliveryDropdown)
-                      }
-                      className="flex-row items-center justify-between rounded-lg border border-gray-300 bg-white p-3"
-                    >
-                      <Text className="text-[14px]">
-                        {paymentMethod === 'payNow'
-                          ? 'Pay Now (Full Payment)'
-                          : paymentMethod === 'payOnDelivery'
-                            ? 'Pay on Delivery (Split Payment)'
-                            : 'Delivery Fee Selection'}
-                      </Text>
-                      <Ionicons
-                        name={
-                          showDeliveryDropdown ? 'chevron-up' : 'chevron-down'
-                        }
-                        size={20}
-                        color="#666"
-                      />
-                    </Pressable>
-
-                    {/* Dropdown Options */}
-                    {showDeliveryDropdown && (
-                      <View className="mt-2 rounded-lg border border-gray-200 bg-white">
-                        <Pressable
-                          onPress={() => {
-                            handlePayNowClick();
-                            setShowDeliveryDropdown(false);
-                          }}
-                          className="border-b border-gray-100 p-3"
-                        >
-                          <View className="flex-row items-start gap-3">
-                            <View className="mt-1">
-                              <View
-                                className={`size-4 items-center justify-center rounded-full border-2 ${
-                                  paymentMethod === 'payNow'
-                                    ? 'border-orange-500 bg-orange-500'
-                                    : 'border-gray-300'
-                                }`}
-                              >
-                                {paymentMethod === 'payNow' && (
-                                  <View className="size-2 rounded-full bg-white" />
-                                )}
-                              </View>
-                            </View>
-                            <View className="flex-1">
-                              <View className="mb-1 flex-row items-center gap-2">
-                                <Text className="text-[12px] font-medium text-gray-500">
-                                  Option 1
-                                </Text>
-                                <Text className="text-[14px] font-semibold">
-                                  Pay Now (Full Payment)
-                                </Text>
-                              </View>
-                              <Text className="mb-1 text-[12px] font-bold text-gray-700">
-                                (Pay for both product and delivery now.)
-                              </Text>
-                              <View className="flex-row items-center gap-1">
-                                <Ionicons
-                                  name="information-circle"
-                                  size={12}
-                                  color="#f97316"
-                                />
-                                <Text className="text-[11px] text-gray-600">
-                                  Covers full delivery cost upfront. No extra
-                                  charges upon delivery.
-                                </Text>
-                              </View>
-                            </View>
-                          </View>
-                        </Pressable>
-                        <Pressable
-                          onPress={() => {
-                            handlePayOnDeliveryClick();
-                            setShowDeliveryDropdown(false);
-                          }}
-                          className="p-3"
-                        >
-                          <View className="flex-row items-start gap-3">
-                            <View className="mt-1">
-                              <View
-                                className={`size-4 items-center justify-center rounded-full border-2 ${
-                                  paymentMethod === 'payOnDelivery'
-                                    ? 'border-orange-500 bg-orange-500'
-                                    : 'border-gray-300'
-                                }`}
-                              >
-                                {paymentMethod === 'payOnDelivery' && (
-                                  <View className="size-2 rounded-full bg-white" />
-                                )}
-                              </View>
-                            </View>
-                            <View className="flex-1">
-                              <View className="mb-1 flex-row items-center gap-2">
-                                <Text className="text-[12px] font-medium text-gray-500">
-                                  Option 2
-                                </Text>
-                                <Text className="text-[14px] font-semibold">
-                                  Pay on Delivery (Split Payment)
-                                </Text>
-                              </View>
-                              <Text className="mb-1 text-[12px] font-bold text-gray-700">
-                                (Pay the delivery fee now, and pay for the
-                                product when it's delivered)
-                              </Text>
-                              <View className="flex-row items-center gap-1">
-                                <Ionicons
-                                  name="information-circle"
-                                  size={12}
-                                  color="#f97316"
-                                />
-                                <Text className="text-[11px] text-gray-600">
-                                  Pay Split Payment now; the remaining balance
-                                  is due upon delivery.
-                                </Text>
-                              </View>
-                            </View>
-                          </View>
-                        </Pressable>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Payment Method Note */}
-                  {!paymentMethod && (
-                    <View className="mt-2 flex-row items-center gap-2">
-                      <Ionicons name="warning" size={16} color="#f97316" />
-                      <Text className="text-[12px] text-gray-600">
-                        Select a payment method before checkout.
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* Bulk Pricing Message - Green Container */}
-                  {bulkPricingSummary.hasBulkDiscount && (
-                    <View className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3">
-                      <Text className="text-[14px] font-medium text-green-700">
-                        Bulk discount applied: You saved ₦
-                        {bulkPricingSummary.totalSavings?.toLocaleString()}{' '}
-                        total (
-                        {bulkPricingSummary.overallSavingsPercentage?.toFixed(
-                          0
-                        )}
-                        % off)
-                      </Text>
-                    </View>
-                  )}
-
                   {/* Total Amount Display */}
                   <View className="my-3 flex-row justify-between">
-                    <Text className="text-[16px] font-semibold">
-                      {deliveryFeeApplied ? 'Total amount' : 'Subtotal'}
-                    </Text>
+                    <Text className="text-[16px] font-semibold">Subtotal</Text>
                     <Text className="text-[18px] font-bold text-green-600">
-                      N
-                      {(deliveryFeeApplied
-                        ? paymentMethod === 'payOnDelivery'
-                          ? totalWithPartialDelivery
-                          : totalWithDelivery
-                        : totalPrice
-                      )?.toLocaleString()}
+                      N{totalPrice?.toLocaleString()}
                     </Text>
                   </View>
 
@@ -660,7 +414,6 @@ export default function Cart() {
                     containerClassname="mt-4"
                     onPress={() => redirectToCheckout()}
                     loading={loading}
-                    disabled={!paymentMethod || !deliveryFeeApplied}
                   />
 
                   <CustomButton.Secondary
@@ -674,61 +427,6 @@ export default function Cart() {
           />
         </Container.Box>
       </Container.Page>
-
-      {/* Overlays */}
-      {showCalculatingModal && (
-        <View
-          className="absolute inset-0 items-center justify-center bg-black/50 px-4"
-          style={{ zIndex: 9999 }}
-        >
-          <View className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
-            <View className="items-center">
-              <View className="mb-4 size-12 rounded-full border-4 border-orange-500 border-t-transparent" />
-              <Text className="text-center text-[18px] font-bold text-gray-800">
-                Calculating...
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {showDeliveryFeePopup && (
-        <View
-          className="absolute inset-0 items-center justify-center bg-black/50 px-4"
-          style={{ zIndex: 9999 }}
-        >
-          <View className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
-            <Text className="mb-4 text-center text-[18px] font-bold text-gray-800">
-              Delivery Fee
-            </Text>
-
-            <View className="mb-6">
-              <Text className="mb-4 text-center text-[24px] font-bold text-gray-800">
-                NGN {isPartialPayment ? totalWithPartialDelivery : deliveryFee}
-              </Text>
-            </View>
-
-            <View className="flex-row gap-3">
-              <Pressable
-                onPress={handleDeliveryFeeCancel}
-                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3"
-              >
-                <Text className="text-center font-semibold text-gray-700">
-                  Cancel
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleDeliveryFeeProceed}
-                className="flex-1 rounded-lg bg-orange-500 px-4 py-3"
-              >
-                <Text className="text-center font-semibold text-white">
-                  Proceed
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      )}
     </View>
   );
 }

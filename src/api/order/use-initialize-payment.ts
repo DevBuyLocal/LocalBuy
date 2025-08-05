@@ -17,6 +17,7 @@ type Variables = {
   orderId: number;
   email: string;
   amount: number;
+  paymentMethod: any[];
 };
 
 export const useInitializePayment = createMutation<

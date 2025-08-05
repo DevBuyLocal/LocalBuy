@@ -23,9 +23,7 @@ export default function TrackOrder() {
     data: singleOrderData,
     isLoading,
     error,
-  } = useGetSingleOrder({
-    variables: { orderId: Number(orderId) },
-  });
+  } = useGetSingleOrder(Number(orderId))();
   // console.log('🚀 ~ TrackOrder ~ singleOrderData:', singleOrderData);
 
   // Fallback: Try to get order from all orders list
