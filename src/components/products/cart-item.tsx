@@ -14,7 +14,7 @@ import { useSaveProduct } from '@/api/product/use-save-product';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
-import { calculateBulkPricing, formatBulkSavings } from '@/lib/utils';
+import { calculateBulkPricing } from '@/lib/utils';
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
@@ -39,12 +39,12 @@ function CartItem(props: CartItemProps) {
   const [imgSrc, setImgSrc] = React.useState<string[] | null>(
     cart_item?.productOption?.image || []
   );
-  
+
   // Update image source when cart item changes
   React.useEffect(() => {
     setImgSrc(cart_item?.productOption?.image || []);
   }, [cart_item?.productOption?.image]);
-  
+
   const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
@@ -68,6 +68,7 @@ function CartItem(props: CartItemProps) {
       setSuccess('Note added successfully');
     },
     onError(error) {
+      // console.log('🚀 ~ onError ~ error:', extractError(error));
       setError(error?.response?.data);
     },
     onSettled() {
@@ -105,6 +106,7 @@ function CartItem(props: CartItemProps) {
       if (cart_item?.note) {
         UpdateMutate({ cartItemId: cart_item?.id, note });
       } else {
+        // console.log(cart_item?.id, note);
         mutate({ cartItemId: cart_item?.id, note });
       }
       return;
@@ -178,9 +180,10 @@ function CartItem(props: CartItemProps) {
                 quantity,
                 cart_item?.productOption?.price || 0,
                 cart_item?.productOption?.bulkPrice,
-                cart_item?.productOption?.bulkMoq || cart_item?.productOption?.moq
+                cart_item?.productOption?.bulkMoq ||
+                  cart_item?.productOption?.moq
               );
-              
+
               return (
                 <View>
                   <View className="flex-row items-center gap-2">
@@ -193,19 +196,21 @@ function CartItem(props: CartItemProps) {
                       </Text>
                     )}
                   </View>
-                  
+
                   {/* Bulk Pricing Message - Under payment method in green container */}
                   {bulkInfo.isBulkActive && (
-                    <View className="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
-                      <Text className="text-[12px] text-green-700 font-medium">
-                        Bulk discount applied: You saved ₦{(bulkInfo.savings * quantity).toLocaleString()} total ({bulkInfo.savingsPercentage?.toFixed(0)}% off)
+                    <View className="mt-2 rounded-lg border border-green-200 bg-green-50 p-2">
+                      <Text className="text-[12px] font-medium text-green-700">
+                        Bulk discount applied: You saved ₦
+                        {(bulkInfo.savings * quantity).toLocaleString()} total (
+                        {bulkInfo.savingsPercentage?.toFixed(0)}% off)
                       </Text>
                     </View>
                   )}
                 </View>
               );
             })()}
-            
+
             <View className="">
               <Text
                 numberOfLines={2}
@@ -214,7 +219,7 @@ function CartItem(props: CartItemProps) {
                 {cart_item?.productOption?.product?.name}
               </Text>
             </View>
-            
+
             <QuantitySelect
               quantity={quantity}
               setQuantity={setQuantity}

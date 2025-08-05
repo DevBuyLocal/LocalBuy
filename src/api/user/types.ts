@@ -1,49 +1,96 @@
 import { type UserType } from '@/lib/constants';
 
 export interface TUser {
-  businessProfile: any;
+  address: Address[];
+  addresses: Address2[];
+  complianceScore: number;
+  complianceStatus: string;
   createdAt: string;
+  defaultAddress: DefaultAddress;
   email: string;
+  hasFreeShipping: boolean;
   id: number;
   isVerified: boolean;
+  lastComplianceCheck: any;
   phoneNumber: any;
   profile: Profile;
+  referralCode: string;
+  referredBy: any;
+  roles: Role[];
+  status: string;
   type: UserType;
   updatedAt: string;
-  referralCode?: string; // Add referral code to user type
-  defaultAddress?: {
-    addressLine1: string;
-    addressLine2: string | null;
-    addressType: string;
-    city: string;
-    country: string;
-    createdAt: string;
-    id: number;
-    isActive: boolean;
-    isDefault: boolean;
-    phoneNumber: string | null;
-    postalCode: string;
-    stateProvince: string;
-    updatedAt: string;
-    userId: number;
-  };
+}
+export interface Address {
+  addressLine1: string;
+  addressLine2: any;
+  addressType: string;
+  city: string;
+  country: string;
+  createdAt: string;
+  id: number;
+  isActive: boolean;
+  isDefault: boolean;
+  phoneNumber: any;
+  postalCode: string;
+  stateProvince: string;
+  updatedAt: string;
+  userId: number;
+}
+
+export interface Address2 {
+  addressLine1: string;
+  addressLine2: any;
+  addressType: string;
+  city: string;
+  country: string;
+  createdAt: string;
+  id: number;
+  isActive: boolean;
+  isDefault: boolean;
+  phoneNumber: any;
+  postalCode: string;
+  stateProvince: string;
+  updatedAt: string;
+  userId: number;
+}
+
+export interface DefaultAddress {
+  addressLine1: string;
+  addressLine2: any;
+  addressType: string;
+  city: string;
+  country: string;
+  createdAt: string;
+  id: number;
+  isActive: boolean;
+  isDefault: boolean;
+  phoneNumber: any;
+  postalCode: string;
+  stateProvince: string;
+  updatedAt: string;
+  userId: number;
 }
 
 export interface Profile {
-  address: string;
-  addressLine2?: string;
-  createdAt: any;
+  address: any;
+  createdAt: string;
+  deliveryPhone: string;
   dob: any;
   fullName: string;
   howDidYouHear: string;
-  id: any;
-  updatedAt: any;
+  id: number;
+  updatedAt: string;
   userId: number;
-  businessName: null;
-  businessAddress: null;
-  cacNumber: null;
-  deliveryPhone: string | null;
-  businessPhone: string | null;
+}
+
+export interface Role {
+  createdAt: string;
+  id: number;
+  role: string[];
+  roleId: number;
+  updatedAt: string;
+  userId: number;
 }
 
 // Referral types

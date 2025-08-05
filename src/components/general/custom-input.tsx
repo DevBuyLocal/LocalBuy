@@ -79,7 +79,7 @@ function CustomInput({
         style={
           !isSearch ? [style.input, isFocused && style.inputFocused] : undefined
         }
-        value={value}
+        defaultValue={value}
         disabled={onPress !== undefined}
         onChangeText={onChangeText}
         secureTextEntry={isPassword && !show}

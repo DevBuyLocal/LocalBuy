@@ -22,8 +22,9 @@ export default function OrderSuccess() {
         </Text>
         <Text className="mt-3 opacity-60">Order number: #{orderId}</Text>
         <Text className="mt-3 w-[90%] text-center text-[14px] font-thin">
-          You will receive text updates to {user?.phoneNumber || '+234000000'}{' '}
-          you can change your number at anytime
+          You will receive text updates to{' '}
+          {user?.profile?.deliveryPhone || '+234000000'} you can change your
+          number at anytime
         </Text>
       </Container.Box>
       <Container.Box containerClassName="absolute bottom-14 w-full">

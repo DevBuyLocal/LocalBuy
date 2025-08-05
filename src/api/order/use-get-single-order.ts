@@ -20,7 +20,8 @@ export const useGetSingleOrder = createQuery<Response, Variables, AxiosError>({
         },
       })
       .then((response) => {
-        if (response.status === 200) {
+        // console.log('🚀 ~ response:s', response?.status);
+        if (response?.status === 200) {
           return response?.data;
         }
         return null;
@@ -28,5 +29,7 @@ export const useGetSingleOrder = createQuery<Response, Variables, AxiosError>({
       .catch((error: any) => {
         return error;
       }),
+  gcTime: 1000 * 60 * 60, // 1 hour
+  staleTime: 1000, // 1 hour
   enabled: !!accessToken()?.access,
 });

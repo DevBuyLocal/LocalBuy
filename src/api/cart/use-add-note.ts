@@ -28,6 +28,7 @@ export const useAddNote = createMutation<
         Authorization: `Bearer ${accessToken()?.access}`,
       },
     }).then(async (response) => {
+      console.log('🚀 ~ response:', response);
       if (response.status === 200) {
         await queryClient.invalidateQueries({ queryKey: [QueryKey.CART] });
         await queryClient.fetchQuery({
