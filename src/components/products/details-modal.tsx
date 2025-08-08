@@ -74,6 +74,30 @@ export default function DetailsModal({
     getFirstValidOption(item?.options)
   );
 
+  // Debug logging for quantity changes
+  console.log('🔍 Quantity Debug:', {
+    quantity,
+    selectedOptionId: selectedOption?.id,
+    selectedOptionMoq: selectedOption?.moq
+  });
+
+  // Debug logging to see what data we're working with
+  console.log('🔍 DetailsModal Debug:', {
+    productName: item?.name,
+    selectedOption: selectedOption,
+    selectedOptionBulkPrice: selectedOption?.bulkPrice,
+    selectedOptionBulkMoq: selectedOption?.bulkMoq || selectedOption?.bulkPricingDetails?.minimumQuantity,
+    selectedOptionPrice: selectedOption?.price,
+    allOptions: item?.options?.map(opt => ({
+      id: opt.id,
+      value: opt.value,
+      price: opt.price,
+      bulkPrice: opt.bulkPrice,
+      bulkMoq: opt.bulkMoq,
+      moq: opt.moq
+    }))
+  });
+
   const { data: savedProducts } = useGetSavedProducts()();
 
   const itemIsSaved = savedProducts?.savedProducts?.find(
@@ -153,6 +177,66 @@ export default function DetailsModal({
         </View>
       ),
     },
+    // Bulk Pricing Section - only show if bulk pricing is available
+    ...(selectedOption?.bulkPrice && selectedOption?.bulkMoq ? [{
+      title: (
+        <View className="flex-row justify-between">
+          <Text className="text-[14px] text-green-700 font-medium">Bulk Pricing</Text>
+          <Entypo name="chevron-small-down" size={20} color="black" />
+        </View>
+      ),
+      content: (
+        <View className="pt-5">
+          <View className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+            <Text className="text-[14px] text-green-800 font-semibold mb-2">
+              🎯 Volume Discount Available
+            </Text>
+            <Text className="text-[13px] text-green-700 mb-3">
+              Order in larger quantities to unlock better pricing
+            </Text>
+            
+            <View className="space-y-2">
+              <View className="flex-row items-center justify-between bg-white rounded p-2">
+                <View>
+                  <Text className="text-[12px] text-gray-600">Regular Price</Text>
+                  <Text className="text-[14px] font-medium">N{selectedOption.price?.toLocaleString()}</Text>
+                </View>
+                <View className="items-center">
+                  <Text className="text-[12px] text-gray-600">→</Text>
+                </View>
+                <View>
+                  <Text className="text-[12px] text-green-600">Bulk Price</Text>
+                  <Text className="text-[14px] font-medium text-green-600">N{selectedOption.bulkPrice?.toLocaleString()}</Text>
+                </View>
+              </View>
+              
+              <View className="flex-row items-center justify-between">
+                <Text className="text-[12px] text-gray-600">Minimum Order</Text>
+                <Text className="text-[12px] font-medium">{selectedOption.bulkMoq || selectedOption?.bulkPricingDetails?.minimumQuantity} {selectedOption.unit}</Text>
+              </View>
+              
+              <View className="flex-row items-center justify-between">
+                <Text className="text-[12px] text-gray-600">Savings Per Unit</Text>
+                <Text className="text-[12px] font-medium text-green-600">
+                  N{(selectedOption.price - selectedOption.bulkPrice)?.toLocaleString()}
+                </Text>
+              </View>
+              
+              <View className="flex-row items-center justify-between">
+                <Text className="text-[12px] text-gray-600">Discount</Text>
+                <Text className="text-[12px] font-medium text-green-600">
+                  {(((selectedOption.price - selectedOption.bulkPrice) / selectedOption.price) * 100).toFixed(0)}% off
+                </Text>
+              </View>
+            </View>
+          </View>
+          
+          <Text className="text-[12px] text-gray-600">
+            💡 Tip: Increase your quantity to {selectedOption.bulkMoq || selectedOption?.bulkPricingDetails?.minimumQuantity} or more to automatically apply the bulk discount
+          </Text>
+        </View>
+      ),
+    }] : []),
     {
       title: (
         <View className="flex-row justify-between">
@@ -328,55 +412,85 @@ export default function DetailsModal({
             {item?.name}
           </Text>
           
-                      {/* Bulk Pricing Display */}
-            {(() => {
-              const bulkInfo = calculateBulkPricing(
-                quantity,
-                selectedOption?.price || 0,
-                selectedOption?.bulkPrice,
-                selectedOption?.bulkMoq
-              );
-              
-              // Debug logging for bulk pricing
-              console.log('🔍 Bulk Pricing Debug:', {
-                productName: item?.name,
-                quantity,
-                regularPrice: selectedOption?.price,
-                bulkPrice: selectedOption?.bulkPrice,
-                bulkMoq: selectedOption?.bulkMoq,
-                currentPrice: bulkInfo.currentPrice,
-                isBulkActive: bulkInfo.isBulkActive,
-                savings: bulkInfo.savings
-              });
-              
-              return (
-              <View className="mb-3">
-                {/* Price Display */}
-                <View className="flex-row items-center gap-2">
+          {/* Enhanced Bulk Pricing Display */}
+          {(() => {
+            const bulkInfo = calculateBulkPricing(
+              quantity,
+              selectedOption?.price || 0,
+              selectedOption?.bulkPrice,
+              selectedOption?.bulkMoq || selectedOption?.bulkPricingDetails?.minimumQuantity
+            );
+            
+            // Show bulk pricing only if the product actually supports it
+            const supportsBulkPricing = selectedOption?.bulkPricingDetails?.supportsBulkPricing;
+            const hasBulkData = selectedOption?.bulkPrice && (selectedOption?.bulkMoq || selectedOption?.bulkPricingDetails?.minimumQuantity);
+            const finalShouldShow = supportsBulkPricing && hasBulkData;
+            
+            return (
+              <View className="mb-4">
+                {/* Main Price Display */}
+                <View className="flex-row items-center gap-2 mb-2">
                   <Text className="text-[24px] font-medium">
                     N{bulkInfo.currentPrice?.toLocaleString()}
                   </Text>
                   {bulkInfo.isBulkActive && (
                     <Text className="text-[16px] font-medium text-gray-500 line-through">
                       N{bulkInfo.originalPrice?.toLocaleString()}
-          </Text>
+                    </Text>
                   )}
                 </View>
                 
-                {/* Bulk Pricing Info */}
-                {selectedOption?.bulkPrice && selectedOption?.bulkMoq && (
-                  <View className="mt-2">
+                {/* Bulk Pricing Information */}
+                {finalShouldShow && (
+                  <View className="bg-green-50 border border-green-200 rounded-lg p-3">
                     {!bulkInfo.isBulkActive ? (
-                      <Text className="text-[14px] text-orange-600 font-medium">
-                        Buy {selectedOption.bulkMoq} or more to unlock distributor price at N{selectedOption.bulkPrice?.toLocaleString()} each
-                      </Text>
+                      <View>
+                        <Text className="text-[14px] text-green-800 font-semibold mb-1">
+                          🎯 Bulk Pricing Available
+                        </Text>
+                        <Text className="text-[13px] text-green-700 mb-2">
+                          Buy {selectedOption?.bulkMoq || selectedOption?.bulkPricingDetails?.minimumQuantity || 10} or more to unlock distributor pricing
+                        </Text>
+                        <View className="flex-row items-center justify-between bg-white rounded p-2">
+                          <View>
+                            <Text className="text-[12px] text-gray-600">Regular Price</Text>
+                            <Text className="text-[14px] font-medium">N{selectedOption?.price?.toLocaleString()}</Text>
+                          </View>
+                          <View className="items-center">
+                            <Text className="text-[12px] text-gray-600">→</Text>
+                          </View>
+                          <View>
+                            <Text className="text-[12px] text-green-600">Bulk Price</Text>
+                            <Text className="text-[14px] font-medium text-green-600">N{(selectedOption?.bulkPrice || (selectedOption?.price ? selectedOption.price * 0.8 : 0))?.toLocaleString()}</Text>
+                          </View>
+                        </View>
+                        <Text className="text-[11px] text-green-600 mt-1">
+                          Save N{((selectedOption?.price || 0) - (selectedOption?.bulkPrice || (selectedOption?.price ? selectedOption.price * 0.8 : 0)))?.toLocaleString()} per unit
+                        </Text>
+                      </View>
                     ) : (
                       <View>
-                        <Text className="text-[14px] text-green-600 font-semibold">
-                          Bulk discount applied: You saved {formatBulkSavings(bulkInfo.savings)} per unit
+                        <Text className="text-[14px] text-green-800 font-semibold mb-1">
+                          ✅ Bulk Discount Applied
                         </Text>
-                        <Text className="text-[12px] text-green-600">
-                          ({formatBulkSavingsPercentage(bulkInfo.savingsPercentage)} off)
+                        <Text className="text-[13px] text-green-700 mb-2">
+                          You're getting the distributor price for ordering {quantity} units
+                        </Text>
+                        <View className="flex-row items-center justify-between bg-white rounded p-2">
+                          <View>
+                            <Text className="text-[12px] text-gray-600">Original Price</Text>
+                            <Text className="text-[14px] font-medium line-through text-gray-500">N{bulkInfo.originalPrice?.toLocaleString()}</Text>
+                          </View>
+                          <View className="items-center">
+                            <Text className="text-[12px] text-green-600">→</Text>
+                          </View>
+                          <View>
+                            <Text className="text-[12px] text-green-600">Your Price</Text>
+                            <Text className="text-[14px] font-medium text-green-600">N{bulkInfo.currentPrice?.toLocaleString()}</Text>
+                          </View>
+                        </View>
+                        <Text className="text-[11px] text-green-600 mt-1">
+                          You saved {formatBulkSavings(bulkInfo.savings)} per unit ({formatBulkSavingsPercentage(bulkInfo.savingsPercentage)} off)
                         </Text>
                       </View>
                     )}

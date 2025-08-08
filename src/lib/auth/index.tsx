@@ -27,8 +27,10 @@ const _useAuth = create<AuthState>()(
         token: null,
         user: null,
         signIn: (token) => {
+          console.log('📍 Auth signIn called with token:', token);
           setToken(token);
           set({ status: 'signIn', token });
+          console.log('📍 Auth state updated - status: signIn, token set');
         },
         signOut: () => {
           removeToken();
@@ -40,13 +42,18 @@ const _useAuth = create<AuthState>()(
         setUser: (user) => set({ user }),
         hydrate: () => {
           try {
+            console.log('📍 Auth hydrate called');
             const userToken = getToken();
+            console.log('📍 Retrieved token from storage:', userToken);
             if (userToken !== null && userToken.access) {
+              console.log('📍 Valid token found, signing in');
               get().signIn(userToken);
             } else {
+              console.log('📍 No valid token found, signing out');
               get().signOut();
             }
           } catch (e) {
+            console.log('📍 Auth hydrate error:', e);
             // catch error here
             // Maybe sign_out user!
           }

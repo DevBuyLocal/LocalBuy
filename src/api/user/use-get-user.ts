@@ -43,5 +43,5 @@ export const useGetUser = createQuery<Response, void, AxiosError>({
       });
   },
   enabled: !!accessToken()?.access,
-  staleTime: 0, // Always refetch
+  staleTime: 30000, // 30 seconds - prevent excessive refetching
 });

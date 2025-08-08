@@ -18,6 +18,14 @@ export interface Option {
   moq: number;
   bulkPrice?: number;     // Bulk discounted price
   bulkMoq?: number;       // Bulk MOQ threshold
+  bulkPricingDetails?: {
+    supportsBulkPricing: boolean;
+    minimumQuantity?: number;
+    bulkPrice?: number;
+    discountPercentage?: number;
+    retailPrice?: number;
+    savingsPerUnit?: number;
+  };
   image: string[];
   productId: number;
   unit: string;

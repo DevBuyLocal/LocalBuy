@@ -130,14 +130,18 @@ function Checkout() {
       return selectedAddress;
     }
 
-    // Prioritize default address, then profile address
+    // Use the most recent address from addresses array, then fallback to default address
+    const mostRecentAddress = user?.addresses && user.addresses.length > 0 
+      ? user.addresses[user.addresses.length - 1]?.addressLine1 
+      : null;
     const defaultAddress = user?.defaultAddress?.addressLine1;
     const profileAddress =
       user?.type === 'individual' ? user?.profile?.address : user?.phoneNumber;
 
-    return defaultAddress || profileAddress || '';
+    return mostRecentAddress || defaultAddress || profileAddress || '';
   }, [
     selectedAddress,
+    user?.addresses,
     user?.defaultAddress?.addressLine1,
     user?.type,
     user?.profile?.address,
@@ -327,10 +331,28 @@ function Checkout() {
                       'No delivery address set. Please add an address to continue.'}
                 </Text>
                 <Text className="mt-5 text-[16px] opacity-85">
-                  +234{' '}
-                  {user?.type === 'individual'
-                    ? user?.profile?.deliveryPhone
-                    : user?.phoneNumber}
+                  {(() => {
+                    // Get phone number from the most recent address or default address
+                    const phoneNumber = user?.defaultAddress?.phoneNumber || 
+                                     (user?.addresses && user.addresses.length > 0 ? 
+                                      user.addresses[user.addresses.length - 1]?.phoneNumber : null) ||
+                                     (user?.type === 'individual' ? user?.profile?.deliveryPhone : user?.phoneNumber);
+                    
+                    // If phone number already starts with +234, use it as is
+                    if (phoneNumber?.startsWith('+234')) {
+                      return phoneNumber;
+                    }
+                    // If phone number starts with 0, replace with +234
+                    if (phoneNumber?.startsWith('0')) {
+                      return '+234' + phoneNumber.substring(1);
+                    }
+                    // If phone number is 11 digits and doesn't start with 0, add +234
+                    if (phoneNumber?.length === 11 && !phoneNumber.startsWith('0')) {
+                      return '+234' + phoneNumber;
+                    }
+                    // Default fallback
+                    return phoneNumber ? `+234 ${phoneNumber}` : 'No phone number';
+                  })()}
                 </Text>
               </View>
               <Pressable

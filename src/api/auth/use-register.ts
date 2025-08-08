@@ -11,6 +11,15 @@ type Variables = {
   phone?: string;
   referal_code: string | undefined;
   password: string;
+  // Business-specific fields
+  fullName?: string;
+  businessName?: string;
+  cac?: string;
+  businessPhone?: string;
+  howDidYouFindUs?: string;
+  // Individual-specific fields
+  deliveryPhone?: string;
+  dob?: string;
 };
 
 export interface TRegisterResponse {

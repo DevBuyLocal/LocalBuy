@@ -23,10 +23,22 @@ export interface VerifyResponse {
 }
 
 export const useVerify = createMutation<any, Variables, AxiosError>({
-  mutationFn: async (variables) =>
-    client({
+  mutationFn: async (variables) => {
+    console.log('📍 Verification API call with data:', variables);
+    return client({
       url: 'api/auth/verify',
       method: 'POST',
       data: variables,
-    }).then((response) => response.data),
+    })
+      .then((response) => {
+        console.log('📍 Verification API success:', response.data);
+        return response.data;
+      })
+      .catch((error) => {
+        console.log('📍 Verification API error:', error);
+        console.log('📍 Verification API error response:', error?.response?.data);
+        console.log('📍 Verification API error status:', error?.response?.status);
+        throw error;
+      });
+  },
 });

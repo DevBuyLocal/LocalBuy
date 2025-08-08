@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Octicons from '@expo/vector-icons/Octicons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import React, { useCallback } from 'react';
 import {
@@ -19,7 +19,6 @@ import { useGetCategories } from '@/api/product/use-get-categories';
 import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
 import CustomInput from '@/components/general/custom-input';
-import VerificationBanner from '@/components/general/verification-banner';
 import AdsHeader from '@/components/home/ads-header';
 import DealsSection from '@/components/home/deals-section';
 import FeaturedBrands from '@/components/home/featured-brands';
@@ -49,6 +48,13 @@ export default function Home() {
 
   const { data: user, refetch } = useGetUser();
 
+  // Refresh user data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
   const { colorScheme } = useColorScheme();
   const [showSaved, setShowSaved] = React.useState(false);
 
@@ -72,7 +78,7 @@ export default function Home() {
   const detailsProvided = () => {
     if (user?.type === UserType.Business) {
       return Boolean(
-        user?.profile?.businessPhone && user?.profile?.businessName
+        (user?.profile as any)?.businessPhone && (user?.profile as any)?.businessName
       );
     }
     if (user?.type === UserType.Individual) {
@@ -240,11 +246,6 @@ export default function Home() {
 
         <Container.Page className="px-0 dark:bg-black">
           <Container.Box>
-            {/* Show verification banner for unverified users */}
-            {user && !user.isVerified && (
-              <VerificationBanner email={user.email} />
-            )}
-
             {token && Boolean(step) && (
               <Pressable
                 onPress={() => {

@@ -34,17 +34,7 @@ const accountItems = (
     ),
     onPress: () => push('/main-account-page?page=account-information'),
   },
-  {
-    label: 'Complete Profile',
-    icon: (
-      <MaterialIcons
-        name="person-add"
-        size={24}
-        color={colorScheme === 'dark' ? '#fff' : 'black'}
-      />
-    ),
-    onPress: () => push('/complete-profile'),
-  },
+
   {
     label: 'Manage Order',
     icon: (

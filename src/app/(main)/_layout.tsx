@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { Redirect, SplashScreen, Stack } from 'expo-router';
+import { Redirect, SplashScreen, Stack, usePathname } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 
 import { queryClient, QueryKey, useGetUser } from '@/api';
@@ -12,6 +12,7 @@ import { useLoader } from '@/lib/hooks/general/use-loader';
 export default function MainLayout() {
   const { status, token, user } = useAuth();
   const [isFirstTime] = useIsFirstTime();
+  const pathname = usePathname();
 
   const { products_in_cart, clearCart } = useCart(CartSelector);
   const { setLoading, setError, setSuccess, setLoadingText } = useLoader({
@@ -22,7 +23,8 @@ export default function MainLayout() {
     await SplashScreen.hideAsync();
   }, []);
 
-  const { data: userData, isLoading: userLoading } = useGetUser();
+  const { user: userData } = useAuth();
+  const { isLoading: userLoading } = useGetUser();
   const { data } = useGetCartItems();
   useGetAllOrders();
 
@@ -137,17 +139,42 @@ export default function MainLayout() {
     syncCartItems,
     token,
   ]);
+  console.log('📍 MainLayout Debug:', {
+    isFirstTime,
+    hasToken: !!token?.access,
+    userData: userData ? { 
+      isVerified: userData.isVerified, 
+      email: userData.email, 
+      hasAddress: userData.hasAddress, 
+      requiresAddress: userData.requiresAddress 
+    } : null,
+    userLoading,
+    status,
+    pathname,
+  });
+
   if (isFirstTime) {
+    console.log('📍 Redirecting to onboarding');
     return <Redirect href="/onboarding" />;
   }
   
-  // Redirect unverified users to login page
-  if (!token?.access) {
+  // Check if user needs to add address - redirect to address page (prioritize this over login redirect)
+  // Only redirect if we're not already on the address page to prevent infinite loops
+  if (userData && userData.requiresAddress && !userLoading && status !== 'idle' && !pathname.includes('/address')) {
+    console.log('📍 Redirecting to address - user needs to add address');
+    return <Redirect href={`/address?email=${encodeURIComponent(userData.email)}&userType=${userData.type}`} />;
+  }
+
+  // Redirect unverified users to login page (but not if they're on auth pages)
+  if (!token?.access && !pathname.includes('/(auth)')) {
+    console.log('📍 Redirecting to login - no token');
     return <Redirect href="/login" />;
   }
 
   // Check if user is verified - redirect to verification page if not verified
-  if (userData && !userData.isVerified && !userLoading) {
+  // Only redirect if we're not already on the verify page to prevent infinite loops
+  if (userData && !userData.isVerified && !userLoading && status !== 'idle' && !pathname.includes('/verify')) {
+    console.log('📍 Redirecting to verify - user not verified');
     return <Redirect href={`/verify?email=${encodeURIComponent(userData.email)}`} />;
   }
 
@@ -196,6 +223,7 @@ export default function MainLayout() {
         options={{ headerShown: false, presentation: 'containedModal' }}
       />
       <Stack.Screen name="style" options={{ headerShown: false }} />
+      <Stack.Screen name="address" options={{ headerShown: false }} />
     </Stack>
   );
 }

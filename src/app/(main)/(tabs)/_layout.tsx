@@ -17,13 +17,13 @@ import { UserType } from '@/lib/constants';
 // eslint-disable-next-line max-lines-per-function
 export default function TabsLayout() {
   const { data } = useGetCartItems();
-  const { total } = useCart(CartSelector);
+  const { products_in_cart } = useCart(CartSelector);
   const { token, user } = useAuth();
   const { push } = useRouter();
 
   const noInCart = token 
-    ? data?.data?.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0
-    : total;
+    ? data?.data?.items?.length || 0
+    : products_in_cart?.length || 0;
 
   const { data: orderData } = useGetAllOrders();
   const orders = React.useMemo(

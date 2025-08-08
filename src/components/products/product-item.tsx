@@ -169,7 +169,7 @@ function ProductItem(props: ProductItemProps) {
               </Text>
             </View>
             
-            {/* Bulk Pricing Display */}
+            {/* Enhanced Bulk Pricing Display */}
             {(() => {
               const bulkInfo = calculateBulkPricing(
                 1, // Default quantity for product listing
@@ -180,17 +180,41 @@ function ProductItem(props: ProductItemProps) {
               
               return (
                 <View>
-            <Text className="text-[14px] font-bold">
-                    N{bulkInfo.currentPrice?.toLocaleString()}
-                  </Text>
+                  {/* Main Price */}
+                  <View className="flex-row items-center gap-1 mb-1">
+                    <Text className="text-[14px] font-bold">
+                      N{bulkInfo.currentPrice?.toLocaleString()}
+                    </Text>
+                    {bulkInfo.isBulkActive && (
+                      <Text className="text-[10px] text-gray-500 line-through">
+                        N{bulkInfo.originalPrice?.toLocaleString()}
+                      </Text>
+                    )}
+                  </View>
+                  
+                  {/* Bulk Pricing Info */}
                   {displayInfo?.options?.bulkPrice && displayInfo?.options?.bulkMoq && (
-                    <Text numberOfLines={1} className="text-[10px] text-orange-600">
-                      Buy {displayInfo.options.bulkMoq}+ for N{displayInfo.options.bulkPrice?.toLocaleString()} each
-            </Text>
+                    <View className="mb-1">
+                      {!bulkInfo.isBulkActive ? (
+                        <View className="bg-orange-50 border border-orange-200 rounded px-1 py-0.5">
+                          <Text numberOfLines={1} className="text-[8px] text-orange-700 font-medium">
+                            🎯 Buy {displayInfo.options.bulkMoq}+ for N{displayInfo.options.bulkPrice?.toLocaleString()}
+                          </Text>
+                        </View>
+                      ) : (
+                        <View className="bg-green-50 border border-green-200 rounded px-1 py-0.5">
+                          <Text numberOfLines={1} className="text-[8px] text-green-700 font-medium">
+                            ✅ Bulk price applied
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   )}
-            <Text numberOfLines={1} className="text-[10px] text-primaryText">
-              Minimum purchase: {displayInfo?.options?.moq}
-            </Text>
+                  
+                  {/* Minimum Purchase */}
+                  <Text numberOfLines={1} className="text-[10px] text-primaryText">
+                    Min: {displayInfo?.options?.moq} {displayInfo?.options?.unit}
+                  </Text>
                 </View>
               );
             })()}

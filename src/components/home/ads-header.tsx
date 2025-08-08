@@ -113,7 +113,10 @@ const AdsHeader = ({
                 numberOfLines={1}
               >
                 {!user ? 'Loading...' : 
-                  user?.defaultAddress?.addressLine1 || 
+                  // Show the most recent address (last in the addresses array) or defaultAddress
+                  (user?.addresses && user.addresses.length > 0 ? 
+                    user.addresses[user.addresses.length - 1]?.addressLine1 : 
+                    user?.defaultAddress?.addressLine1) || 
                   user?.profile?.address || 
                   user?.profile?.businessAddress || 
                   (user?.type === 'individual' ? 'Add delivery address' : 'Add business address')}

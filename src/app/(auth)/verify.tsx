@@ -12,20 +12,25 @@ import { Text, View, Pressable } from '@/components/ui';
 import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 import { shortenAddress } from '@/lib/shorten-address';
-import { accessToken } from '@/lib/auth';
+import { accessToken, signIn } from '@/lib/auth';
 
 function Verify() {
-  const { email } = useLocalSearchParams();
+  const { email, userType } = useLocalSearchParams();
   const [code, setCode] = React.useState<string>('');
   const [codeResent, setCodeResent] = React.useState(false);
-  const { replace } = useRouter();
+  const { replace, push } = useRouter();
   const { mutate } = useVerify();
   const { mutate: ResendCode } = useResendCode();
   const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
   });
 
+  // Debug: Log the email parameter
+  console.log('Email parameter:', email);
+  console.log('User type parameter:', userType);
+
   const handleSubmit = () => {
+    console.log('📍 Verification submit called with:', { email, code });
     if (!email || !code) return;
     setLoading(true);
     mutate(
@@ -34,16 +39,35 @@ function Verify() {
         email: decodeURIComponent(email as string),
       },
       {
-        onSuccess() {
+        onSuccess(responseData) {
+          console.log('📍 VERIFICATION SUCCESS HANDLER CALLED');
           setSuccess('Verification successful');
-          // Check if user is already logged in (has token)
-          const token = accessToken();
-          if (token?.access) {
-            // User is already logged in, redirect to main app
-            replace('/');
+          console.log('📍 Verification successful, response:', responseData);
+          console.log('📍 Verification token from data:', responseData?.data?.token);
+          
+          // Sign the user in with the token from verification
+          if (responseData?.data?.token) {
+            const tokenData = {
+              access: responseData.data.token,
+              refresh: responseData.data.token, // Use same token for refresh for now
+            };
+            console.log('📍 Signing in with token data:', tokenData);
+            signIn(tokenData);
+            console.log('📍 User signed in with verification token');
+            
+            // Wait a moment for the token to be set, then redirect
+            setTimeout(() => {
+              const currentToken = accessToken()?.access;
+              console.log('📍 Current access token after sign in:', currentToken ? 'Present' : 'Missing');
+              console.log('📍 Token value:', currentToken);
+              console.log('📍 Redirecting to address page with params:', { email, userType });
+              push(`/address?email=${email}&userType=${userType}`);
+            }, 200); // Increased timeout to ensure token is set
           } else {
-            // User needs to login, redirect to login
-            replace('/login');
+            console.log('📍 No token in verification response');
+            console.log('📍 Response structure:', responseData);
+            console.log('📍 Redirecting to address page without token');
+            push(`/address?email=${email}&userType=${userType}`);
           }
         },
         onError(error) {
@@ -80,49 +104,52 @@ function Verify() {
   return (
     <Container.Page showHeader headerTitle="OTP verification">
       <InputView>
-        <Text className="mt-5 w-full text-[25px] font-bold">
-          Verify your email address
-        </Text>
-        <Text className="mb-3 mt-2 w-4/5 text-[14px] opacity-75">
-          We've sent a verification code to the email {shortenAddress(email)}.
-          Please enter the code below to verify.
-        </Text>
-        <CustomInput
-          placeholder="Verification code"
-          keyboardType="number-pad"
-          maxLength={6}
-          containerClass="mt-5 mb-2"
-          value={code}
-          onChangeText={setCode}
-        />
-        
-        {codeResent ? (
-          <CountdownTimer
-            countFrom={60}
-            onCountdownComplete={() => {}}
-            resend={Resend}
-            text1="Not getting code?"
-            text2="Resend"
-            initialText="Resend"
+        <View className="flex-1 px-5">
+          <Text className="mt-5 w-full text-[25px] font-bold">
+            Verify your email address
+          </Text>
+          <Text className="mb-3 mt-2 w-4/5 text-[14px] opacity-75">
+            We've sent a verification code to the email {email ? shortenAddress(email) : 'your email address'}.
+            Please enter the code below to verify.
+          </Text>
+          <CustomInput
+            placeholder="Verification code"
+            keyboardType="number-pad"
+            maxLength={6}
+            containerClass="mt-5 mb-2"
+            value={code}
+            onChangeText={setCode}
           />
-        ) : (
-          <Pressable onPress={Resend} className="flex-row items-center">
-            <Text className="text-[14px] font-medium opacity-70">
-              Not getting code?{' '}
-            </Text>
-            <Text className="text-[14px] font-medium color-primaryText">
-              Resend
-            </Text>
-          </Pressable>
-        )}
-        
-        <View className="absolute bottom-[120px] w-full">
-          <CustomButton
-            label="Continue"
-            disabled={!code}
-            loading={loading}
-            onPress={handleSubmit}
-          />
+          
+          {codeResent ? (
+            <CountdownTimer
+              countFrom={60}
+              onCountdownComplete={() => {}}
+              resend={Resend}
+              text1="Not getting code?"
+              text2="Resend"
+              initialText="Resend"
+            />
+          ) : (
+            <Pressable onPress={Resend} className="flex-row items-center">
+              <Text className="text-[14px] font-medium opacity-70">
+                Not getting code?{' '}
+              </Text>
+              <Text className="text-[14px] font-medium color-primaryText">
+                Resend
+              </Text>
+            </Pressable>
+          )}
+          
+          {/* Bottom section with button */}
+          <View className="mt-auto pt-8">
+            <CustomButton
+              label="Continue"
+              disabled={!code}
+              loading={loading}
+              onPress={handleSubmit}
+            />
+          </View>
         </View>
       </InputView>
     </Container.Page>

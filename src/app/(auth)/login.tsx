@@ -49,6 +49,8 @@ export default function Login() {
       },
       {
         async onSuccess(data) {
+          console.log('📍 Login success response:', data);
+          console.log('📍 Login token:', data?.data?.token);
           signIn({ access: data?.data?.token, refresh: '' });
           setKeepSignedIn(checked);
           await queryClient.fetchQuery({
@@ -75,7 +77,7 @@ export default function Login() {
       hideBackButton
     >
       <InputView>
-        <Container.Box containerClassName="px-0 mt-0">
+        <View className="flex-1 px-5">
           <Text className="mt-5 w-4/5 text-[25px] font-bold">Welcome back</Text>
           <Text className="mt-2 text-[16px] opacity-75">
             Login to resume your shopping experience
@@ -101,23 +103,26 @@ export default function Login() {
           </View>
           <CustomCheckbox
             label={'Keep me signed in'}
-            description="By checking this box you won’t have to sign in as often on this device. For your security, we recommend only checking this box on personal devices."
+            description="By checking this box you won't have to sign in as often on this device. For your security, we recommend only checking this box on personal devices."
             checked={checked}
             onChange={setChecked}
             isChecked={checked}
           />
-        </Container.Box>
-        <Container.Box containerClassName="absolute bottom-20 w-full self-center px-0">
-          <CustomButton
-            loading={loading}
-            label="Continue"
-            onPress={handleSubmit(handleLogin)}
-          />
-          <Pressable className="mt-2 flex-row self-center" onPress={present}>
-            <Text className="color-[#121212BF]">Don't have an account? </Text>
-            <Text className="color-primaryText">Sign up</Text>
-          </Pressable>
-        </Container.Box>
+          
+          {/* Bottom section with button */}
+          <View className="mt-auto pt-8">
+            <CustomButton
+              loading={loading}
+              label="Continue"
+              onPress={handleSubmit(handleLogin)}
+            />
+            <Pressable className="mt-2 flex-row self-center" onPress={present}>
+              <Text className="color-[#121212BF]">Don't have an account? </Text>
+              <Text className="color-primaryText">Sign up</Text>
+            </Pressable>
+          </View>
+        </View>
+        
         <Modal ref={ref} title="Are you an individual or a business owner?">
           <View className="mt-2 px-5">
             {userType.map((e, i) => (

@@ -8,6 +8,7 @@ import { useAddCartItem, useGetCartItems } from '@/api/cart';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { calculateBulkPricing } from '@/lib/utils';
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
@@ -135,12 +136,56 @@ function SavedProductItem(props: SavedProductItemProps) {
                   {displayInfo?.name}
                 </Text>
               </View>
-              <Text numberOfLines={1} className="text-[14px] text-primaryText">
-                Minimum purchase: {displayInfo?.options?.moq}
-              </Text>
-              <Text className="text-[18px] font-bold">
-                N{Number(displayInfo?.options?.price).toLocaleString()}
-              </Text>
+              
+              {/* Enhanced Pricing Display with Bulk Pricing */}
+              {(() => {
+                const bulkInfo = calculateBulkPricing(
+                  1, // Default quantity for product listing
+                  displayInfo?.options?.price || 0,
+                  displayInfo?.options?.bulkPrice,
+                  displayInfo?.options?.bulkMoq
+                );
+                
+                return (
+                  <View>
+                    {/* Main Price */}
+                    <View className="flex-row items-center gap-1 mb-1">
+                      <Text className="text-[18px] font-bold">
+                        N{bulkInfo.currentPrice?.toLocaleString()}
+                      </Text>
+                      {bulkInfo.isBulkActive && (
+                        <Text className="text-[14px] text-gray-500 line-through">
+                          N{bulkInfo.originalPrice?.toLocaleString()}
+                        </Text>
+                      )}
+                    </View>
+                    
+                    {/* Bulk Pricing Info */}
+                    {displayInfo?.options?.bulkPrice && displayInfo?.options?.bulkMoq && (
+                      <View className="mb-1">
+                        {!bulkInfo.isBulkActive ? (
+                          <View className="bg-orange-50 border border-orange-200 rounded px-2 py-1">
+                            <Text numberOfLines={1} className="text-[10px] text-orange-700 font-medium">
+                              🎯 Buy {displayInfo.options.bulkMoq}+ for N{displayInfo.options.bulkPrice?.toLocaleString()}
+                            </Text>
+                          </View>
+                        ) : (
+                          <View className="bg-green-50 border border-green-200 rounded px-2 py-1">
+                            <Text numberOfLines={1} className="text-[10px] text-green-700 font-medium">
+                              ✅ Bulk price applied
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                    
+                    {/* Minimum Purchase */}
+                    <Text numberOfLines={1} className="text-[14px] text-primaryText">
+                      Min: {displayInfo?.options?.moq} {displayInfo?.options?.unit}
+                    </Text>
+                  </View>
+                );
+              })()}
             </View>
             <CustomButton
               label={itemIsInCart ? 'Added to cart' : 'Add to cart'}

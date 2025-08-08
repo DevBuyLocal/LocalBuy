@@ -14,7 +14,7 @@ type Response = TUser;
 export const useUpdateUser = createMutation<Response, Variables, AxiosError>({
   mutationFn: async (variables) => {
     return client({
-      url: 'api/auth/update-profile',
+      url: 'api/user',
       method: 'PUT',
       data: variables,
       headers: {

@@ -23,14 +23,14 @@ export type HeaderProps = {
 function Header(props: HeaderProps) {
   const { back, push } = useRouter();
   const { token } = useAuth();
-  const { total } = useCart(CartSelector);
+  const { products_in_cart } = useCart(CartSelector);
   const { colorScheme } = useColorScheme();
 
   const { data } = useGetCartItems();
 
   const noInCart = token 
-    ? data?.data?.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0
-    : total;
+    ? data?.data?.items?.length || 0
+    : products_in_cart?.length || 0;
 
   return (
     <View

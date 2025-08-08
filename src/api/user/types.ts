@@ -9,6 +9,7 @@ export interface TUser {
   defaultAddress: DefaultAddress;
   email: string;
   hasFreeShipping: boolean;
+  hasAddress: boolean;
   id: number;
   isVerified: boolean;
   lastComplianceCheck: any;
@@ -16,6 +17,7 @@ export interface TUser {
   profile: Profile;
   referralCode: string;
   referredBy: any;
+  requiresAddress: boolean;
   roles: Role[];
   status: string;
   type: UserType;

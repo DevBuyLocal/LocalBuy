@@ -14,7 +14,7 @@ import { useSaveProduct } from '@/api/product/use-save-product';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
-import { calculateBulkPricing } from '@/lib/utils';
+import { calculateBulkPricing, formatBulkSavings } from '@/lib/utils';
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
@@ -39,12 +39,15 @@ function CartItem(props: CartItemProps) {
   const [imgSrc, setImgSrc] = React.useState<string[] | null>(
     cart_item?.productOption?.image || []
   );
-
+  
+  // Individual loading state for this cart item
+  const [itemLoading, setItemLoading] = React.useState(false);
+  
   // Update image source when cart item changes
   React.useEffect(() => {
     setImgSrc(cart_item?.productOption?.image || []);
   }, [cart_item?.productOption?.image]);
-
+  
   const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
@@ -68,11 +71,10 @@ function CartItem(props: CartItemProps) {
       setSuccess('Note added successfully');
     },
     onError(error) {
-      // console.log('🚀 ~ onError ~ error:', extractError(error));
       setError(error?.response?.data);
     },
     onSettled() {
-      setLoading(false);
+      setItemLoading(false);
     },
   });
   const { mutate: UpdateMutate } = useUpdateNote({
@@ -84,29 +86,28 @@ function CartItem(props: CartItemProps) {
       setError(error?.response?.data);
     },
     onSettled() {
-      setLoading(false);
+      setItemLoading(false);
     },
   });
 
   const { mutate: removeItem } = useRemoveCartItem({
     onSuccess: () => {
-      setLoading(false);
+      setItemLoading(false);
     },
     onError: (error) => {
       setError(error?.response?.data);
     },
     onSettled: () => {
-      setLoading(false);
+      setItemLoading(false);
     },
   });
 
   function ADD_NOTE() {
     if (token) {
-      setLoading(true);
+      setItemLoading(true);
       if (cart_item?.note) {
         UpdateMutate({ cartItemId: cart_item?.id, note });
       } else {
-        // console.log(cart_item?.id, note);
         mutate({ cartItemId: cart_item?.id, note });
       }
       return;
@@ -180,10 +181,9 @@ function CartItem(props: CartItemProps) {
                 quantity,
                 cart_item?.productOption?.price || 0,
                 cart_item?.productOption?.bulkPrice,
-                cart_item?.productOption?.bulkMoq ||
-                  cart_item?.productOption?.moq
+                cart_item?.productOption?.bulkMoq || cart_item?.productOption?.moq
               );
-
+              
               return (
                 <View>
                   <View className="flex-row items-center gap-2">
@@ -196,21 +196,26 @@ function CartItem(props: CartItemProps) {
                       </Text>
                     )}
                   </View>
-
+                  
                   {/* Bulk Pricing Message - Under payment method in green container */}
                   {bulkInfo.isBulkActive && (
-                    <View className="mt-2 rounded-lg border border-green-200 bg-green-50 p-2">
-                      <Text className="text-[12px] font-medium text-green-700">
-                        Bulk discount applied: You saved ₦
-                        {(bulkInfo.savings * quantity).toLocaleString()} total (
-                        {bulkInfo.savingsPercentage?.toFixed(0)}% off)
+                    <View className="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                      <Text className="text-[12px] text-green-700 font-medium">
+                        Bulk discount applied: You saved ₦{(bulkInfo.savings * quantity).toLocaleString()} total ({bulkInfo.savingsPercentage?.toFixed(0)}% off)
                       </Text>
                     </View>
+                  )}
+                  
+                  {/* Bulk Pricing Available Notification */}
+                  {(cart_item?.productOption?.bulkPrice && !bulkInfo.isBulkActive) && (
+                    <Text className="text-[12px] text-orange-600 mt-1">
+                      This product has bulk pricing: buy {(cart_item?.productOption?.bulkMoq || cart_item?.productOption?.moq || 10)} or more to unlock
+                    </Text>
                   )}
                 </View>
               );
             })()}
-
+            
             <View className="">
               <Text
                 numberOfLines={2}
@@ -219,7 +224,7 @@ function CartItem(props: CartItemProps) {
                 {cart_item?.productOption?.product?.name}
               </Text>
             </View>
-
+            
             <QuantitySelect
               quantity={quantity}
               setQuantity={setQuantity}
@@ -228,6 +233,8 @@ function CartItem(props: CartItemProps) {
               cartItemId={props?.item?.id}
               containerClass="w-[160px] rounded-full mt-4"
               removeOnZero={false}
+              loading={itemLoading}
+              setLoading={setItemLoading}
             />
           </View>
           <View className="mt-5 flex-row gap-10 self-end">
@@ -256,7 +263,7 @@ function CartItem(props: CartItemProps) {
               className="text-[16px] font-medium underline color-[#0F3D30]"
               onPress={() => {
                 if (token) {
-                  setLoading(true);
+                  setItemLoading(true);
                   removeItem({ cartItemId: props?.item?.id });
                   return;
                 }
@@ -302,7 +309,7 @@ function CartItem(props: CartItemProps) {
             <CustomButton.Secondary
               containerClassname="mt-20"
               label={'Save'}
-              loading={loading}
+              loading={itemLoading}
               disabled={!note}
               onPress={ADD_NOTE}
             />

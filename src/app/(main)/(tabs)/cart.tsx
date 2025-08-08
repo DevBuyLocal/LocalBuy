@@ -11,7 +11,6 @@ import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import Empty from '@/components/general/empty';
-import VerificationBanner from '@/components/general/verification-banner';
 import CartItem from '@/components/products/cart-item';
 import { Text, View } from '@/components/ui';
 import { useAuth } from '@/lib';
@@ -313,11 +312,6 @@ export default function Cart() {
         }
       >
         <Container.Box containerClassName="flex-1">
-          {/* Show verification banner for unverified users */}
-          {user && !user.isVerified && (
-            <VerificationBanner email={user.email} />
-          )}
-
           <FlatList
             data={sortCartItemsByCreatedAt}
             keyExtractor={(item) => item?.id?.toString()}

@@ -24,6 +24,8 @@ interface QuantitySelectProps extends Partial<ViewProps> {
   selectedOption?: Option;
   moq?: TProductOption['moq'];
   updateQuantity?: (quantity: number) => void;
+  loading?: boolean;
+  setLoading?: (loading: boolean) => void;
 }
 
 function QuantitySelect(props: QuantitySelectProps) {
@@ -31,9 +33,14 @@ function QuantitySelect(props: QuantitySelectProps) {
   const { data, refetch } = useGetCartItems();
   const { increaseQuantity, decreaseQuantity, products_in_cart } =
     useCart(CartSelector);
-  const { loading, setLoading, setError, setSuccess } = useLoader({
+  
+  // Use individual loading state if provided, otherwise use global loader
+  const { loading: globalLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
+  
+  const loading = props.loading !== undefined ? props.loading : globalLoading;
+  const setLoading = props.setLoading || (() => {});
   
   const cartItems = token ? data?.data?.items || [] : products_in_cart || [];
   const foundItem = cartItems.find((item) => item?.id === props?.itemId);

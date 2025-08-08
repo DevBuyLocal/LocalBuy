@@ -2,7 +2,8 @@ import React, { useEffect, useCallback, useMemo } from 'react';
 import { BackHandler, TextInput } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
-import { useUpdateUser } from '@/api';
+import { useAddAddress } from '@/api/auth/use-add-address';
+import { useAuth } from '@/lib/auth';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import Container from '../general/container';
@@ -23,13 +24,7 @@ const LocationModal = React.forwardRef<any, Props>(
     const { setLoading, loading, setSuccess, setError } = useLoader({
       showLoadingPage: false,
     });
-
-    // Update address when initialAddress changes - only if it's different
-    React.useEffect(() => {
-      if (initialAddress && initialAddress !== address) {
-        setAddress(initialAddress);
-      }
-    }, [initialAddress, address]);
+    const { user } = useAuth();
 
     // Remove debug logging that might cause re-renders
     // React.useEffect(() => {
@@ -57,41 +52,54 @@ const LocationModal = React.forwardRef<any, Props>(
       }
     }, [dismiss, onDismiss]);
 
-    const { mutate: mutateUpdate } = useUpdateUser({
-      onSuccess: async (data) => {
-        console.log('📍 Address update successful:', data);
-        await refetch();
-        setSuccess('Address updated successfully');
-        
-        // Call onAddressSaved if provided (for checkout page)
-        if (onAddressSaved) {
-          onAddressSaved(address.trim());
-        }
-        
-        // Use onDismiss if provided, otherwise use dismiss
-        if (onDismiss) {
-          onDismiss();
-        } else {
-          dismiss();
-        }
-        },
-        onError: (error) => {
-        console.error('📍 Address update failed:', error);
-        setError(error?.response?.data || 'Failed to update address');
-        },
-      onSettled() {
-        setLoading(false);
-      },
-    });
+    const { mutate: addAddress } = useAddAddress();
 
     const handleSave = () => {
       if (!address) return;
       setLoading(true);
       console.log('📍 Saving address:', address);
-      mutateUpdate({
-        address: address.trim(),
-        addressLine2: '', // Set as empty for now
-      });
+      
+      // Get existing address data or use defaults
+      const existingAddress = (user as any)?.defaultAddress || (user as any)?.address?.[0];
+      
+      addAddress(
+        {
+          addressLine1: address.trim(),
+          addressLine2: existingAddress?.addressLine2 || '',
+          city: existingAddress?.city || 'Lagos',
+          stateProvince: existingAddress?.stateProvince || 'Lagos',
+          postalCode: existingAddress?.postalCode || '100001',
+          country: existingAddress?.country || 'Nigeria',
+          phoneNumber: existingAddress?.phoneNumber || (user as any)?.profile?.deliveryPhone || '08000000000',
+          addressType: 'SHIPPING',
+        },
+        {
+          onSuccess: async (data) => {
+            console.log('📍 Address update successful:', data);
+            await refetch();
+            setSuccess('Address updated successfully');
+            
+            // Call onAddressSaved if provided (for checkout page)
+            if (onAddressSaved) {
+              onAddressSaved(address.trim());
+            }
+            
+            // Use onDismiss if provided, otherwise use dismiss
+            if (onDismiss) {
+              onDismiss();
+            } else {
+              dismiss();
+            }
+          },
+          onError: (error: any) => {
+            console.error('📍 Address update failed:', error);
+            setError(error?.response?.data || 'Failed to update address');
+          },
+          onSettled: () => {
+            setLoading(false);
+          },
+        }
+      );
     };
 
     // Memoize the onChangeText handler to prevent re-renders
@@ -116,6 +124,10 @@ const LocationModal = React.forwardRef<any, Props>(
                 placeholderTextColor="#12121280"
                 value={address}
                 onChangeText={handleAddressChange}
+                editable={true}
+                selectTextOnFocus={true}
+                autoCorrect={false}
+                autoCapitalize="none"
                 style={{
                   height: 48,
                   width: '100%',
