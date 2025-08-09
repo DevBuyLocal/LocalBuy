@@ -57,6 +57,7 @@ export default function Home() {
 
   const { colorScheme } = useColorScheme();
   const [showSaved, setShowSaved] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const { data } = useGetCategories()();
   const { data: savedProducts } = useGetSavedProducts()();
@@ -238,50 +239,51 @@ export default function Home() {
             <CustomInput
               isSearch
               placeholder="Search for a product..."
-              onPress={() => push('/search')}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={() => {
+                if (searchQuery.trim()) {
+                  push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                }
+              }}
+              returnKeyType="search"
               containerClass="shadow-sm overflow-hidden rounded-full"
+              rightIcon={
+                searchQuery.trim() ? (
+                  <View className="flex-row items-center gap-2">
+                    <Pressable
+                      onPress={() => setSearchQuery('')}
+                      className="px-2 py-2"
+                    >
+                      <MaterialIcons
+                        name="close"
+                        size={18}
+                        color={colorScheme === 'dark' ? '#fff' : '#666'}
+                      />
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        if (searchQuery.trim()) {
+                          push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                        }
+                      }}
+                      className="px-3 py-2"
+                    >
+                      <MaterialIcons
+                        name="search"
+                        size={20}
+                        color={colorScheme === 'dark' ? '#fff' : '#EC9F01'}
+                      />
+                    </Pressable>
+                  </View>
+                ) : undefined
+              }
             />
           </Animated.View>
         </Container.Box>
 
         <Container.Page className="px-0 dark:bg-black">
           <Container.Box>
-            {token && Boolean(step) && (
-              <Pressable
-                onPress={() => {
-                  push('/complete-profile');
-                }}
-                className="my-3 w-full flex-row items-center justify-between rounded-xl border border-[#E9EAEC] p-4"
-              >
-                <View className="w-[90%] gap-5">
-                  <Text className=" text-[18px] font-bold">
-                    Complete your account setup, shall we?
-                  </Text>
-                  <View>
-                    <View className="flex-row gap-2">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <View
-                          key={i.toString()}
-                          className={twMerge(
-                            'h-1 w-20 rounded-full bg-[#EC9F0140]',
-                            i + 1 <= Number(step) && 'bg-primaryText'
-                          )}
-                        />
-                      ))}
-                    </View>
-                    <Text className="mt-2 opacity-70">
-                      Few steps remaining to complete
-                    </Text>
-                  </View>
-                </View>
-                <MaterialIcons
-                  name="chevron-right"
-                  size={25}
-                  color={colorScheme === 'dark' ? '#fff' : 'black'}
-                />
-              </Pressable>
-            )}
-
             <View className=" flex-row items-center justify-between gap-1">
               {opts.map((e, i) => (
                 <Pressable

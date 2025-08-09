@@ -223,7 +223,7 @@ export default function AddressInput() {
           
           <ControlledCustomInput<AddressFormType>
             name="phoneNumber"
-            placeholder="Phone number"
+            placeholder="Delivery phone number"
             keyboardType="phone-pad"
             description="Enter your phone number for delivery updates"
             control={control}

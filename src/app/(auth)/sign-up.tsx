@@ -1,15 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AnimatePresence, MotiView } from 'moti';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useRegister } from '@/api';
 import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
 import InputView from '@/components/general/input-view';
-import { Pressable, Text, View } from '@/components/ui';
+import { Pressable, Text, View, ProgressBar } from '@/components/ui';
 import { type UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
@@ -25,12 +26,27 @@ export default function SignUp() {
   
   const isBusinessOwner = role === 'business';
   
+  // Clean up stored form data when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clear stored form data when navigating away
+      AsyncStorage.removeItem('businessFormData').catch(console.log);
+      AsyncStorage.removeItem('individualFormData').catch(console.log);
+    };
+  }, []);
+  
   // Use conditional types based on user role
   const BusinessForm = () => {
     const {
       handleSubmit,
       control,
-      formState: { isSubmitting },
+      formState: { isSubmitting, errors },
+      setValue,
+      getValues,
+      reset,
+      setError: setFieldError,
+      clearErrors,
+      watch,
     } = useForm<BusinessRegFormType>({
       resolver: zodResolver(businessRegSchema),
       defaultValues: {
@@ -47,8 +63,65 @@ export default function SignUp() {
       mode: 'onChange',
     });
     
+    // Progress bar ref for submission progress
+    const progressRef = useRef<any>(null);
+    
+    // Watch form values for persistence
+    const formValues = watch();
+    
+    // Save form data to AsyncStorage whenever it changes
+    useEffect(() => {
+      const saveFormData = async () => {
+        try {
+          await AsyncStorage.setItem('businessFormData', JSON.stringify(formValues));
+        } catch (error) {
+          console.log('Error saving form data:', error);
+        }
+      };
+      
+      // Only save if there's actual data
+      if (Object.values(formValues).some(value => value && value.toString().trim() !== '')) {
+        saveFormData();
+      }
+    }, [formValues]);
+    
+    // Restore form data from AsyncStorage on component mount
+    useEffect(() => {
+      const restoreFormData = async () => {
+        try {
+          const savedData = await AsyncStorage.getItem('businessFormData');
+          if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            Object.keys(parsedData).forEach((key) => {
+              if (parsedData[key] && parsedData[key].toString().trim() !== '') {
+                setValue(key as keyof BusinessRegFormType, parsedData[key]);
+              }
+            });
+          }
+        } catch (error) {
+          console.log('Error restoring form data:', error);
+        }
+      };
+      
+      restoreFormData();
+    }, [setValue]);
+    
     const onSubmit = (data: BusinessRegFormType) => {
       setLoading(true);
+      // Clear any previous field errors
+      clearErrors();
+      
+      // Start progress bar animation
+      if (progressRef.current) {
+        progressRef.current.setProgress(0);
+        // Animate progress to 90% during submission
+        setTimeout(() => {
+          if (progressRef.current) {
+            progressRef.current.setProgress(90);
+          }
+        }, 100);
+      }
+      
       Register(
         {
           email: data.email.toLowerCase(),
@@ -63,20 +136,111 @@ export default function SignUp() {
         },
         {
           onSuccess(responseData) {
-            setSuccess('Account Created Successfully ');
+            // Complete progress bar
+            if (progressRef.current) {
+              progressRef.current.setProgress(100);
+            }
+            setSuccess('Account Created Successfully! Please check your email for verification.');
             console.log('📍 Registration response:', responseData);
-            push(
-              `/verify?email=${encodeURIComponent(data.email)}&userType=${role}`
-            );
+            // Clear stored form data on successful submission
+            AsyncStorage.removeItem('businessFormData').catch(console.log);
+            // Add a small delay to show the success message before redirecting
+            setTimeout(() => {
+              push(
+                `/verify?email=${encodeURIComponent(data.email)}&userType=${role}`
+              );
+            }, 1500);
           },
           onError(error) {
-            setError(error?.response?.data);
+            // Reset progress bar on error
+            if (progressRef.current) {
+              progressRef.current.setProgress(0);
+            }
+            const errorData = error?.response?.data;
+            setError(errorData);
+            
+            // Handle field-specific validation errors from server
+            if (errorData && typeof errorData === 'object' && errorData !== null) {
+              const errorObj = errorData as Record<string, any>;
+              
+              // Check for password-related errors and clear password fields
+              if (errorObj.password || errorObj.confirmPassword) {
+                setFieldError('password', { type: 'server', message: errorObj.password || 'Password error occurred' });
+                setFieldError('confirmPassword', { type: 'server', message: errorObj.confirmPassword || 'Password confirmation error occurred' });
+                // Clear password fields for security
+                setValue('password', '');
+                setValue('confirmPassword', '');
+              }
+              
+              // Check for other field validation errors
+              if (errorObj.email) {
+                setFieldError('email', { type: 'server', message: errorObj.email });
+              }
+              if (errorObj.fullName) {
+                setFieldError('fullName', { type: 'server', message: errorObj.fullName });
+              }
+              if (errorObj.businessName) {
+                setFieldError('businessName', { type: 'server', message: errorObj.businessName });
+              }
+              if (errorObj.businessPhone) {
+                setFieldError('businessPhone', { type: 'server', message: errorObj.businessPhone });
+              }
+              if (errorObj.cac) {
+                setFieldError('cac', { type: 'server', message: errorObj.cac });
+              }
+              if (errorObj.howDidYouFindUs) {
+                setFieldError('howDidYouFindUs', { type: 'server', message: errorObj.howDidYouFindUs });
+              }
+              
+              // Handle general server errors (like "User already exists")
+              if (errorObj.message && !Object.keys(errorObj).some(key => 
+                ['email', 'password', 'confirmPassword', 'fullName', 'businessName', 'businessPhone', 'cac', 'howDidYouFindUs'].includes(key)
+              )) {
+                // This is a general error, not field-specific
+                setError(errorObj.message);
+              }
+            } else if (typeof errorData === 'string') {
+              // Handle string error messages
+              setError(errorData);
+            }
+            
+            // Don't clear the form - let the user see their input and fix errors
+            // The form will show validation errors for specific fields
           },
           onSettled() {
             setLoading(false);
           },
         }
       );
+    };
+    
+    const handleResetForm = () => {
+      // Show confirmation dialog
+      if (confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
+        reset();
+        clearErrors();
+        // Clear stored form data
+        AsyncStorage.removeItem('businessFormData').catch(console.log);
+        setSuccess('Form cleared successfully');
+      }
+    };
+    
+    const clearField = (fieldName: keyof BusinessRegFormType) => {
+      setValue(fieldName, '');
+      clearErrors(fieldName);
+    };
+    
+    const saveProgress = async () => {
+      try {
+        setLoading(true);
+        const currentValues = getValues();
+        await AsyncStorage.setItem('businessFormData', JSON.stringify(currentValues));
+        setSuccess('Progress saved successfully!');
+      } catch (error) {
+        setError('Failed to save progress');
+      } finally {
+        setLoading(false);
+      }
     };
     
     return (
@@ -157,10 +321,17 @@ export default function SignUp() {
           
           {/* Bottom section with button */}
           <View className="mt-auto pt-8">
+            {loading && (
+              <View className="mb-4">
+                <ProgressBar ref={progressRef} className="w-full" />
+                <Text className="text-center mt-2 text-sm opacity-75">Creating your account...</Text>
+              </View>
+            )}
             <CustomButton
-              label="Create account"
+              label={loading ? "Creating account..." : "Create account"}
               onPress={handleSubmit(onSubmit)}
               loading={loading}
+              disabled={loading}
             />
             <Pressable
               className="mt-2 flex-row self-center"
@@ -180,7 +351,13 @@ export default function SignUp() {
     const {
       handleSubmit,
       control,
-      formState: { isSubmitting },
+      formState: { isSubmitting, errors },
+      setValue,
+      getValues,
+      reset,
+      setError: setFieldError,
+      clearErrors,
+      watch,
     } = useForm<IndividualRegFormType>({
       resolver: zodResolver(individualRegSchema),
       defaultValues: {
@@ -196,8 +373,65 @@ export default function SignUp() {
       mode: 'onChange',
     });
     
+    // Progress bar ref for submission progress
+    const progressRef = useRef<any>(null);
+    
+    // Watch form values for persistence
+    const formValues = watch();
+    
+    // Save form data to AsyncStorage whenever it changes
+    useEffect(() => {
+      const saveFormData = async () => {
+        try {
+          await AsyncStorage.setItem('individualFormData', JSON.stringify(formValues));
+        } catch (error) {
+          console.log('Error saving form data:', error);
+        }
+      };
+      
+      // Only save if there's actual data
+      if (Object.values(formValues).some(value => value && value.toString().trim() !== '')) {
+        saveFormData();
+      }
+    }, [formValues]);
+    
+    // Restore form data from AsyncStorage on component mount
+    useEffect(() => {
+      const restoreFormData = async () => {
+        try {
+          const savedData = await AsyncStorage.getItem('individualFormData');
+          if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            Object.keys(parsedData).forEach((key) => {
+              if (parsedData[key] && parsedData[key].toString().trim() !== '') {
+                setValue(key as keyof IndividualRegFormType, parsedData[key]);
+              }
+            });
+          }
+        } catch (error) {
+          console.log('Error restoring form data:', error);
+        }
+      };
+      
+      restoreFormData();
+    }, [setValue]);
+    
     const onSubmit = (data: IndividualRegFormType) => {
       setLoading(true);
+      // Clear any previous field errors
+      clearErrors();
+      
+      // Start progress bar animation
+      if (progressRef.current) {
+        progressRef.current.setProgress(0);
+        // Animate progress to 90% during submission
+        setTimeout(() => {
+          if (progressRef.current) {
+            progressRef.current.setProgress(90);
+          }
+        }, 100);
+      }
+      
       Register(
         {
           email: data.email.toLowerCase(),
@@ -211,19 +445,107 @@ export default function SignUp() {
         },
         {
           onSuccess(responseData) {
-            setSuccess('Account Created Successfully ');
-            push(
-              `/verify?email=${encodeURIComponent(data.email)}&userType=${role}`
-            );
+            // Complete progress bar
+            if (progressRef.current) {
+              progressRef.current.setProgress(100);
+            }
+            setSuccess('Account Created Successfully! Please check your email for verification.');
+            // Clear stored form data on successful submission
+            AsyncStorage.removeItem('individualFormData').catch(console.log);
+            // Add a small delay to show the success message before redirecting
+            setTimeout(() => {
+              push(
+                `/verify?email=${encodeURIComponent(data.email)}&userType=${role}`
+              );
+            }, 1500);
           },
           onError(error) {
-            setError(error?.response?.data);
+            // Reset progress bar on error
+            if (progressRef.current) {
+              progressRef.current.setProgress(0);
+            }
+            const errorData = error?.response?.data;
+            setError(errorData);
+            
+            // Handle field-specific validation errors from server
+            if (errorData && typeof errorData === 'object' && errorData !== null) {
+              const errorObj = errorData as Record<string, any>;
+              
+              // Check for password-related errors and clear password fields
+              if (errorObj.password || errorObj.confirmPassword) {
+                setFieldError('password', { type: 'server', message: errorObj.password || 'Password error occurred' });
+                setFieldError('confirmPassword', { type: 'server', message: errorObj.confirmPassword || 'Password confirmation error occurred' });
+                // Clear password fields for security
+                setValue('password', '');
+                setValue('confirmPassword', '');
+              }
+              
+              // Check for other field validation errors
+              if (errorObj.email) {
+                setFieldError('email', { type: 'server', message: errorObj.email });
+              }
+              if (errorObj.fullName) {
+                setFieldError('fullName', { type: 'server', message: errorObj.fullName });
+              }
+              if (errorObj.deliveryPhone || errorObj.phone) {
+                setFieldError('deliveryPhone', { type: 'server', message: errorObj.deliveryPhone || errorObj.phone });
+              }
+              if (errorObj.dob) {
+                setFieldError('dob', { type: 'server', message: errorObj.dob });
+              }
+              if (errorObj.howDidYouFindUs) {
+                setFieldError('howDidYouFindUs', { type: 'server', message: errorObj.howDidYouFindUs });
+              }
+              
+              // Handle general server errors (like "User already exists")
+              if (errorObj.message && !Object.keys(errorObj).some(key => 
+                ['email', 'password', 'confirmPassword', 'fullName', 'deliveryPhone', 'phone', 'dob', 'howDidYouFindUs'].includes(key)
+              )) {
+                // This is a general error, not field-specific
+                setError(errorObj.message);
+              }
+            } else if (typeof errorData === 'string') {
+              // Handle string error messages
+              setError(errorData);
+            }
+            
+            // Don't clear the form - let the user see their input and fix errors
+            // The form will show validation errors for specific fields
           },
           onSettled() {
             setLoading(false);
           },
         }
       );
+    };
+    
+    const handleResetForm = () => {
+      // Show confirmation dialog
+      if (confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
+        reset();
+        clearErrors();
+        // Clear stored form data
+        AsyncStorage.removeItem('individualFormData').catch(console.log);
+        setSuccess('Form cleared successfully');
+      }
+    };
+    
+    const clearField = (fieldName: keyof IndividualRegFormType) => {
+      setValue(fieldName, '');
+      clearErrors(fieldName);
+    };
+    
+    const saveProgress = async () => {
+      try {
+        setLoading(true);
+        const currentValues = getValues();
+        await AsyncStorage.setItem('individualFormData', JSON.stringify(currentValues));
+        setSuccess('Progress saved successfully!');
+      } catch (error) {
+        setError('Failed to save progress');
+      } finally {
+        setLoading(false);
+      }
     };
     
     return (
@@ -257,6 +579,7 @@ export default function SignUp() {
             <ControlledCustomInput<IndividualRegFormType>
               name="dob"
               placeholder="Date of birth (optional)"
+              description="Use format: YYYY-MM-DD (e.g., 1990-12-25)"
               control={control}
             />
           </MotiView>
@@ -304,10 +627,17 @@ export default function SignUp() {
           
           {/* Bottom section with button */}
           <View className="mt-auto pt-8">
+            {loading && (
+              <View className="mb-4">
+                <ProgressBar ref={progressRef} className="w-full" />
+                <Text className="text-center mt-2 text-sm opacity-75">Creating your account...</Text>
+              </View>
+            )}
             <CustomButton
-              label="Create account"
+              label={loading ? "Creating account..." : "Create account"}
               onPress={handleSubmit(onSubmit)}
               loading={loading}
+              disabled={loading}
             />
             <Pressable
               className="mt-2 flex-row self-center"

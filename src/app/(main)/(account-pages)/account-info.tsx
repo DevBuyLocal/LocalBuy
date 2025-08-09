@@ -142,18 +142,39 @@ const Default = ({
 
 /* EDIT PROFILE SECTION - ALLOWS USER TO UPDATE PERSONAL INFORMATION */
 const Edit = () => {
-  const { user } = useAuth();
-  const { refetch } = useGetUser();
+  const { data: user, refetch } = useGetUser();
   const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
   });
   const [details, setDetails] = React.useState({
-    fullName: user?.profile?.fullName,
-    email: user?.email,
-    phoneNumber: user?.profile?.deliveryPhone,
+    fullName: '',
+    email: '',
+    phoneNumber: '',
   });
   const [fullNameError, setFullNameError] = React.useState<string | null>(null);
   const [phoneNumberError, setPhoneNumberError] = React.useState<string | null>(null);
+  
+  // Update details when user data changes
+  React.useEffect(() => {
+    console.log('🔍 Edit component - user data:', user);
+    console.log('🔍 Edit component - user.profile:', user?.profile);
+    console.log('🔍 Edit component - user.profile.deliveryPhone:', user?.profile?.deliveryPhone);
+    console.log('🔍 Edit component - user.phoneNumber:', user?.phoneNumber);
+    console.log('🔍 Edit component - user.defaultAddress.phoneNumber:', user?.defaultAddress?.phoneNumber);
+    
+    if (user) {
+      setDetails({
+        fullName: user.profile?.fullName || '',
+        email: user.email || '',
+        phoneNumber: user.defaultAddress?.phoneNumber || user.phoneNumber || user.profile?.deliveryPhone || '',
+      });
+      console.log('🔍 Edit component - details set:', {
+        fullName: user.profile?.fullName || '',
+        email: user.email || '',
+        phoneNumber: user.defaultAddress?.phoneNumber || user.phoneNumber || user.profile?.deliveryPhone || '',
+      });
+    }
+  }, [user]);
   
   // Handle full name changes with validation
   const handleFullNameChange = (text: string) => {

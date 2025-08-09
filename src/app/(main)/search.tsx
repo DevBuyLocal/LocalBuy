@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import debounce from 'lodash.debounce';
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
+import { useLocalSearchParams } from 'expo-router';
 
 import { useGetProducts } from '@/api';
 import { useSearchProducts } from '@/api/product/use-search-products';
@@ -22,8 +23,9 @@ import {
 import { useUtility, UtilitySelector } from '@/lib/utility';
 
 function Search() {
-  const [search, setSearch] = React.useState<string>('');
-  const [searchTerm, setSearchTerm] = React.useState<string>('');
+  const { q } = useLocalSearchParams<{ q: string }>();
+  const [search, setSearch] = React.useState<string>(q || '');
+  const [searchTerm, setSearchTerm] = React.useState<string>(q || '');
   const [focused, setIsFocused] = React.useState<boolean>(false);
   const { addToRecent, recent_search, clearRecent } =
     useUtility(UtilitySelector);
@@ -38,14 +40,22 @@ function Search() {
   const { data: searchResult, isFetching: searchIsFetching } =
     useSearchProducts({ query: searchTerm })();
   const result = React.useMemo(
-    () => searchResult?.pages[0] || [],
+    () => searchResult?.pages[0]?.data || [],
     [searchResult]
   );
+  
   const products = React.useMemo(
-    () => (Boolean(result.length) ? result : prods) || [],
-    [result, prods]
+    () => {
+      // If we have a search term and are actively searching, only show search results
+      if (searchTerm.trim()) {
+        return result || [];
+      }
+      // If no search term, show default products
+      return prods || [];
+    },
+    [result, prods, searchTerm]
   );
-  const resultAvailable = Boolean(result.length && search && !searchIsFetching);
+  const resultAvailable = Boolean(searchTerm.trim() && result.length > 0 && !searchIsFetching);
   const handleSearch = React.useCallback(
     (term: string) => {
       setSearchTerm(term);
@@ -57,6 +67,15 @@ function Search() {
     () => debounce(handleSearch, 800),
     [handleSearch]
   );
+  
+  // Trigger search when component mounts with query parameter
+  React.useEffect(() => {
+    if (q && q.trim()) {
+      setSearchTerm(q.trim());
+      addToRecent(q.trim());
+    }
+  }, [q, addToRecent]);
+  
   React.useEffect(() => {
     return () => {
       debouncedHandleSearch.cancel();
@@ -161,14 +180,26 @@ function Search() {
               onPress={filterPresent}
             >
               <Ionicons name="filter-sharp" size={20} color="#black" />
-              <Text className="opacity-65">Filter</Text>
+              <Text className="text-[#121212BF]">Filter</Text>
             </Pressable>
           </View>
         )}
+        
+        {searchTerm.trim() && !searchIsFetching && result.length === 0 && (
+          <View className="my-10 items-center">
+            <Text className="text-[18px] font-medium text-[#121212BF] mb-2">
+              No products found
+            </Text>
+            <Text className="text-[14px] text-[#12121280] text-center">
+              Try adjusting your search terms or browse our categories
+            </Text>
+          </View>
+        )}
+        
         <GridProducts
           items={products}
-          isLoading={isFetching}
-          ListFooterComponent={ListFooterComponent}
+          isLoading={searchTerm.trim() ? searchIsFetching : isFetching}
+          ListFooterComponent={searchTerm.trim() ? undefined : ListFooterComponent}
         />
       </Container.Box>
       <FilterModal ref={filterRef} dismiss={filterDismiss} />

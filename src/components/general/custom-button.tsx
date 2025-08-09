@@ -8,7 +8,7 @@ interface TCustomButton extends Partial<BProps & RefAttributes<View>> {
 }
 
 function CustomButton(props: TCustomButton) {
-  const { label, containerClassname, ...rest } = props;
+  const { label, containerClassname, textClassName, ...rest } = props;
   return (
     <Button
       label={label}
@@ -16,7 +16,7 @@ function CustomButton(props: TCustomButton) {
         'h-[55px] items-center  justify-center rounded-[4px] border border-primaryText dark:bg-primaryText bg-primaryText disabled:opacity-60',
         containerClassname
       )}
-      textClassName="text-white dark:text-[#fff] text-[16px] font-regular"
+      textClassName={textClassName || "text-white dark:text-[#fff] text-[16px] font-regular"}
       indicatorClassName="text-white dark:text-[#fff]"
       {...rest}
     />
@@ -24,7 +24,7 @@ function CustomButton(props: TCustomButton) {
 }
 
 CustomButton.Secondary = (props: TCustomButton) => {
-  const { label, containerClassname, ...rest } = props;
+  const { label, containerClassname, textClassName, ...rest } = props;
 
   return (
     <Button
@@ -33,7 +33,7 @@ CustomButton.Secondary = (props: TCustomButton) => {
         'h-[55px] items-center justify-center rounded-[4px] border border-black bg-white disabled:opacity-60',
         containerClassname
       )}
-      textClassName="text-black text-[16px] items-center"
+      textClassName={textClassName || "text-black text-[16px] items-center"}
       indicatorClassName="text-primaryText"
       {...rest}
     />

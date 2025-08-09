@@ -1,11 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Modal, Pressable } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, Share, Alert } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 
 import { useGetUser } from '@/api';
-import { useGetSingleOrder } from '@/api/order/use-get-single-order';
+import { useGetSingleOrder, useGeneratePaymentLink } from '@/api/order';
 import { useInitializePayment } from '@/api/order/use-initialize-payment';
 import { useVerifyPayment } from '@/api/order/use-verify-payment';
 import Container from '@/components/general/container';
@@ -29,9 +29,63 @@ function Checkout() {
   const [isPartialPayment, setIsPartialPayment] = React.useState(false);
   const [showDeliveryDropdown, setShowDeliveryDropdown] = React.useState(false);
   const [showCalculatingModal, setShowCalculatingModal] = React.useState(false);
+  
+  // Payment Link states
+  const [showPaymentLinkModal, setShowPaymentLinkModal] = React.useState(false);
+  const [paymentLinkData, setPaymentLinkData] = React.useState<{
+    orderId: string | number;
+    amount: string | number;
+    paymentLink: string;
+    expiresAt: string;
+    customerName: string;
+    formattedAmount: string;
+    orderNumber: string;
+    remainingMinutes: number;
+    shareMessage: string;
+  } | null>(null);
+  
+  // Countdown timer state
+  const [countdown, setCountdown] = React.useState<{
+    minutes: number;
+    seconds: number;
+  }>({ minutes: 0, seconds: 0 });
+
+  // Countdown timer effect
+  React.useEffect(() => {
+    if (!showPaymentLinkModal || !paymentLinkData?.remainingMinutes) return;
+
+    // Initialize countdown with remaining minutes
+    setCountdown({
+      minutes: paymentLinkData.remainingMinutes,
+      seconds: 0,
+    });
+
+    // Update countdown every second
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev.minutes === 0 && prev.seconds === 0) {
+          // Timer expired
+          clearInterval(interval);
+          return { minutes: 0, seconds: 0 };
+        }
+
+        if (prev.seconds === 0) {
+          // Move to next minute
+          return { minutes: prev.minutes - 1, seconds: 59 };
+        } else {
+          // Decrease seconds
+          return { minutes: prev.minutes, seconds: prev.seconds - 1 };
+        }
+      });
+    }, 1000);
+
+    // Cleanup interval on unmount or when modal closes
+    return () => clearInterval(interval);
+  }, [showPaymentLinkModal, paymentLinkData?.remainingMinutes]);
 
   const { replace } = useRouter();
   const { data: user, isLoading: userLoading, refetch } = useGetUser();
+  
   const { setError, loading, setLoading, setSuccess } = useLoader({
     showLoadingPage: true,
   });
@@ -42,6 +96,26 @@ function Checkout() {
   } = useModal();
 
   const webViewRef = React.useRef<WebView>(null);
+  
+  // Payment Link mutation
+  const { mutate: generatePaymentLink, isPending: isGeneratingLink } = useGeneratePaymentLink();
+
+  // Handle timer expiration
+  React.useEffect(() => {
+    if (countdown.minutes === 0 && countdown.seconds === 0 && showPaymentLinkModal && !isGeneratingLink) {
+      // Timer expired, show alert only if we're not generating a new link
+      Alert.alert(
+        'Payment Link Expired',
+        'The payment link has expired. Please generate a new one.',
+        [
+          {
+            text: 'OK',
+            onPress: () => setShowPaymentLinkModal(false),
+          },
+        ]
+      );
+    }
+  }, [countdown, showPaymentLinkModal, isGeneratingLink]);
 
   const {
     orderId,
@@ -59,17 +133,6 @@ function Checkout() {
     Number(orderId)
   )();
 
-  // Debug logging
-  // console.log('🔍 Checkout Debug:', {
-  //   orderId,
-  //   orderIdType: typeof orderId,
-  //   passedPrice: price,
-  //   passedPriceType: typeof price,
-  //   orderData: order,
-  //   orderTotalPrice: order?.order?.totalPrice,
-  //   finalPrice: order?.order?.totalPrice || price,
-  // });
-
   // Use order total price if available, otherwise use passed price
   const calculatedTotal = order?.order?.totalPrice || 0;
   // order?.order?.items?.reduce(
@@ -80,7 +143,6 @@ function Checkout() {
   // Split payment calculation for Pay on Delivery
   const isSplitPayment = selectedPaymentMethod === 'payOnDelivery';
   const deliveryFee = order?.order?.shipping?.totalShippingFee || 1000; // Fixed delivery fee
-  console.log('🚀 ~ Checkout ~ deliveryFee:', order?.order);
 
   const displayPrice =
     (order?.order?.amountDue || Number(price) || 0) - deliveryFee;
@@ -97,32 +159,6 @@ function Checkout() {
   //   : displayPrice;
   const amountToPayNow = isSplitPayment ? deliveryFee : calculatedTotal;
   // const remainingOnDelivery = isSplitPayment ? productPrice : 0;
-
-  // Additional debug for price comparison
-  // console.log('💰 Checkout Price Debug:', {
-  //   orderTotalPrice: order?.order?.totalPrice,
-  //   passedPrice: price,
-  //   passedProductPrice,
-  //   calculatedTotal,
-  //   displayPrice,
-  //   isSplitPayment,
-  //   productPrice,
-  //   totalOrderValue,
-  //   amountToPayNow,
-  //   remainingOnDelivery,
-  //   orderItems: order?.order?.items?.length || 0,
-  //   orderItemsDetails:
-  //     order?.order?.items?.map((item) => ({
-  //       productName: item.product?.name,
-  //       quantity: item.quantity,
-  //       price: item.price,
-  //       total: item.price * item.quantity,
-  //     })) || [],
-  //   priceSource:
-  //     calculatedTotal > 0
-  //       ? 'calculated from items'
-  //       : 'order total or passed price',
-  // });
 
   // Get the current address to display
   const currentAddress = React.useMemo(() => {
@@ -147,24 +183,6 @@ function Checkout() {
     user?.profile?.address,
     user?.phoneNumber,
   ]);
-
-  // Debug user data
-  // console.log('🔍 Checkout User Debug:', {
-  //   userType: user?.type,
-  //   userProfile: user?.profile,
-  //   individualAddress: user?.profile?.address,
-  //   businessAddress: user?.profile?.businessAddress,
-  //   defaultAddress: user?.defaultAddress,
-  //   currentAddress,
-  //   selectedAddress,
-  // });
-
-  // Debug modal state
-  // console.log('🔍 Checkout Modal State:', {
-  //   showAddressModal,
-  //   selectedAddress,
-  //   currentAddress,
-  // });
 
   // Handle address selection
   const handleAddressSaved = (address: string) => {
@@ -224,10 +242,8 @@ function Checkout() {
       setShowModal(true);
     },
     onError: (error) => {
-      setError(error?.response?.data);
-    },
-    onSettled: () => {
-      setLoading(false);
+      console.log('❌ Payment initialization error:', error);
+      Alert.alert('Error', 'Failed to initialize payment');
     },
   });
   const { mutate: verifyMutate, isPending: verifyIsPending } = useVerifyPayment(
@@ -283,6 +299,95 @@ function Checkout() {
     },
     [setError]
   );
+
+  // Payment Link handlers
+  const handleGeneratePaymentLink = () => {
+    if (!orderId) {
+      Alert.alert('Error', 'Order ID not found');
+      return;
+    }
+    
+    console.log('🔍 handleGeneratePaymentLink - orderId:', orderId);
+    console.log('🔍 handleGeneratePaymentLink - orderId type:', typeof orderId);
+    console.log('🔍 About to call generatePaymentLink mutation');
+    
+    // Clear any expired state and reset countdown
+    setCountdown({ minutes: 0, seconds: 0 });
+    
+    // Close the modal to give a fresh start
+    setShowPaymentLinkModal(false);
+    
+    generatePaymentLink(
+      { orderId },
+      {
+        onSuccess: (data) => {
+          console.log('🔍 Payment link success data:', data);
+          console.log('🔍 Setting payment link data:', data.data);
+          
+          // Reset countdown timer for new payment link
+          setCountdown({
+            minutes: data.data?.expirationInfo?.remainingMinutes || 0,
+            seconds: 0,
+          });
+          
+          // Extract the correct data structure from the API response
+          const paymentData = {
+            orderId: data.data?.orderInfo?.orderId || 'N/A',
+            amount: data.data?.orderInfo?.amountDue || 'N/A',
+            paymentLink: data.data?.paymentLink || 'N/A',
+            expiresAt: data.data?.expirationInfo?.expiresAt || 'N/A',
+            customerName: data.data?.orderInfo?.customerName || 'N/A',
+            formattedAmount: data.data?.orderInfo?.formattedAmount || 'N/A',
+            orderNumber: data.data?.orderInfo?.orderNumber || 'N/A',
+            remainingMinutes: data.data?.expirationInfo?.remainingMinutes || 0,
+            shareMessage: data.data?.shareInfo?.message || 'Payment link generated successfully',
+          };
+          
+          console.log('🔍 Extracted payment data:', paymentData);
+          console.log('🔍 Setting modal to show');
+          
+          setPaymentLinkData(paymentData);
+          setShowPaymentLinkModal(true);
+          
+          console.log('🔍 Modal state should now be true');
+        },
+        onError: (error: any) => {
+          console.log('❌ Payment link generation error:', error);
+          console.log('❌ Error response:', error?.response);
+          console.log('❌ Error data:', error?.response?.data);
+          console.log('❌ Error message:', error?.response?.data?.message);
+          Alert.alert('Error', error?.response?.data?.message || 'Failed to generate payment link');
+        },
+      }
+    );
+    
+    console.log('🔍 generatePaymentLink mutation called');
+  };
+
+  const handleSharePaymentLink = async () => {
+    if (!paymentLinkData?.paymentLink) return;
+    
+    try {
+      await Share.share({
+        message: `${paymentLinkData.shareMessage}\n\nPayment Link: ${paymentLinkData.paymentLink}`,
+        title: 'Pay for My Order',
+      });
+    } catch (error) {
+      console.log('Error sharing payment link:', error);
+    }
+  };
+
+  const handleCopyPaymentLink = async () => {
+    if (!paymentLinkData?.paymentLink) return;
+    
+    try {
+      // For React Native, you might need to use a clipboard library
+      // For now, we'll show an alert
+      Alert.alert('Link Copied!', 'Payment link has been copied to clipboard');
+    } catch (error) {
+      console.log('Error copying payment link:', error);
+    }
+  };
 
   const handleMessageReceived = React.useCallback(
     (data: string) => {
@@ -599,6 +704,14 @@ function Checkout() {
       </ScrollView>
       <View className="absolute bottom-12 w-[90%] self-center">
         <CustomButton
+          label="Pay for Me"
+          onPress={handleGeneratePaymentLink}
+          loading={isGeneratingLink}
+          variant="outline"
+          className="mb-3 h-[55px] border-orange-500"
+          textClassName="text-orange-500"
+        />
+        <CustomButton
           label="Continue"
           onPress={handlePayment}
           loading={loading || isPending || verifyIsPending}
@@ -710,6 +823,103 @@ function Checkout() {
         dismiss={dismissAddressModal}
         refetch={refetch}
       />
+
+      {/* Payment Link Modal */}
+      {showPaymentLinkModal && paymentLinkData && (
+        <Modal
+          visible={showPaymentLinkModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowPaymentLinkModal(false)}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 px-4">
+            <View className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+              <View className="p-4">
+                <Text className="text-lg font-semibold text-center mb-4">
+                  Payment Link Generated
+                </Text>
+                
+                <View className="mb-4">
+                  <Text className="text-sm text-gray-600 mb-2">Order Details:</Text>
+                  <Text className="text-base font-medium">
+                    Order #{paymentLinkData.orderNumber} - {paymentLinkData.customerName}
+                  </Text>
+                  <Text className="text-lg font-bold text-green-600">
+                    {paymentLinkData.formattedAmount}
+                  </Text>
+                  <View className="flex-row items-center space-x-2">
+                    <Text className="text-sm text-gray-500">
+                      Expires in {countdown.minutes} minutes
+                    </Text>
+                    <View className={`px-2 py-1 rounded ${
+                      countdown.minutes === 0 && countdown.seconds === 0 
+                        ? 'bg-red-200' 
+                        : countdown.minutes < 5 
+                        ? 'bg-orange-100' 
+                        : 'bg-red-100'
+                    }`}>
+                      <Text className={`text-sm font-mono ${
+                        countdown.minutes === 0 && countdown.seconds === 0 
+                          ? 'text-red-800' 
+                          : countdown.minutes < 5 
+                          ? 'text-orange-600' 
+                          : 'text-red-600'
+                      }`}>
+                        {countdown.minutes === 0 && countdown.seconds === 0 
+                          ? 'EXPIRED' 
+                          : `${countdown.minutes.toString().padStart(2, '0')}:${countdown.seconds.toString().padStart(2, '0')}`
+                        }
+                      </Text>
+                    </View>
+                  </View>
+                  {countdown.minutes < 5 && countdown.minutes > 0 && (
+                    <Text className="text-xs text-orange-600 mt-1">
+                      ⚠️ Payment link expires soon!
+                    </Text>
+                  )}
+                  {countdown.minutes === 0 && countdown.seconds === 0 && (
+                    <Text className="text-xs text-red-600 mt-1">
+                      ❌ Payment link has expired
+                    </Text>
+                  )}
+                </View>
+
+                <View className="mb-4">
+                  <Text className="text-sm text-gray-600 mb-2">Payment Link:</Text>
+                  <Text className="text-xs text-gray-700 bg-gray-100 p-2 rounded">
+                    {paymentLinkData.paymentLink}
+                  </Text>
+                </View>
+
+                <View className="flex-row space-x-3">
+                  <CustomButton
+                    label="Share Link"
+                    onPress={handleSharePaymentLink}
+                    className="flex-1 border-gray-300"
+                    textClassName="text-gray-700"
+                    variant="outline"
+                  />
+                  <CustomButton
+                    label="Copy Link"
+                    onPress={handleCopyPaymentLink}
+                    className="flex-1 border-gray-300 ml-3"
+                    textClassName="text-gray-700"
+                    variant="outline"
+                  />
+                </View>
+
+                <CustomButton
+                  label="Close"
+                  onPress={() => setShowPaymentLinkModal(false)}
+                  variant="outline"
+                  className="w-full border-orange-500"
+                  textClassName="text-orange-500"
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </Container.Page>
   );
 }

@@ -14,7 +14,27 @@ export type PaginateQueryProduct<T> = {
     currentPage: number;
   };
 };
-type Response = TProduct[];
+
+type SearchApiResponse = {
+  data: TProduct[];
+  success: boolean;
+  message: string;
+  searchQuery: string;
+  filters: {
+    sortBy: string;
+    sortOrder: string;
+  };
+  pagination: {
+    totalProducts: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+};
+
+type Response = SearchApiResponse;
 // type Response = PaginateQueryProduct<TProduct>;
 type Variables = {
   query?: string;
