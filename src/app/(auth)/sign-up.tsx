@@ -157,7 +157,7 @@ export default function SignUp() {
               progressRef.current.setProgress(0);
             }
             const errorData = error?.response?.data;
-            setError(errorData);
+            // Avoid generic top-level error; show field-level errors instead
             
             // Handle field-specific validation errors from server
             if (errorData && typeof errorData === 'object' && errorData !== null) {
@@ -196,12 +196,10 @@ export default function SignUp() {
               if (errorObj.message && !Object.keys(errorObj).some(key => 
                 ['email', 'password', 'confirmPassword', 'fullName', 'businessName', 'businessPhone', 'cac', 'howDidYouFindUs'].includes(key)
               )) {
-                // This is a general error, not field-specific
-                setError(errorObj.message);
+                // Optionally map to a field if appropriate; otherwise ignore
               }
             } else if (typeof errorData === 'string') {
-              // Handle string error messages
-              setError(errorData);
+              // Optionally show as a field-level error if we can infer a field, otherwise ignore
             }
             
             // Don't clear the form - let the user see their input and fix errors
@@ -268,6 +266,7 @@ export default function SignUp() {
               name="businessName"
               placeholder="Business name"
               control={control}
+              onChangeText={(text) => setValue('businessName', text.replace(/[^a-zA-Z0-9\s]/g, ''))}
             />
             <ControlledCustomInput<BusinessRegFormType>
               name="businessPhone"
@@ -465,7 +464,7 @@ export default function SignUp() {
               progressRef.current.setProgress(0);
             }
             const errorData = error?.response?.data;
-            setError(errorData);
+            // Avoid generic top-level error; show field-level errors instead
             
             // Handle field-specific validation errors from server
             if (errorData && typeof errorData === 'object' && errorData !== null) {
@@ -501,12 +500,10 @@ export default function SignUp() {
               if (errorObj.message && !Object.keys(errorObj).some(key => 
                 ['email', 'password', 'confirmPassword', 'fullName', 'deliveryPhone', 'phone', 'dob', 'howDidYouFindUs'].includes(key)
               )) {
-                // This is a general error, not field-specific
-                setError(errorObj.message);
+                // Optionally map to a field if appropriate; otherwise ignore
               }
             } else if (typeof errorData === 'string') {
-              // Handle string error messages
-              setError(errorData);
+              // Optionally show as a field-level error if we can infer a field, otherwise ignore
             }
             
             // Don't clear the form - let the user see their input and fix errors

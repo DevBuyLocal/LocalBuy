@@ -7,8 +7,10 @@ import StepIndicator from 'react-native-step-indicator';
 
 import { useGetAllOrders } from '@/api/order/use-get-all-order';
 import { useGetSingleOrder } from '@/api/order/use-get-single-order';
+import { useTrackOrder } from '@/api/order';
 import Container from '@/components/general/container';
 import { Image, Pressable, Text, View } from '@/components/ui';
+import { Env } from '@env';
 
 export default function TrackOrder() {
   const {
@@ -24,6 +26,9 @@ export default function TrackOrder() {
     isLoading,
     error,
   } = useGetSingleOrder(Number(orderId))();
+
+  // Live tracking from backend
+  const { data: trackData, isLoading: trackingLoading, error: trackingError } = useTrackOrder({ variables: { orderId: Number(orderId) } });
   // console.log('🚀 ~ TrackOrder ~ singleOrderData:', singleOrderData);
 
   // Fallback: Try to get order from all orders list
@@ -57,71 +62,37 @@ export default function TrackOrder() {
   const paidAmount = isSplitPayment ? deliveryFee : totalOrderValue;
   const remainingAmount = isSplitPayment ? productPrice : 0;
 
-  // Determine the current step based on order status
+  // Determine the current step based on backend tracking status (4 steps)
   const getCurrentStep = () => {
-    const orderStatus = orderData?.status;
-    const isScheduled = !!orderData?.scheduledDate; // Check for non-null scheduledDate
-
-    // For scheduled orders, use 6 steps with "Awaiting Payment" as step 0
-    if (isScheduled) {
-      switch (orderStatus) {
-        case 'PENDING':
-          return 0; // Awaiting Payment
-        case 'PLACED':
-          return 1; // Order Placed
-        case 'PROCESSING':
-          return 2; // Order Processing
-        case 'READY_TO_SHIP':
-          return 3; // Ready to Ship
-        case 'OUT_FOR_DELIVERY':
-          return 4; // Out for delivery
-        case 'DELIVERED':
-          return 5; // Delivered
-        default:
-          return 0; // Default to Awaiting Payment for scheduled orders
-      }
-    }
-
-    // For regular orders, use 5 steps
-    switch (orderStatus) {
+    const backendStatus = (trackData?.order?.status || orderData?.status || 'PENDING') as string;
+    const status = backendStatus.toUpperCase();
+    switch (status) {
       case 'PENDING':
+      case 'PLACED':
+      case 'ORDER_PLACED':
         return 0; // Order Placed
       case 'PROCESSING':
-        return 1; // Order Processing
+        return 1; // Processing
       case 'READY_TO_SHIP':
-        return 2; // Ready to Ship
+      case 'SHIPPED':
       case 'OUT_FOR_DELIVERY':
-        return 3; // Out for delivery
+        return 2; // Shipped
       case 'DELIVERED':
-        return 4; // Delivered
+        return 3; // Delivered
       default:
-        return 0; // Default to Order Placed
+        return 0;
     }
   };
 
   const currentStep = getCurrentStep();
-  const isScheduled = !!orderData?.scheduledDate;
-  const orderStatus = orderData?.status;
 
-  const labels = [
-    `Order Placed `,
-    `Order Processing`,
-    `Ready to Ship`,
-    `Out for delivery`,
-    `Delivered`,
+  const currentLabels = [
+    'Order Placed',
+    'Processing',
+    'Shipped',
+    'Delivered',
   ];
-
-  const scheduledLabels = [
-    `Awaiting Payment`,
-    `Order Placed`,
-    `Order Processing`,
-    `Ready to Ship`,
-    `Out for delivery`,
-    `Delivered`,
-  ];
-
-  const currentLabels = isScheduled ? scheduledLabels : labels;
-  const stepCount = isScheduled ? 6 : 5;
+  const stepCount = 4;
 
   // Debug logging for track order
   // console.log('🔍 Track Order Debug:', {
@@ -193,44 +164,44 @@ export default function TrackOrder() {
               Order Details
             </Text>
 
-            {/* Show payment status for scheduled orders */}
-            {isScheduled && orderStatus === 'PENDING' && (
+            {/* Optional pending payment note */}
+            {((trackData?.order?.status || orderData?.status) === 'PENDING') && (
               <View className="mb-3 rounded-lg border border-orange-200 bg-orange-50 p-3">
-                <Text className="text-[14px] font-semibold text-orange-700">
-                  ⏳ Awaiting Payment
-                </Text>
-                <Text className="mt-1 text-[12px] text-orange-600">
-                  Please complete payment to proceed with your order
-                </Text>
+                <Text className="text-[14px] font-semibold text-orange-700">⏳ Awaiting Payment</Text>
+                <Text className="mt-1 text-[12px] text-orange-600">Please complete payment to proceed with your order</Text>
               </View>
             )}
 
             {/* Product Details */}
             <View className="space-y-3">
-              {orderData?.items?.map((item: any, index: number) => (
-                <View key={index} className="flex-row items-center space-x-3">
-                  <Image
-                    source={
-                      item?.product?.image?.[0]
-                        ? { uri: item.product.image[0] }
-                        : require('../../../assets/images/img-p-holder.png')
-                    }
-                    className="size-12 rounded-lg"
-                    contentFit="cover"
-                  />
-                  <View className="flex-1">
-                    <Text className="text-[14px] font-medium" numberOfLines={2}>
-                      {item?.product?.name || 'Product'}
-                    </Text>
-                    <Text className="text-[12px] text-gray-500">
-                      {item?.selectedOption} • Qty: {item?.quantity}
+              {orderData?.items?.map((item: any, index: number) => {
+                const img = (item?.productOption?.image?.[0] || item?.product?.image?.[0]) as string | undefined;
+                const absolute = img && /^https?:\/\//i.test(img) ? img : (img ? `${Env.API_URL?.replace(/\/$/, '')}${img.startsWith('/') ? img : `/${img}`}` : undefined);
+                return (
+                  <View key={index} className="flex-row items-center space-x-3">
+                    <Image
+                      source={
+                        absolute
+                          ? { uri: absolute }
+                          : require('../../../assets/images/img-p-holder.png')
+                      }
+                      className="size-12 rounded-lg"
+                      contentFit="cover"
+                    />
+                    <View className="flex-1">
+                      <Text className="text-[14px] font-medium" numberOfLines={2}>
+                        {item?.product?.name || 'Product'}
+                      </Text>
+                      <Text className="text-[12px] text-gray-500">
+                        {item?.selectedOption} • Qty: {item?.quantity}
+                      </Text>
+                    </View>
+                    <Text className="text-[14px] font-semibold">
+                      N{(item?.price * item?.quantity)?.toLocaleString()}
                     </Text>
                   </View>
-                  <Text className="text-[14px] font-semibold">
-                    N{(item?.price * item?.quantity)?.toLocaleString()}
-                  </Text>
-                </View>
-              ))}
+                );
+              })}
             </View>
 
             {/* Total Price */}
@@ -285,14 +256,6 @@ export default function TrackOrder() {
               )}
 
               {/* Scheduled Date for Scheduled Orders */}
-              {isScheduled && orderData?.scheduledDate && (
-                <View className="mt-2 border-t border-gray-100 pt-2">
-                  <Text className="text-[12px] text-gray-500">
-                    Scheduled for:{' '}
-                    {new Date(orderData.scheduledDate).toLocaleDateString()}
-                  </Text>
-                </View>
-              )}
             </View>
           </View>
         </Container.Box>
@@ -325,35 +288,6 @@ export default function TrackOrder() {
             </View>
           ) : (
             <>
-              {/* Payment Button for Pending Scheduled Orders */}
-              {isScheduled && orderStatus === 'PENDING' && (
-                <View className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                  <Text className="mb-2 text-[14px] font-semibold text-blue-700">
-                    Complete Payment to Continue
-                  </Text>
-                  <Text className="mb-3 text-[12px] text-blue-600">
-                    Your order is scheduled but payment is pending. Complete
-                    payment to proceed with delivery.
-                  </Text>
-                  <Pressable
-                    className="rounded-lg bg-blue-600 px-4 py-2"
-                    onPress={() => {
-                      // Navigate to payment page with order details
-                      const paymentPrice = price
-                        ? Number(price)
-                        : orderData?.totalPrice;
-                      const productPrice = orderData?.totalPrice || 0;
-                      push(
-                        `/checkout?orderId=${orderId}&price=${paymentPrice}&scheduledDate=${orderData?.scheduledDate}&paymentMethod=${paymentMethod || 'payNow'}&productPrice=${productPrice}`
-                      );
-                    }}
-                  >
-                    <Text className="text-center font-semibold text-white">
-                      Pay Now
-                    </Text>
-                  </Pressable>
-                </View>
-              )}
 
               {/* Step Indicator */}
               <View className="h-[350px]">
@@ -364,127 +298,67 @@ export default function TrackOrder() {
                   labels={currentLabels}
                   stepCount={stepCount}
                   direction="vertical"
+                  renderLabel={({ position, stepStatus }) => (
+                    <View
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        marginLeft: 12,
+                        minHeight: 50,
+                      }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={{
+                          fontSize: 13,
+                          lineHeight: 16,
+                          color: stepStatus === 'current' ? '#0F3D30' : '#999999',
+                        }}
+                      >
+                        {currentLabels[position]}
+                      </Text>
+                    </View>
+                  )}
                   renderStepIndicator={({ position, stepStatus }) => {
-                    // Enhanced icons for scheduled orders
-                    if (isScheduled) {
-                      switch (position) {
-                        case 0:
-                          return (
-                            <MaterialCommunityIcons
-                              name="credit-card-outline"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 1:
-                          return (
-                            <MaterialCommunityIcons
-                              name="shopping-outline"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 2:
-                          return (
-                            <MaterialCommunityIcons
-                              name="cart-check"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 3:
-                          return (
-                            <MaterialCommunityIcons
-                              name="package-variant"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 4:
-                          return (
-                            <MaterialCommunityIcons
-                              name="truck-delivery"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 5:
-                          return (
-                            <MaterialCommunityIcons
-                              name="check-circle"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                      }
-                    } else {
-                      // Regular order icons
-                      switch (position) {
-                        case 0:
-                          return (
-                            <MaterialCommunityIcons
-                              name="shopping-outline"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 1:
-                          return (
-                            <SimpleLineIcons
-                              name="basket-loaded"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 2:
-                          return (
-                            <MaterialCommunityIcons
-                              name="cart-check"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 3:
-                          return (
-                            <MaterialCommunityIcons
-                              name="golf-cart"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                        case 4:
-                          return (
-                            <MaterialCommunityIcons
-                              name="truck-delivery"
-                              size={24}
-                              color={
-                                stepStatus === 'current' ? '#0F3D30' : '#fff'
-                              }
-                            />
-                          );
-                      }
+                    switch (position) {
+                      case 0:
+                        return (
+                          <MaterialCommunityIcons
+                            name="shopping-outline"
+                            size={24}
+                            color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                          />
+                        );
+                      case 1:
+                        return (
+                          <SimpleLineIcons
+                            name="basket-loaded"
+                            size={24}
+                            color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                          />
+                        );
+                      case 2:
+                        return (
+                          <MaterialCommunityIcons
+                            name="truck-delivery"
+                            size={24}
+                            color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                          />
+                        );
+                      case 3:
+                        return (
+                          <MaterialCommunityIcons
+                            name="check-circle"
+                            size={24}
+                            color={stepStatus === 'current' ? '#0F3D30' : '#fff'}
+                          />
+                        );
+                      default:
+                        return <></>;
                     }
-                    return <></>;
                   }}
                 />
               </View>

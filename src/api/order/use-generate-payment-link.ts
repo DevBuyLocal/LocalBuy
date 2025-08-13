@@ -17,6 +17,8 @@ interface GeneratePaymentLinkResponse {
 
 interface GeneratePaymentLinkVariables {
   orderId: string;
+  amount?: number;
+  paymentType?: 'DELIVERY_FEE' | 'FULL';
 }
 
 export const useGeneratePaymentLink = () => {
@@ -25,14 +27,17 @@ export const useGeneratePaymentLink = () => {
       const response = await client({
         url: `api/orders/${variables.orderId}/payment-links`,
         method: 'POST',
-        data: {},
+        data: {
+          ...(variables.amount != null ? { amount: variables.amount } : {}),
+          ...(variables.paymentType ? { paymentType: variables.paymentType } : {}),
+        },
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken()?.access}`,
         },
       });
       
-      return response.data;
+      return response.data as GeneratePaymentLinkResponse;
     },
   });
 }; 

@@ -167,7 +167,7 @@ export default function DetailsModal({
     {
       title: (
         <View className="flex-row justify-between">
-          <Text className="text-[14px]">Description</Text>
+          <Text className="text-[14px]">View specific details</Text>
           <Entypo name="chevron-small-down" size={20} color="black" />
         </View>
       ),
@@ -237,41 +237,7 @@ export default function DetailsModal({
         </View>
       ),
     }] : []),
-    {
-      title: (
-        <View className="flex-row justify-between">
-          <Text
-            className={twMerge(
-              'text-[14px]',
-              selectedOption?.moq ? 'opacity-100' : 'opacity-55'
-            )}
-          >
-            Choose {selectedOption?.unit}
-          </Text>
-          <Entypo name="chevron-small-down" size={20} color="black" />
-        </View>
-      ),
-      content: (
-        <View className={twMerge('pt-5')}>
-          {item?.options?.map((e, i) => (
-            <View key={i.toString()} className="py-2">
-              <Radio.Root
-                checked={e.id === selectedOption?.id}
-                onChange={() => setSelectedOption(e)}
-                accessibilityLabel="radio button"
-                className="justify-between pb-2"
-              >
-                <Radio.Label
-                  text={e.value + ' ' + e.unit}
-                  className="text-[14px]"
-                />
-                <Radio.Icon checked={selectedOption?.id === e.id} />
-              </Radio.Root>
-            </View>
-          ))}
-        </View>
-      ),
-    },
+
     {
       title: (
         <View className="flex-row justify-between">

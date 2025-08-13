@@ -47,10 +47,9 @@ const addressSchema = z.object({
     }),
   postalCode: z
     .string({ required_error: 'Postal code is required' })
-    .min(3, { message: 'Postal code must be at least 3 characters' })
-    .max(10, { message: 'Postal code must be less than 10 characters' })
-    .regex(/^[0-9]+$/, { 
-      message: 'Postal code can only contain numbers' 
+    .max(7, { message: 'Postal code must be at most 7 digits' })
+    .regex(/^\d{0,7}$/, { 
+      message: 'Postal code can only contain up to 7 digits' 
     }),
   country: z
     .string({ required_error: 'Country is required' })
@@ -209,6 +208,7 @@ export default function AddressInput() {
                 name="postalCode"
                 placeholder="Postal code"
                 keyboardType="numeric"
+                maxLength={7}
                 control={control}
               />
             </View>

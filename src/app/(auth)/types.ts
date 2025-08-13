@@ -59,10 +59,14 @@ export const businessRegSchema = z
     businessName: z
       .string({ required_error: 'Business name is required' })
       .min(2, { message: 'Business name must be at least 2 characters long' })
-      .regex(/^[a-zA-Z\s]+$/, {
-        message: 'Business name can only contain letters and spaces',
+      .regex(/^[a-zA-Z0-9\s]+$/, {
+        message: 'Business name can only contain letters, numbers, and spaces',
       }),
-    cac: z.string().optional(),
+    cac: z
+      .string({ required_error: 'CAC number is required' })
+      .regex(/^(BN|RC)[A-Za-z0-9]+$/, {
+        message: 'CAC must start with BN or RC and contain only letters and numbers',
+      }),
     businessPhone: z
       .string({ required_error: 'Business phone is required' })
       .refine((phone) => {

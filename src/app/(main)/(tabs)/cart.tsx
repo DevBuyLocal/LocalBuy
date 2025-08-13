@@ -259,7 +259,7 @@ export default function Cart() {
     <View className="flex-1">
       <Container.Page
         showHeader
-        hideBackButton
+        backPress={() => push('/')} 
         headerTitle="My Cart"
         containerClassName="flex-1"
         rightHeaderIcon={

@@ -110,7 +110,7 @@ export default function Login() {
           />
           
           {/* Bottom section with button */}
-          <View className="mt-auto pt-8">
+          <View className="mt-14 pt-12">
             <CustomButton
               loading={loading}
               label="Continue"

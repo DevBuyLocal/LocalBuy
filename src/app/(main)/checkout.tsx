@@ -14,6 +14,7 @@ import LocationModal from '@/components/products/location-modal';
 import { colors, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import { useModal } from '@/components/ui/modal';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { replace } from 'expo-router/build/global-state/routing';
 
 // eslint-disable-next-line max-lines-per-function
 function Checkout() {
@@ -32,6 +33,7 @@ function Checkout() {
   
   // Payment Link states
   const [showPaymentLinkModal, setShowPaymentLinkModal] = React.useState(false);
+  const [isGeneratingNewLink, setIsGeneratingNewLink] = React.useState(false);
   const [paymentLinkData, setPaymentLinkData] = React.useState<{
     orderId: string | number;
     amount: string | number;
@@ -49,6 +51,24 @@ function Checkout() {
     minutes: number;
     seconds: number;
   }>({ minutes: 0, seconds: 0 });
+  const [countdownInitialized, setCountdownInitialized] = React.useState(false);
+
+  const { replace } = useRouter();
+  const { data: user, isLoading: userLoading, refetch } = useGetUser();
+  
+  const { setError, loading, setLoading, setSuccess } = useLoader({
+    showLoadingPage: true,
+  });
+  const {
+    ref: addressModalRef,
+    present: presentAddressModal,
+    dismiss: dismissAddressModal,
+  } = useModal();
+
+  const webViewRef = React.useRef<WebView>(null);
+  
+  // Payment Link mutation
+  const { mutate: generatePaymentLink, isPending: isGeneratingLink } = useGeneratePaymentLink();
 
   // Countdown timer effect
   React.useEffect(() => {
@@ -59,6 +79,7 @@ function Checkout() {
       minutes: paymentLinkData.remainingMinutes,
       seconds: 0,
     });
+    setCountdownInitialized(true);
 
     // Update countdown every second
     const interval = setInterval(() => {
@@ -80,42 +101,24 @@ function Checkout() {
     }, 1000);
 
     // Cleanup interval on unmount or when modal closes
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      setCountdownInitialized(false);
+    };
   }, [showPaymentLinkModal, paymentLinkData?.remainingMinutes]);
-
-  const { replace } = useRouter();
-  const { data: user, isLoading: userLoading, refetch } = useGetUser();
-  
-  const { setError, loading, setLoading, setSuccess } = useLoader({
-    showLoadingPage: true,
-  });
-  const {
-    ref: addressModalRef,
-    present: presentAddressModal,
-    dismiss: dismissAddressModal,
-  } = useModal();
-
-  const webViewRef = React.useRef<WebView>(null);
-  
-  // Payment Link mutation
-  const { mutate: generatePaymentLink, isPending: isGeneratingLink } = useGeneratePaymentLink();
 
   // Handle timer expiration
   React.useEffect(() => {
-    if (countdown.minutes === 0 && countdown.seconds === 0 && showPaymentLinkModal && !isGeneratingLink) {
-      // Timer expired, show alert only if we're not generating a new link
-      Alert.alert(
-        'Payment Link Expired',
-        'The payment link has expired. Please generate a new one.',
-        [
-          {
-            text: 'OK',
-            onPress: () => setShowPaymentLinkModal(false),
-          },
-        ]
-      );
+    if (
+      countdownInitialized &&
+      countdown.minutes === 0 &&
+      countdown.seconds === 0 &&
+      showPaymentLinkModal &&
+      !isGeneratingNewLink
+    ) {
+      setShowPaymentLinkModal(false);
     }
-  }, [countdown, showPaymentLinkModal, isGeneratingLink]);
+  }, [countdownInitialized, countdown, showPaymentLinkModal, isGeneratingNewLink]);
 
   const {
     orderId,
@@ -307,40 +310,52 @@ function Checkout() {
       return;
     }
     
-    console.log('🔍 handleGeneratePaymentLink - orderId:', orderId);
-    console.log('🔍 handleGeneratePaymentLink - orderId type:', typeof orderId);
-    console.log('🔍 About to call generatePaymentLink mutation');
-    
-    // Clear any expired state and reset countdown
-    setCountdown({ minutes: 0, seconds: 0 });
-    
+    // Prevent premature expiry handling during generation
+    setIsGeneratingNewLink(true);
+    setCountdownInitialized(false);
+
     // Close the modal to give a fresh start
     setShowPaymentLinkModal(false);
     
     generatePaymentLink(
-      { orderId },
+      { orderId, ...(isSplitPayment ? { amount: Number(deliveryFee), paymentType: 'DELIVERY_FEE' as const } : {}) },
       {
         onSuccess: (data) => {
           console.log('🔍 Payment link success data:', data);
           console.log('🔍 Setting payment link data:', data.data);
           
-          // Reset countdown timer for new payment link
-          setCountdown({
-            minutes: data.data?.expirationInfo?.remainingMinutes || 0,
-            seconds: 0,
-          });
-          
-          // Extract the correct data structure from the API response
+          // Extract and normalize API data
+          const apiData: any = data?.data || {};
+          const rawExpiresAt = apiData.expiresAt || null;
+
+          // Compute amount and formatted amount
+          const normalizedAmount = isSplitPayment
+            ? Number(deliveryFee)
+            : (typeof apiData.amount === 'number' ? apiData.amount : Number(calculatedTotal));
+
+          // Compute remaining minutes from expiresAt if present (fallback 15)
+          let remainingMinutes = 15;
+          if (rawExpiresAt) {
+            try {
+              const expiryMs = new Date(rawExpiresAt).getTime();
+              const nowMs = Date.now();
+              const diffMs = Math.max(0, expiryMs - nowMs);
+              remainingMinutes = Math.max(0, Math.floor(diffMs / 60000));
+            } catch {}
+          }
+
           const paymentData = {
-            orderId: data.data?.orderInfo?.orderId || 'N/A',
-            amount: data.data?.orderInfo?.amountDue || 'N/A',
-            paymentLink: data.data?.paymentLink || 'N/A',
-            expiresAt: data.data?.expirationInfo?.expiresAt || 'N/A',
-            customerName: data.data?.orderInfo?.customerName || 'N/A',
-            formattedAmount: data.data?.orderInfo?.formattedAmount || 'N/A',
-            orderNumber: data.data?.orderInfo?.orderNumber || 'N/A',
-            remainingMinutes: data.data?.expirationInfo?.remainingMinutes || 0,
-            shareMessage: data.data?.shareInfo?.message || 'Payment link generated successfully',
+            orderId: apiData.orderId || orderId || 'N/A',
+            amount: normalizedAmount,
+            paymentLink: apiData.paymentLink || 'N/A',
+            expiresAt: rawExpiresAt || 'N/A',
+            customerName: user?.profile?.fullName || user?.email || 'N/A',
+            formattedAmount: isSplitPayment ? `NGN ${deliveryFee}` : `NGN ${normalizedAmount}`,
+            orderNumber: (apiData.paymentLinkId || orderId || 'N/A') as string,
+            remainingMinutes,
+            shareMessage: isSplitPayment
+              ? `Please help me pay my delivery fee of NGN ${deliveryFee} for Order #${orderId}`
+              : `Please help me pay NGN ${normalizedAmount} for Order #${orderId}`,
           };
           
           console.log('🔍 Extracted payment data:', paymentData);
@@ -348,6 +363,7 @@ function Checkout() {
           
           setPaymentLinkData(paymentData);
           setShowPaymentLinkModal(true);
+          setIsGeneratingNewLink(false);
           
           console.log('🔍 Modal state should now be true');
         },
@@ -356,6 +372,7 @@ function Checkout() {
           console.log('❌ Error response:', error?.response);
           console.log('❌ Error data:', error?.response?.data);
           console.log('❌ Error message:', error?.response?.data?.message);
+          setIsGeneratingNewLink(false);
           Alert.alert('Error', error?.response?.data?.message || 'Failed to generate payment link');
         },
       }
@@ -381,11 +398,14 @@ function Checkout() {
     if (!paymentLinkData?.paymentLink) return;
     
     try {
-      // For React Native, you might need to use a clipboard library
-      // For now, we'll show an alert
-      Alert.alert('Link Copied!', 'Payment link has been copied to clipboard');
+      // Use Share API to provide the payment link
+      await Share.share({
+        message: `${paymentLinkData.shareMessage}\n\nPayment Link: ${paymentLinkData.paymentLink}`,
+        title: 'Pay for My Order',
+      });
     } catch (error) {
-      console.log('Error copying payment link:', error);
+      console.log('Error sharing payment link:', error);
+      Alert.alert('Error', 'Failed to share payment link');
     }
   };
 
@@ -839,14 +859,14 @@ function Checkout() {
                   Payment Link Generated
                 </Text>
                 
-                <View className="mb-4">
-                  <Text className="text-sm text-gray-600 mb-2">Order Details:</Text>
-                  <Text className="text-base font-medium">
-                    Order #{paymentLinkData.orderNumber} - {paymentLinkData.customerName}
-                  </Text>
-                  <Text className="text-lg font-bold text-green-600">
-                    {paymentLinkData.formattedAmount}
-                  </Text>
+                                  <View className="mb-4">
+                    <Text className="text-sm text-gray-600 mb-2">Order Details:</Text>
+                    <Text className="text-base font-medium">
+                      Order #{paymentLinkData.orderNumber} - {paymentLinkData.customerName}
+                    </Text>
+                    <Text className="text-lg font-bold text-green-600">
+                      {isSplitPayment ? `NGN ${deliveryFee}` : paymentLinkData.formattedAmount}
+                    </Text>
                   <View className="flex-row items-center space-x-2">
                     <Text className="text-sm text-gray-500">
                       Expires in {countdown.minutes} minutes
