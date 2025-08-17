@@ -3,16 +3,16 @@ import React from 'react';
 
 import { useVerify } from '@/api';
 import { useResendCode } from '@/api/auth/use-resend-code';
+import { OTPEmailService } from '@/api/email/use-otp-email';
 import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
 import InputView from '@/components/general/input-view';
-import { Text, View, Pressable } from '@/components/ui';
-import { Env } from '@/lib/env';
+import { Pressable,Text, View } from '@/components/ui';
+import { accessToken, signIn } from '@/lib/auth';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 import { shortenAddress } from '@/lib/shorten-address';
-import { accessToken, signIn } from '@/lib/auth';
 
 function Verify() {
   const { email, userType } = useLocalSearchParams();
@@ -87,8 +87,22 @@ function Verify() {
         email: decodeURIComponent(email as string),
       },
       {
-        onSuccess() {
+        async onSuccess(response) {
           setSuccess('Code resent successfully');
+          
+          // Send enhanced OTP email notification
+          try {
+            if (email && response?.response?.code) {
+                             await OTPEmailService.sendVerificationOTP(
+                 decodeURIComponent(email as string),
+                 response.response.code,
+                 'User', // userName not available here, using default
+                 10 // 10 minutes expiration
+               );
+            }
+          } catch (error) {
+            console.log('Failed to send enhanced OTP email:', error);
+          }
         },
         onError(error) {
           console.log('🚀 ~ file: verify.tsx:38 ~ error:', error);

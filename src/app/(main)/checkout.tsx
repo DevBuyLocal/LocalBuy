@@ -1,11 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Modal, Pressable, Share, Alert } from 'react-native';
+import { ActivityIndicator, Alert,Modal, Pressable, Share } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 
 import { useGetUser } from '@/api';
-import { useGetSingleOrder, useGeneratePaymentLink } from '@/api/order';
+import { useGeneratePaymentLink,useGetSingleOrder } from '@/api/order';
 import { useInitializePayment } from '@/api/order/use-initialize-payment';
 import { useVerifyPayment } from '@/api/order/use-verify-payment';
 import Container from '@/components/general/container';
@@ -14,7 +14,6 @@ import LocationModal from '@/components/products/location-modal';
 import { colors, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import { useModal } from '@/components/ui/modal';
 import { useLoader } from '@/lib/hooks/general/use-loader';
-import { replace } from 'expo-router/build/global-state/routing';
 
 // eslint-disable-next-line max-lines-per-function
 function Checkout() {

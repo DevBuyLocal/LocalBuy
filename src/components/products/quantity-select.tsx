@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import debounce from 'lodash.debounce';
 import React, { type Dispatch, type SetStateAction } from 'react';
 import { ActivityIndicator, type ViewProps } from 'react-native';
@@ -11,7 +12,6 @@ import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 import { Pressable, Text, View } from '../ui';
-import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface QuantitySelectProps extends Partial<ViewProps> {
   itemId: number;

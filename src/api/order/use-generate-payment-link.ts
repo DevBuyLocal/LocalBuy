@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { accessToken } from '@/lib';
+
 import { client } from '../common';
 
 interface GeneratePaymentLinkResponse {

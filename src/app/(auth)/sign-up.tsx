@@ -1,20 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AnimatePresence, MotiView } from 'moti';
 import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useRegister } from '@/api';
 import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
 import InputView from '@/components/general/input-view';
-import { Pressable, Text, View, ProgressBar } from '@/components/ui';
+import { Pressable, ProgressBar,Text, View } from '@/components/ui';
 import { type UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
-import { type RegFormType, type BusinessRegFormType, type IndividualRegFormType, regSchema, businessRegSchema, individualRegSchema } from './types';
+import { type BusinessRegFormType, businessRegSchema, type IndividualRegFormType, individualRegSchema } from './types';
 
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();

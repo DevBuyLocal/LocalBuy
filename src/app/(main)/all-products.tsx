@@ -35,7 +35,9 @@ function AllProducts() {
   
   const items = React.useMemo(() => {
     if (isSearchMode && searchData?.pages[0]) {
-      return searchData.pages[0];
+      // If searchData.pages[0] is SearchApiResponse, extract the data property
+      const searchResult = searchData.pages[0];
+      return Array.isArray(searchResult) ? searchResult : (searchResult as any)?.data || [];
     }
     return productsData?.pages[0]?.data || [];
   }, [isSearchMode, searchData, productsData]);

@@ -7,8 +7,7 @@ import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
-import { Text, Pressable } from '@/components/ui';
-import { Env } from '@/lib/env';
+import { Pressable,Text } from '@/components/ui';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 export default function ResetPassword() {

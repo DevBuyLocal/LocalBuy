@@ -14,7 +14,7 @@ import { useSaveProduct } from '@/api/product/use-save-product';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
-import { calculateBulkPricing, formatBulkSavings } from '@/lib/utils';
+import { calculateBulkPricing } from '@/lib/utils';
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';

@@ -1,9 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 
-import { Text, View, Pressable } from '@/components/ui';
-import { Ionicons } from '@expo/vector-icons';
+import { Pressable,Text, View } from '@/components/ui';
 
 interface VerificationBannerProps {
   email: string;

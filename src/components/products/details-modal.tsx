@@ -12,9 +12,11 @@ import { twMerge } from 'tailwind-merge';
 
 import { type TProduct } from '@/api';
 import { useAddCartItem, useGetCartItems } from '@/api/cart';
+import { ProductSaveEmailService } from '@/api/email/use-product-save-email';
 import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import { useRemoveFromSaved } from '@/api/product/use-remove-from-saved';
 import { useSaveProduct } from '@/api/product/use-save-product';
+import { useGetUser } from '@/api/user/use-get-user';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
@@ -22,7 +24,7 @@ import { calculateBulkPricing, formatBulkSavings, formatBulkSavingsPercentage } 
 
 import Container from '../general/container';
 import CustomButton from '../general/custom-button';
-import { colors, Image, Pressable, Radio, Text, View, WIDTH } from '../ui';
+import { colors, Image, Pressable, Text, View, WIDTH } from '../ui';
 import ProductSuggestCarousel from './product-suggest-carousel';
 import QuantitySelect from './quantity-select';
 
@@ -47,6 +49,7 @@ export default function DetailsModal({
   const { token } = useAuth();
   const { products_in_cart, addToCart } = useCart(CartSelector);
   const { data } = useGetCartItems();
+  const { data: user } = useGetUser();
   const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
@@ -141,8 +144,26 @@ export default function DetailsModal({
   });
 
   const { mutate: saveProduct } = useSaveProduct({
-    onSuccess: () => {
+    onSuccess: async () => {
       setSuccess('Product saved for later');
+      
+             // Send product save email notification
+       try {
+         if (user?.email && item) {
+           await ProductSaveEmailService.sendSaveConfirmation(
+             user.email,
+             (user as any).fullName || (user as any).businessName || 'User',
+             {
+               id: item.id,
+               name: item.name,
+               price: selectedOption?.price || 0,
+               image: selectedOption?.image?.[0] || '',
+             }
+           );
+         }
+       } catch (error) {
+         console.log('Failed to send product save email:', error);
+       }
     },
     onError: (error) => {
       setError(error?.response?.data);

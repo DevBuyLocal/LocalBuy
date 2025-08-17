@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { AvoidSoftInputView } from 'react-native-avoid-softinput';
-import { ScrollView, Text, Pressable, View } from '@/components/ui';
 
 import { useGetUser, useUpdateUser } from '@/api';
 import { useResetPassword } from '@/api/auth/use-reset-password';
@@ -15,8 +14,8 @@ import Container from '@/components/general/container';
 import CountdownTimer from '@/components/general/count-down';
 import CustomButton from '@/components/general/custom-button';
 import CustomInput from '@/components/general/custom-input';
+import { Pressable, ScrollView, Text, View } from '@/components/ui';
 import { useAuth } from '@/lib';
-import { Env } from '@/lib/env';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 import { validateFullName, validatePhoneNumber } from '@/lib/utils';
 

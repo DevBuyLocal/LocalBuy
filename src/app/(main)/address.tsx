@@ -6,11 +6,11 @@ import * as z from 'zod';
 
 import { useAddAddress } from '@/api/auth/use-add-address';
 import Container from '@/components/general/container';
-import { accessToken, useAuth } from '@/lib/auth';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
 import InputView from '@/components/general/input-view';
-import { Pressable, Text, View } from '@/components/ui';
+import { Text, View } from '@/components/ui';
+import { accessToken, useAuth } from '@/lib/auth';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 
 // Address input schema matching backend response

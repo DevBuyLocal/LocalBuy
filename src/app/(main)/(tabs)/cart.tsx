@@ -6,6 +6,9 @@ import { Alert, FlatList, Pressable } from 'react-native';
 import { useGetProducts, useGetUser } from '@/api';
 import { useGetCartItems } from '@/api/cart/use-get-cart-items';
 import { useRemoveCartItem } from '@/api/cart/use-remove-cart-item';
+import { 
+  AbandonedCartService, 
+  useTrackAbandonedCart} from '@/api/email/use-abandoned-cart-email';
 import { useCheckoutOrder } from '@/api/order/use-checkout-order';
 import { useGetSavedProducts } from '@/api/product/use-get-saved-products';
 import Container from '@/components/general/container';
@@ -35,6 +38,7 @@ export default function Cart() {
   useGetProducts({})();
   const { data, error } = useGetCartItems();
   const { data: user } = useGetUser();
+  const { mutate: _trackAbandonedCart } = useTrackAbandonedCart();
   const cartItems = React.useMemo(() => {
     const items = token ? data?.data?.items || [] : products_in_cart || [];
     // console.log('🛒 Cart Items Debug:', {
@@ -98,6 +102,35 @@ export default function Cart() {
     // });
     return localTotal;
   }, [token, data, sortCartItemsByCreatedAt]);
+
+  // Track abandoned cart when user has items and leaves cart page
+  React.useEffect(() => {
+    if (cartItems.length > 0 && user?.email && totalPrice > 0) {
+      // Start abandoned cart tracking with 2-hour delay
+      const cartData = cartItems.map((item: any) => ({
+        id: item.productOption?.product?.id || item.id,
+        name: item.productOption?.product?.name || item.name,
+        quantity: item.quantity,
+        price: item.productOption?.price || item.price,
+        image: item.productOption?.product?.image?.[0] || item.image,
+      }));
+
+      AbandonedCartService.startTracking(
+        user.email,
+        cartData,
+        totalPrice,
+        2 // 2 hours delay
+      );
+
+      // Clear tracking when component unmounts (user navigates away)
+      return () => {
+        if (cartItems.length === 0) {
+          // Only clear if cart is empty (completed purchase)
+          AbandonedCartService.clearTracking(user.email);
+        }
+      };
+    }
+  }, [cartItems.length, user?.email, totalPrice]);
 
   // Bulk Pricing Summary Calculation
   const bulkPricingSummary = React.useMemo(() => {

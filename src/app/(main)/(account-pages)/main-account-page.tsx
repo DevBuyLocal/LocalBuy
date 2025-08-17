@@ -5,6 +5,7 @@ import Container from '@/components/general/container';
 import { Text } from '@/components/ui';
 
 import AccountInfo from './account-info';
+import FAQ from './faq';
 import Legal from './legal';
 import ManageOrder from './manage-order';
 import PreferenceSettings from './preference-settings';
@@ -26,6 +27,8 @@ function MainAccountPage() {
         return <PreferenceSettings />;
       case 'support':
         return <Support />;
+      case 'faq':
+        return <FAQ />;
       case 'legal':
         return <Legal />;
       case 'referrals':

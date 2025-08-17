@@ -1,16 +1,16 @@
 /* eslint-disable max-lines-per-function */
+import { Env } from '@env';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import StepIndicator from 'react-native-step-indicator';
 
+import { useTrackOrder } from '@/api/order';
 import { useGetAllOrders } from '@/api/order/use-get-all-order';
 import { useGetSingleOrder } from '@/api/order/use-get-single-order';
-import { useTrackOrder } from '@/api/order';
 import Container from '@/components/general/container';
-import { Image, Pressable, Text, View } from '@/components/ui';
-import { Env } from '@env';
+import { Image, Text, View } from '@/components/ui';
 
 export default function TrackOrder() {
   const {

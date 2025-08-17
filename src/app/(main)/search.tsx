@@ -1,9 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useLocalSearchParams } from 'expo-router';
 import debounce from 'lodash.debounce';
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useLocalSearchParams } from 'expo-router';
 
 import { useGetProducts } from '@/api';
 import { useSearchProducts } from '@/api/product/use-search-products';
