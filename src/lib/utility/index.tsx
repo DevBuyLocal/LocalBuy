@@ -18,6 +18,10 @@ interface TUtility {
   clearFilters: () => void;
   keepSignedIn: boolean;
   setKeepSignedIn: (value: boolean) => void;
+  
+  // Notification preferences
+  notificationsEnabled: boolean;
+  setNotificationsEnabled: (value: boolean) => void;
 }
 
 const _useUtility = create<TUtility>()(
@@ -27,8 +31,12 @@ const _useUtility = create<TUtility>()(
         recent_search: [],
         filters: { brands: [], categories: [] },
         keepSignedIn: false,
+        notificationsEnabled: true, // Default to enabled
         setKeepSignedIn: (value: boolean) => {
           set({ keepSignedIn: value });
+        },
+        setNotificationsEnabled: (value: boolean) => {
+          set({ notificationsEnabled: value });
         },
         addToRecent: (value: string) => {
           const { recent_search } = get();

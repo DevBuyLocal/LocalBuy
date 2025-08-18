@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useController } from 'react-hook-form';
 import * as z from 'zod';
 
 import { useAddAddress } from '@/api/auth/use-add-address';
@@ -47,9 +47,10 @@ const addressSchema = z.object({
     }),
   postalCode: z
     .string({ required_error: 'Postal code is required' })
-    .max(7, { message: 'Postal code must be at most 7 digits' })
-    .regex(/^\d{0,7}$/, { 
-      message: 'Postal code can only contain up to 7 digits' 
+    .min(6, { message: 'Postal code must be between 6-7 digits' })
+    .max(7, { message: 'Postal code must be between 6-7 digits' })
+    .regex(/^\d{6,7}$/, { 
+      message: 'Postal code must be between 6-7 digits only' 
     }),
   country: z
     .string({ required_error: 'Country is required' })
@@ -103,6 +104,18 @@ export default function AddressInput() {
       addressType: 'SHIPPING',
     },
   });
+
+  // Postal code input with numeric validation
+  const { field: postalCodeField, fieldState: postalCodeFieldState } = useController({
+    name: 'postalCode',
+    control,
+  });
+
+  const handlePostalCodeChange = (text: string) => {
+    // Only allow numeric characters
+    const numericText = text.replace(/[^0-9]/g, '');
+    postalCodeField.onChange(numericText);
+  };
   
   const onSubmit = (data: AddressFormType) => {
     setLoading(true);
@@ -210,6 +223,9 @@ export default function AddressInput() {
                 keyboardType="numeric"
                 maxLength={7}
                 control={control}
+                value={postalCodeField.value}
+                onChangeText={handlePostalCodeChange}
+                error={postalCodeFieldState.error?.message}
               />
             </View>
             <View className="flex-1 ml-2">

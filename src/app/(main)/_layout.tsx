@@ -224,6 +224,12 @@ export default function MainLayout() {
       />
       <Stack.Screen name="style" options={{ headerShown: false }} />
       <Stack.Screen name="address" options={{ headerShown: false }} />
+      <Stack.Screen name="payment-link" options={{ headerShown: false }} />
+      <Stack.Screen name="contact-support" options={{ headerShown: false }} />
+      <Stack.Screen name="submit-feedback" options={{ headerShown: false }} />
+      <Stack.Screen name="feedback-thank-you" options={{ headerShown: false }} />
+      <Stack.Screen name="support-requests" options={{ headerShown: false }} />
+      <Stack.Screen name="support-request-detail" options={{ headerShown: false }} />
     </Stack>
   );
 }

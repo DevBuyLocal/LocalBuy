@@ -16,12 +16,17 @@ const supportItems = (push: (href: any) => void) => [
   {
     label: 'Contact support',
     icon: <MaterialIcons name="support-agent" size={24} color="black" />,
-    onPress: () => {},
+    onPress: () => push('/contact-support'),
   },
   {
-    label: 'Report a problem',
-    icon: <MaterialIcons name="report" size={24} color="black" />,
-    onPress: () => {},
+    label: 'Submit feedback',
+    icon: <MaterialIcons name="feedback" size={24} color="black" />,
+    onPress: () => push('/submit-feedback'),
+  },
+  {
+    label: 'My support requests',
+    icon: <MaterialIcons name="assignment" size={24} color="black" />,
+    onPress: () => push('/support-requests'),
   },
 ];
 

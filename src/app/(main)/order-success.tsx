@@ -1,15 +1,27 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
+import FeedbackPopup from '@/components/feedback/feedback-popup';
 import { Image, Text } from '@/components/ui';
 import { useAuth } from '@/lib';
 
 export default function OrderSuccess() {
   const { replace } = useRouter();
   const { user } = useAuth();
+  const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
 
   const { orderId }: { orderId: string } = useLocalSearchParams();
+
+  // Show feedback popup after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowFeedbackPopup(true);
+    }, 2000); // Show popup 2 seconds after order success
+
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <Container.Page>
       <Container.Box containerClassName="items-center h-full mt-40">
@@ -40,6 +52,13 @@ export default function OrderSuccess() {
           Continue shopping
         </Text>
       </Container.Box>
+
+      {/* Feedback Popup */}
+      <FeedbackPopup
+        visible={showFeedbackPopup}
+        onClose={() => setShowFeedbackPopup(false)}
+        orderNumber={orderId}
+      />
     </Container.Page>
   );
 }

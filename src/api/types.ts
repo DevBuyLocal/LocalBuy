@@ -19,4 +19,8 @@ export enum QueryKey {
   PAYMENTS = 'payments',
   NOTIFICATIONS = 'notifications',
   DEALS = 'deals',
+  // Support request queries
+  SUPPORT_LIST = 'support-list',
+  SUPPORT_DETAIL = 'support-detail',
+  FEEDBACK = 'feedback',
 }

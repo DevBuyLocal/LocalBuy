@@ -10,6 +10,8 @@ import { useTrackOrder } from '@/api/order';
 import { useGetAllOrders } from '@/api/order/use-get-all-order';
 import { useGetSingleOrder } from '@/api/order/use-get-single-order';
 import Container from '@/components/general/container';
+import CustomButton from '@/components/general/custom-button';
+import FeedbackPopup from '@/components/feedback/feedback-popup';
 import { Image, Text, View } from '@/components/ui';
 
 export default function TrackOrder() {
@@ -20,6 +22,7 @@ export default function TrackOrder() {
   }: { orderId: string; price?: string; paymentMethod?: string } =
     useLocalSearchParams();
   const { push } = useRouter();
+  const [showFeedbackPopup, setShowFeedbackPopup] = React.useState(false);
 
   const {
     data: singleOrderData,
@@ -364,7 +367,33 @@ export default function TrackOrder() {
               </View>
             </>
           )}
+
+          {/* Feedback Button for Delivered Orders */}
+          {orderData?.status === 'DELIVERED' && (
+            <View className="mt-6 rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+              <View className="mb-3 items-center">
+                <Text className="text-lg font-semibold text-green-800 dark:text-green-200">
+                  🎉 Order Delivered!
+                </Text>
+                <Text className="mt-1 text-center text-sm text-green-700 dark:text-green-300">
+                  How was your experience with this order?
+                </Text>
+              </View>
+              <CustomButton
+                label="Share Your Feedback"
+                onPress={() => setShowFeedbackPopup(true)}
+                containerClassname="bg-green-600 border-green-600"
+              />
+            </View>
+          )}
         </Container.Box>
+
+        {/* Feedback Popup */}
+        <FeedbackPopup
+          visible={showFeedbackPopup}
+          onClose={() => setShowFeedbackPopup(false)}
+          orderNumber={orderId}
+        />
       </Container.Box>
     </Container.Page>
   );
