@@ -393,20 +393,7 @@ function Checkout() {
     }
   };
 
-  const handleCopyPaymentLink = async () => {
-    if (!paymentLinkData?.paymentLink) return;
-    
-    try {
-      // Use Share API to provide the payment link
-      await Share.share({
-        message: `${paymentLinkData.shareMessage}\n\nPayment Link: ${paymentLinkData.paymentLink}`,
-        title: 'Pay for My Order',
-      });
-    } catch (error) {
-      console.log('Error sharing payment link:', error);
-      Alert.alert('Error', 'Failed to share payment link');
-    }
-  };
+
 
   const handleMessageReceived = React.useCallback(
     (data: string) => {
@@ -438,7 +425,7 @@ function Checkout() {
     <Container.Page showHeader headerTitle="Your order">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="pb-40"
+        contentContainerClassName={showDeliveryDropdown ? "pb-80" : "pb-40"}
       >
         <Container.Box containerClassName="bg-[#F7F7F7] flex-1">
           <Text className="my-5 text-[16px] font-medium">Shipping address</Text>
@@ -507,7 +494,7 @@ function Checkout() {
           {/* ================================= */}
           {/* Payment Method Selection */}
           <Text className="mt-8 text-[16px] font-medium">Payment Method</Text>
-          <View className="mb-2 mt-4">
+          <View className="mb-2 mt-4" style={{ position: 'relative', zIndex: 9999 }}>
             {/* Delivery Dropdown */}
             <Pressable
               onPress={() => setShowDeliveryDropdown(!showDeliveryDropdown)}
@@ -527,9 +514,36 @@ function Checkout() {
               />
             </Pressable>
 
-            {/* Dropdown Options */}
+            {/* Dropdown Options - Using Portal-like approach */}
             {showDeliveryDropdown && (
-              <View className="mt-2 rounded-lg border border-gray-200 bg-white">
+              <>
+                {/* Backdrop overlay to cover bottom buttons */}
+                <View 
+                  className="fixed inset-0 bg-transparent"
+                  style={{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 100,
+                    elevation: 100
+                  }}
+                  onTouchEnd={() => setShowDeliveryDropdown(false)}
+                />
+                
+                {/* Dropdown content */}
+                <View 
+                  className="absolute left-0 right-0 top-full mt-2 rounded-lg border border-gray-200 bg-white shadow-lg"
+                  style={{ 
+                    zIndex: 101, 
+                    elevation: 101,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8
+                  }}
+                >
                 <Pressable
                   onPress={() => {
                     handlePayNowClick();
@@ -625,7 +639,8 @@ function Checkout() {
                     </View>
                   </View>
                 </Pressable>
-              </View>
+                </View>
+              </>
             )}
           </View>
 
@@ -721,7 +736,8 @@ function Checkout() {
           </View>
         </Container.Box>
       </ScrollView>
-      <View className="absolute bottom-12 w-[90%] self-center">
+      {!showDeliveryDropdown && (
+        <View className="absolute bottom-12 w-[90%] self-center">
         <CustomButton
           label="Pay for Me"
           onPress={handleGeneratePaymentLink}
@@ -738,7 +754,8 @@ function Checkout() {
             loading || isPending || verifyIsPending || !selectedPaymentMethod
           }
         />
-      </View>
+        </View>
+      )}
 
       <Modal
         style={{ flex: 1 }}
@@ -910,22 +927,13 @@ function Checkout() {
                   </Text>
                 </View>
 
-                <View className="flex-row space-x-3">
-                  <CustomButton
-                    label="Share Link"
-                    onPress={handleSharePaymentLink}
-                    className="flex-1 border-gray-300"
-                    textClassName="text-gray-700"
-                    variant="outline"
-                  />
-                  <CustomButton
-                    label="Copy Link"
-                    onPress={handleCopyPaymentLink}
-                    className="flex-1 border-gray-300 ml-3"
-                    textClassName="text-gray-700"
-                    variant="outline"
-                  />
-                </View>
+                <CustomButton
+                  label="Share Link"
+                  onPress={handleSharePaymentLink}
+                  className="w-full border-gray-300"
+                  textClassName="text-gray-700"
+                  variant="outline"
+                />
 
                 <CustomButton
                   label="Close"
