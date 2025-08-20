@@ -37,14 +37,15 @@ export const useGetSupportRequests = createQuery<
           return response?.data;
         }
         return { 
-          data: [], 
-          pagination: { 
-            currentPage: 1, 
-            hasNextPage: false, 
-            hasPreviousPage: false, 
-            itemsPerPage: 10, 
-            totalItems: 0, 
-            totalPages: 0 
+          data: {
+            requests: [],
+            pagination: { 
+              currentPage: 1, 
+              hasNextPage: false, 
+              hasPrevPage: false, 
+              totalCount: 0, 
+              totalPages: 0 
+            }
           },
           message: 'No support requests found',
           success: true

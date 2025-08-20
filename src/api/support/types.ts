@@ -18,14 +18,15 @@ export interface TSupportRequestResponse {
 }
 
 export interface TSupportRequestsResponse {
-  data: TSupportRequest[];
-  pagination: {
-    currentPage: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    itemsPerPage: number;
-    totalItems: number;
-    totalPages: number;
+  data: {
+    requests: TSupportRequest[];
+    pagination: {
+      currentPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+      totalCount: number;
+      totalPages: number;
+    };
   };
   message: string;
   success: boolean;
