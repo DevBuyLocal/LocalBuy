@@ -6,6 +6,7 @@ import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useRegister } from '@/api';
+import { useValidateReferral } from '@/api/auth/use-validate-referral';
 import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
@@ -19,21 +20,16 @@ import { type BusinessRegFormType, businessRegSchema, type IndividualRegFormType
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();
   const { loading, setLoading, setError, setSuccess } = useLoader({
-    showLoadingPage: true,
+    showLoadingPage: false,
   });
   const { push, replace, canGoBack, back } = useRouter();
   const { mutate: Register } = useRegister();
+  const { mutate: validateReferral } = useValidateReferral();
   
   const isBusinessOwner = role === 'business';
   
-  // Clean up stored form data when component unmounts
-  useEffect(() => {
-    return () => {
-      // Clear stored form data when navigating away
-      AsyncStorage.removeItem('businessFormData').catch(console.log);
-      AsyncStorage.removeItem('individualFormData').catch(console.log);
-    };
-  }, []);
+  // Note: Do not clear stored form data on unmount to preserve inputs between re-renders
+  // We only clear saved data explicitly on successful submission
   
   // Use conditional types based on user role
   const BusinessForm = () => {
@@ -47,27 +43,43 @@ export default function SignUp() {
       setError: setFieldError,
       clearErrors,
       watch,
+      setFocus,
     } = useForm<BusinessRegFormType>({
       resolver: zodResolver(businessRegSchema),
       defaultValues: {
         email: '',
         password: '',
         confirmPassword: '',
-        refer: undefined,
+        referral_code: '',
         fullName: '',
         businessName: '',
         cac: '',
         businessPhone: '',
         howDidYouFindUs: '',
       },
-      mode: 'onChange',
+      mode: 'onSubmit',
+      reValidateMode: 'onChange',
     });
+    
+    // Debug: Log form state
+    useEffect(() => {
+      console.log('Business form errors:', errors);
+      console.log('Business form isSubmitting:', isSubmitting);
+      if (errors.referral_code) {
+        console.log('Business referral code error:', errors.referral_code);
+      }
+    }, [errors, isSubmitting]);
     
     // Progress bar ref for submission progress
     const progressRef = useRef<any>(null);
     
     // Watch form values for persistence
     const formValues = watch();
+    
+    // Debug: Log form values changes
+    useEffect(() => {
+      console.log('Business form values changed:', formValues);
+    }, [formValues]);
     
     // Save form data to AsyncStorage whenever it changes
     useEffect(() => {
@@ -79,11 +91,16 @@ export default function SignUp() {
         }
       };
       
-      // Only save if there's actual data
-      if (Object.values(formValues).some(value => value && value.toString().trim() !== '')) {
+      // Save only if there is at least one non-empty value
+      const hasData = Object.values(formValues).some((value) => {
+        return value && value.toString().trim() !== '';
+      });
+      
+      if (hasData && !loading) {
+        // Don't save while form is submitting to avoid interference
         saveFormData();
       }
-    }, [formValues]);
+    }, [formValues, loading]);
     
     // Restore form data from AsyncStorage on component mount
     useEffect(() => {
@@ -93,23 +110,27 @@ export default function SignUp() {
           if (savedData) {
             const parsedData = JSON.parse(savedData);
             Object.keys(parsedData).forEach((key) => {
-              if (parsedData[key] && parsedData[key].toString().trim() !== '') {
+              // Handle referral code specially - allow empty string to be restored
+              if (key === 'referral_code') {
+                setValue(key as keyof BusinessRegFormType, parsedData[key] || '');
+              } else if (parsedData[key] && parsedData[key].toString().trim() !== '') {
                 setValue(key as keyof BusinessRegFormType, parsedData[key]);
               }
             });
           }
         } catch (error) {
-          console.log('Error restoring form data:', error);
-        }
-      };
-      
-      restoreFormData();
-    }, [setValue]);
+            console.log('Error restoring form data:', error);
+          }
+        };
+        
+        restoreFormData();
+      }, [setValue]);
     
-    const onSubmit = (data: BusinessRegFormType) => {
+    const onSubmit = async (data: BusinessRegFormType) => {
+      console.log('Form submission started with data:', data);
+      console.log('Referral code value:', data.referral_code);
+      console.log('Form is valid, proceeding with submission...');
       setLoading(true);
-      // Clear any previous field errors
-      clearErrors();
       
       // Start progress bar animation
       if (progressRef.current) {
@@ -127,7 +148,7 @@ export default function SignUp() {
           email: data.email.toLowerCase(),
           password: data.password,
           type: role,
-          referal_code: data.refer,
+          referal_code: data.referral_code || undefined, // Ensure undefined if empty string
           fullName: data.fullName,
           businessName: data.businessName,
           businessPhone: data.businessPhone,
@@ -163,13 +184,10 @@ export default function SignUp() {
             if (errorData && typeof errorData === 'object' && errorData !== null) {
               const errorObj = errorData as Record<string, any>;
               
-              // Check for password-related errors and clear password fields
+              // Check for password-related errors (do not clear fields to preserve inputs)
               if (errorObj.password || errorObj.confirmPassword) {
                 setFieldError('password', { type: 'server', message: errorObj.password || 'Password error occurred' });
                 setFieldError('confirmPassword', { type: 'server', message: errorObj.confirmPassword || 'Password confirmation error occurred' });
-                // Clear password fields for security
-                setValue('password', '');
-                setValue('confirmPassword', '');
               }
               
               // Check for other field validation errors
@@ -310,7 +328,7 @@ export default function SignUp() {
                 control={control}
               />
               <ControlledCustomInput<BusinessRegFormType>
-                name="refer"
+                name="referral_code"
                 placeholder="Referral code (optional)"
                 containerClass="mt-5"
                 control={control}
@@ -328,7 +346,62 @@ export default function SignUp() {
             )}
             <CustomButton
               label={loading ? "Creating account..." : "Create account"}
-              onPress={handleSubmit(onSubmit)}
+              onPress={async () => {
+                // Get current form values
+                const currentValues = getValues();
+                
+                // Validate referral code BEFORE triggering handleSubmit
+                if (currentValues.referral_code && currentValues.referral_code.trim()) {
+                  console.log('Pre-validating referral code:', currentValues.referral_code.trim());
+                  
+                  const isValid = await new Promise<boolean>((resolve) => {
+                    validateReferral(
+                      { referralCode: currentValues.referral_code!.trim() },
+                      {
+                        onSuccess: (response) => {
+                          if (!response.isValid) {
+                            setFieldError('referral_code', { 
+                              type: 'server', 
+                              message: 'Invalid referral code, please try again' 
+                            });
+                            console.log('Referral code is invalid - blocking form submission');
+                            resolve(false);
+                          } else {
+                            clearErrors('referral_code');
+                            console.log('Referral code validated successfully');
+                            resolve(true);
+                          }
+                        },
+                        onError: (error) => {
+                          console.log('Referral validation API error:', error);
+                          // Treat API error as invalid for UX consistency
+                          setFieldError('referral_code', { 
+                            type: 'server', 
+                            message: 'Invalid referral code, please try again' 
+                          });
+                          resolve(false);
+                        }
+                      }
+                    );
+                  });
+                  
+                  if (!isValid) {
+                    console.log('Referral validation failed - not calling handleSubmit');
+                    return;
+                  }
+                }
+                
+                // If we get here, referral code is valid or empty, proceed with normal form submission
+                handleSubmit(onSubmit, (formErrors) => {
+                  console.log('Form validation errors:', formErrors);
+                  console.log('Form validation failed, cannot submit');
+                  const firstError = Object.keys(formErrors)[0] as keyof BusinessRegFormType | undefined;
+                  if (firstError) {
+                    // focus the first invalid field
+                    setFocus(firstError as any);
+                  }
+                })();
+              }}
               loading={loading}
               disabled={loading}
             />
@@ -357,26 +430,42 @@ export default function SignUp() {
       setError: setFieldError,
       clearErrors,
       watch,
+      setFocus,
     } = useForm<IndividualRegFormType>({
       resolver: zodResolver(individualRegSchema),
       defaultValues: {
         email: '',
         password: '',
         confirmPassword: '',
-        refer: undefined,
+        referral_code: '',
         fullName: '',
         deliveryPhone: '',
         dob: '',
         howDidYouFindUs: '',
       },
-      mode: 'onChange',
+      mode: 'onSubmit',
+      reValidateMode: 'onChange',
     });
+    
+    // Debug: Log form state
+    useEffect(() => {
+      console.log('Individual form errors:', errors);
+      console.log('Individual form isSubmitting:', isSubmitting);
+      if (errors.referral_code) {
+        console.log('Referral code error:', errors.referral_code);
+      }
+    }, [errors, isSubmitting]);
     
     // Progress bar ref for submission progress
     const progressRef = useRef<any>(null);
     
     // Watch form values for persistence
     const formValues = watch();
+    
+    // Debug: Log form values changes
+    useEffect(() => {
+      console.log('Individual form values changed:', formValues);
+    }, [formValues]);
     
     // Save form data to AsyncStorage whenever it changes
     useEffect(() => {
@@ -388,11 +477,16 @@ export default function SignUp() {
         }
       };
       
-      // Only save if there's actual data
-      if (Object.values(formValues).some(value => value && value.toString().trim() !== '')) {
+      // Save only if there is at least one non-empty value
+      const hasData = Object.values(formValues).some((value) => {
+        return value && value.toString().trim() !== '';
+      });
+      
+      if (hasData && !loading) {
+        // Don't save while form is submitting to avoid interference
         saveFormData();
       }
-    }, [formValues]);
+    }, [formValues, loading]);
     
     // Restore form data from AsyncStorage on component mount
     useEffect(() => {
@@ -402,7 +496,10 @@ export default function SignUp() {
           if (savedData) {
             const parsedData = JSON.parse(savedData);
             Object.keys(parsedData).forEach((key) => {
-              if (parsedData[key] && parsedData[key].toString().trim() !== '') {
+              // Handle referral code specially - allow empty string to be restored
+              if (key === 'referral_code') {
+                setValue(key as keyof IndividualRegFormType, parsedData[key] || '');
+              } else if (parsedData[key] && parsedData[key].toString().trim() !== '') {
                 setValue(key as keyof IndividualRegFormType, parsedData[key]);
               }
             });
@@ -415,10 +512,11 @@ export default function SignUp() {
       restoreFormData();
     }, [setValue]);
     
-    const onSubmit = (data: IndividualRegFormType) => {
+    const onSubmit = async (data: IndividualRegFormType) => {
+      console.log('Form submission started with data:', data);
+      console.log('Referral code value:', data.referral_code);
+      console.log('Form is valid, proceeding with submission...');
       setLoading(true);
-      // Clear any previous field errors
-      clearErrors();
       
       // Start progress bar animation
       if (progressRef.current) {
@@ -436,7 +534,7 @@ export default function SignUp() {
           email: data.email.toLowerCase(),
           password: data.password,
           type: role,
-          referal_code: data.refer,
+          referal_code: data.referral_code || undefined, // Ensure undefined if empty string
           fullName: data.fullName,
           phone: data.deliveryPhone, // Map deliveryPhone to phone for API
           ...(data.dob && data.dob.trim() && { dob: data.dob }),
@@ -470,13 +568,10 @@ export default function SignUp() {
             if (errorData && typeof errorData === 'object' && errorData !== null) {
               const errorObj = errorData as Record<string, any>;
               
-              // Check for password-related errors and clear password fields
+              // Check for password-related errors (do not clear fields to preserve inputs)
               if (errorObj.password || errorObj.confirmPassword) {
                 setFieldError('password', { type: 'server', message: errorObj.password || 'Password error occurred' });
                 setFieldError('confirmPassword', { type: 'server', message: errorObj.confirmPassword || 'Password confirmation error occurred' });
-                // Clear password fields for security
-                setValue('password', '');
-                setValue('confirmPassword', '');
               }
               
               // Check for other field validation errors
@@ -614,7 +709,7 @@ export default function SignUp() {
                 control={control}
               />
               <ControlledCustomInput<IndividualRegFormType>
-                name="refer"
+                name="referral_code"
                 placeholder="Referral code (optional)"
                 containerClass="mt-5"
                 control={control}
@@ -632,7 +727,61 @@ export default function SignUp() {
             )}
             <CustomButton
               label={loading ? "Creating account..." : "Create account"}
-              onPress={handleSubmit(onSubmit)}
+              onPress={async () => {
+                // Get current form values
+                const currentValues = getValues();
+                
+                // Validate referral code BEFORE triggering handleSubmit
+                if (currentValues.referral_code && currentValues.referral_code.trim()) {
+                  console.log('Pre-validating referral code:', currentValues.referral_code.trim());
+                  
+                  const isValid = await new Promise<boolean>((resolve) => {
+                    validateReferral(
+                      { referralCode: currentValues.referral_code!.trim() },
+                      {
+                        onSuccess: (response) => {
+                          if (!response.isValid) {
+                            setFieldError('referral_code', { 
+                              type: 'server', 
+                              message: 'Invalid referral code, please try again' 
+                            });
+                            console.log('Referral code is invalid - blocking form submission');
+                            resolve(false);
+                          } else {
+                            clearErrors('referral_code');
+                            console.log('Referral code validated successfully');
+                            resolve(true);
+                          }
+                        },
+                        onError: (error) => {
+                          console.log('Referral validation API error:', error);
+                          // Treat API error as invalid for UX consistency
+                          setFieldError('referral_code', { 
+                            type: 'server', 
+                            message: 'Invalid referral code, please try again' 
+                          });
+                          resolve(false);
+                        }
+                      }
+                    );
+                  });
+                  
+                  if (!isValid) {
+                    console.log('Referral validation failed - not calling handleSubmit');
+                    return;
+                  }
+                }
+                
+                // If we get here, referral code is valid or empty, proceed with normal form submission
+                handleSubmit(onSubmit, (formErrors) => {
+                  console.log('Form validation errors:', formErrors);
+                  console.log('Form validation failed, cannot submit');
+                  const firstError = Object.keys(formErrors)[0] as keyof IndividualRegFormType | undefined;
+                  if (firstError) {
+                    setFocus(firstError as any);
+                  }
+                })();
+              }}
               loading={loading}
               disabled={loading}
             />

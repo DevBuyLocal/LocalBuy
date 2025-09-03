@@ -107,13 +107,11 @@ function FAQItem({ question, answer, isExpanded, onToggle }: FAQItemProps) {
 
 /* FAQ COMPONENT - MAIN FAQ PAGE WITH ALL QUESTIONS */
 function FAQ() {
-  const [expandedItems, setExpandedItems] = React.useState<number[]>([]);
+  const [expandedItem, setExpandedItem] = React.useState<number | null>(null);
 
   const toggleItem = (id: number) => {
-    setExpandedItems(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
+    setExpandedItem(prev => 
+      prev === id ? null : id
     );
   };
 
@@ -133,7 +131,7 @@ function FAQ() {
               key={item.id}
               question={item.question}
               answer={item.answer}
-              isExpanded={expandedItems.includes(item.id)}
+              isExpanded={expandedItem === item.id}
               onToggle={() => toggleItem(item.id)}
             />
           ))}

@@ -31,6 +31,7 @@ import { useAuth } from '@/lib';
 import { UserType } from '@/lib/constants';
 import { useLoader } from '@/lib/hooks/general/use-loader';
 import useScrollBehavior from '@/lib/hooks/general/use-scroll-behavior';
+import { useUtility } from '@/lib/utility';
 
 // eslint-disable-next-line max-lines-per-function
 export default function Home() {
@@ -61,7 +62,10 @@ export default function Home() {
 
   const { data } = useGetCategories()();
   const { data: savedProducts } = useGetSavedProducts()();
-  const { data: notifications } = useGetNotifications()();
+  const notificationsEnabled = useUtility.use.notificationsEnabled();
+  const { data: notifications } = useGetNotifications()({
+    enabled: notificationsEnabled,
+  });
 
   const [refreshing, setRefreshing] = React.useState(false);
 

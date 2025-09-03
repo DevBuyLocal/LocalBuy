@@ -144,7 +144,7 @@ function Checkout() {
 
   // Split payment calculation for Pay on Delivery
   const isSplitPayment = selectedPaymentMethod === 'payOnDelivery';
-  const deliveryFee = order?.order?.shipping?.totalShippingFee || 1000; // Fixed delivery fee
+  const deliveryFee = order?.order?.shipping?.totalShippingFee || 1000; // Fallback to fixed delivery fee if shipping not calculated
 
   const displayPrice =
     (order?.order?.amountDue || Number(price) || 0) - deliveryFee;
@@ -159,6 +159,7 @@ function Checkout() {
   // const totalOrderValue = isSplitPayment
   //   ? productPrice + deliveryFee
   //   : displayPrice;
+  // Amount to pay now - delivery fee for split payment, full amount for regular payment
   const amountToPayNow = isSplitPayment ? deliveryFee : calculatedTotal;
   // const remainingOnDelivery = isSplitPayment ? productPrice : 0;
 
@@ -240,12 +241,24 @@ function Checkout() {
 
   const { mutate, isPending } = useInitializePayment({
     onSuccess: (data: any) => {
+      console.log('✅ Payment initialization success:', data);
       setCheckoutUri(data?.data?.authorizationUrl);
       setShowModal(true);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.log('❌ Payment initialization error:', error);
-      Alert.alert('Error', 'Failed to initialize payment');
+      console.log('❌ Error response:', error?.response);
+      console.log('❌ Error data:', error?.response?.data);
+      console.log('❌ Error message:', error?.response?.data?.message);
+      console.log('❌ Error status:', error?.response?.status);
+      
+      const errorMessage = error?.response?.data?.message || 
+                          error?.response?.data?.error ||
+                          error?.message ||
+                          'Failed to initialize payment';
+      
+      setError(errorMessage);
+      Alert.alert('Payment Error', errorMessage);
     },
   });
   const { mutate: verifyMutate, isPending: verifyIsPending } = useVerifyPayment(
@@ -274,15 +287,70 @@ function Checkout() {
       return;
     }
 
-    // console.log('💳 Payment method selected:', selectedPaymentMethod);
+    // Debug logging for split payment
+    console.log('🔍 Payment Debug Info:', {
+      selectedPaymentMethod,
+      isSplitPayment,
+      deliveryFee,
+      calculatedTotal,
+      amountToPayNow, // What customer pays now
+      orderId,
+      userEmail: user?.email,
+      orderData: order?.order,
+      shippingFee: order?.order?.shipping?.totalShippingFee,
+    });
 
-    setLoading(true);
-    mutate({
+    const paymentData = {
       orderId: Number(orderId),
       email: user?.email || '',
-      amount: Number(amountToPayNow),
+      amount: Number(amountToPayNow), // Delivery fee for split payment, full amount for regular payment
       paymentMethod: ['bank', 'card', 'ussd', 'bank_transfer'],
-    });
+      paymentType: isSplitPayment ? 'DELIVERY_FEE' as const : 'FULL' as const,
+    };
+
+    console.log('💳 Sending payment initialization request:', paymentData);
+
+    // Validate required fields
+    if (!paymentData.orderId || isNaN(paymentData.orderId)) {
+      setError('Invalid order ID');
+      return;
+    }
+
+    if (!paymentData.email) {
+      setError('User email is required');
+      return;
+    }
+
+    if (!paymentData.amount || isNaN(paymentData.amount) || paymentData.amount <= 0) {
+      setError(`Invalid payment amount: ${paymentData.amount}`);
+      return;
+    }
+
+    // Validate that we have a valid order total
+    if (!calculatedTotal || calculatedTotal <= 0) {
+      setError('Invalid order total. Please refresh and try again.');
+      return;
+    }
+
+    // Additional validation for split payment
+    if (isSplitPayment && deliveryFee <= 0) {
+      setError('Delivery fee must be greater than 0 for split payment');
+      return;
+    }
+
+    // Validate order exists and is loaded
+    if (orderLoading) {
+      setError('Order is still loading. Please wait and try again.');
+      return;
+    }
+
+    if (!order?.order) {
+      setError('Order data not found. Please try again.');
+      return;
+    }
+
+    setLoading(true);
+    mutate(paymentData);
   };
 
   const handleNavigationStateChange = React.useCallback(

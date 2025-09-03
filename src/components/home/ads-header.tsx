@@ -6,6 +6,7 @@ import Carousel from 'react-native-reanimated-carousel';
 import { twMerge } from 'tailwind-merge';
 
 import { useAuth } from '@/lib';
+import { useUtility } from '@/lib/utility';
 
 import { Image, Text, WIDTH } from '../ui';
 
@@ -92,7 +93,8 @@ const AdsHeader = ({
     [scaleImg]
   );
 
-  const notificationUnread = Boolean(
+  const notificationsEnabled = useUtility.use.notificationsEnabled();
+  const notificationUnread = notificationsEnabled && Boolean(
     notifications?.data.filter((e: any) => !e?.isRead).length > 0
   );
 

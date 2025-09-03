@@ -60,8 +60,16 @@ const FeaturedBrands = () => {
     displayedBrands: Math.min(brands.length, 6)
   });
   
-  if (!brands.length) return null;
-
+  // Debug: Log what we're getting
+  console.log('🔍 FeaturedBrands Data:', {
+    hasData: !!data,
+    dataPages: data?.pages,
+    firstPageData: data?.pages?.[0]?.data,
+    brandsLength: brands.length,
+    brands: brands
+  });
+  
+  // Always show the section, even if no brands
   return (
     <View>
       <ViewAll
@@ -70,19 +78,27 @@ const FeaturedBrands = () => {
         seeAllBg="#F7F7F7"
       />
 
-      <View className="mb-5 flex-row flex-wrap">
-        {brands.slice(0, 6).map((e, i) => (
-          <View 
-            key={i.toString()} 
-            style={{ 
-              marginBottom: 12,
-              marginRight: (i + 1) % itemsPerRow !== 0 ? gap : 0
-            }}
-          >
-            <Item e={e} />
-          </View>
-        ))}
-      </View>
+      {brands.length > 0 ? (
+        <View className="mb-5 flex-row flex-wrap">
+          {brands.slice(0, 6).map((e, i) => (
+            <View 
+              key={i.toString()} 
+              style={{ 
+                marginBottom: 12,
+                marginRight: (i + 1) % itemsPerRow !== 0 ? gap : 0
+              }}
+            >
+              <Item e={e} />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View className="mb-5 p-4">
+          <Text className="text-center text-gray-500">
+            No stores available at the moment.
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

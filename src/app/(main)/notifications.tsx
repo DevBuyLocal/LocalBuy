@@ -15,9 +15,16 @@ import Container from '@/components/general/container';
 import Empty from '@/components/general/empty';
 import { Text, View } from '@/components/ui';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { useUtility } from '@/lib/utility';
 
 function Notifications() {
-  const { data: notifications, refetch } = useGetNotifications()();
+  const notificationsEnabled = useUtility.use.notificationsEnabled();
+  const { data: notifications, refetch } = useGetNotifications()({
+    enabled: notificationsEnabled,
+  });
+  
+  // Don't fetch notifications if they're disabled
+  const effectiveNotifications = notificationsEnabled ? notifications : { data: [], count: 0 };
 
   const { setError, setLoading } = useLoader({
     showLoadingPage: false,
@@ -72,7 +79,7 @@ function Notifications() {
       showHeader
       headerTitle="Notifications"
       rightHeaderIcon={
-        (notifications?.data || []).filter((e) => !e.isRead).length > 0 ? (
+        (effectiveNotifications?.data || []).filter((e) => !e.isRead).length > 0 ? (
           <Pressable
             className="absolute right-5 top-6"
             hitSlop={{
@@ -82,9 +89,9 @@ function Notifications() {
               right: 10,
             }}
             onPress={async () => {
-              if (!notifications?.data.length) return;
+              if (!effectiveNotifications?.data.length) return;
               await Promise.allSettled(
-                notifications.data.map(async (e) => {
+                effectiveNotifications.data.map(async (e) => {
                   return mutateAsync({ notificationId: e.id });
                 })
               ).then(() => {
@@ -99,7 +106,7 @@ function Notifications() {
     >
       <Container.Box>
         <FlatList
-          data={notifications?.data || []}
+          data={effectiveNotifications?.data || []}
           keyExtractor={(_, index) => index.toString()}
           renderItem={({ item }) => <NotificationItem item={item} />}
           contentContainerClassName="pb-40"

@@ -213,7 +213,7 @@ function ProductItem(props: ProductItemProps) {
                   
                   {/* Minimum Purchase */}
                   <Text numberOfLines={1} className="text-[10px] text-primaryText">
-                    Min: {displayInfo?.options?.moq} {displayInfo?.options?.unit}
+                    Min: {displayInfo?.options?.moq} {displayInfo?.options?.unit === 'kg' ? 'pieces' : displayInfo?.options?.unit || 'pieces'}
                   </Text>
                 </View>
               );

@@ -18,6 +18,7 @@ type Variables = {
   email: string;
   amount: number;
   paymentMethod: any[];
+  paymentType?: 'DELIVERY_FEE' | 'FULL';
 };
 
 export const useInitializePayment = createMutation<

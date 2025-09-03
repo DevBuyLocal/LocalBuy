@@ -19,7 +19,7 @@ const inputTv = tv({
     container: 'mb-2',
     label: 'text-grey-100 mb-1 text-lg dark:text-neutral-100',
     input:
-      'mt-0 rounded-xl border-[0.5px] border-neutral-300 bg-neutral-100 px-4 py-3 font-inter text-base  font-medium leading-5 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white',
+      'mt-0 rounded-xl border-[0.5px] border-neutral-300 bg-neutral-100 px-4 py-3 font-inter text-base font-medium leading-5 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400 placeholder:opacity-100',
   },
 
   variants: {
@@ -106,14 +106,16 @@ export const Input = React.forwardRef<NTextInput, NInputProps>((props, ref) => {
         <NTextInput
           testID={testID}
           ref={ref}
-          placeholderTextColor={colors.neutral[400]}
+          placeholderTextColor={colors.neutral[500]}
           className={styles.input()}
           onBlur={onBlur}
           onFocus={onFocus}
           {...inputProps}
           style={StyleSheet.flatten([
-            { writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr' },
-            { textAlign: I18nManager.isRTL ? 'right' : 'left' },
+            { 
+              writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
+              textAlign: I18nManager.isRTL ? 'right' : 'left',
+            },
             inputProps.style,
           ])}
         />

@@ -18,7 +18,7 @@ export const regSchema = z
     confirmPassword: z
       .string({ required_error: 'Confirm password is required' })
       .min(6, { message: 'Password must be at least 6 characters long' }),
-    refer: z.string().optional(),
+    referral_code: z.string().optional(),
     // Business-specific fields
     fullName: z.string().optional(),
     businessName: z.string().optional(),
@@ -80,7 +80,7 @@ export const businessRegSchema = z
         message: 'Phone number must be exactly 11 digits and contain only numbers, spaces, hyphens, and plus sign',
       }),
     howDidYouFindUs: z.string().optional(),
-    refer: z.string().optional(),
+    referral_code: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -124,9 +124,44 @@ export const individualRegSchema = z
       }, {
         message: 'Phone number must be exactly 11 digits and contain only numbers, spaces, hyphens, and plus sign',
       }),
-    dob: z.string().optional(),
+    dob: z
+      .string()
+      .optional()
+      .refine((dob) => {
+        // If dob is provided, it must be complete and in correct format
+        if (dob && dob.trim()) {
+          // Check if it matches YYYY-MM-DD format
+          const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+          if (!dateRegex.test(dob)) {
+            return false;
+          }
+          
+          // Check if it's a valid date
+          const date = new Date(dob);
+          if (isNaN(date.getTime())) {
+            return false;
+          }
+          
+          // Check if date is not in the future
+          const today = new Date();
+          if (date > today) {
+            return false;
+          }
+          
+          // Check if date is reasonable (not too old, e.g., before 1900)
+          const minDate = new Date('1900-01-01');
+          if (date < minDate) {
+            return false;
+          }
+          
+          return true;
+        }
+        return true; // Optional field, so empty is valid
+      }, {
+        message: 'Date of birth must be in YYYY-MM-DD format and be a valid date (not in the future)',
+      }),
     howDidYouFindUs: z.string().optional(),
-    refer: z.string().optional(),
+    referral_code: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',

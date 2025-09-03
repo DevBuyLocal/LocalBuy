@@ -258,7 +258,6 @@ export default function SubmitFeedback() {
                 </Text>
                 <Text className="mt-1 text-sm text-blue-700 dark:text-blue-300">
                   • All feedback is reviewed by our team
-                  • You'll receive a reference number for tracking
                   • We may follow up for additional details
                   • Your input helps us improve BuyLocal for everyone
                 </Text>

@@ -181,7 +181,7 @@ function SavedProductItem(props: SavedProductItemProps) {
                     
                     {/* Minimum Purchase */}
                     <Text numberOfLines={1} className="text-[14px] text-primaryText">
-                      Min: {displayInfo?.options?.moq} {displayInfo?.options?.unit}
+                      Min: {displayInfo?.options?.moq} {displayInfo?.options?.unit === 'kg' ? 'pieces' : displayInfo?.options?.unit || 'pieces'}
                     </Text>
                   </View>
                 );

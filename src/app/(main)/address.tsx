@@ -47,10 +47,9 @@ const addressSchema = z.object({
     }),
   postalCode: z
     .string({ required_error: 'Postal code is required' })
-    .min(6, { message: 'Postal code must be between 6-7 digits' })
-    .max(7, { message: 'Postal code must be between 6-7 digits' })
-    .regex(/^\d{6,7}$/, { 
-      message: 'Postal code must be between 6-7 digits only' 
+    .length(6, { message: 'Postal code must be exactly 6 digits' })
+    .regex(/^\d{6}$/, { 
+      message: 'Postal code must be exactly 6 digits only' 
     }),
   country: z
     .string({ required_error: 'Country is required' })
@@ -112,8 +111,8 @@ export default function AddressInput() {
   });
 
   const handlePostalCodeChange = (text: string) => {
-    // Only allow numeric characters
-    const numericText = text.replace(/[^0-9]/g, '');
+    // Only allow numeric characters and limit to 6 digits
+    const numericText = text.replace(/[^0-9]/g, '').slice(0, 6);
     postalCodeField.onChange(numericText);
   };
   
@@ -221,7 +220,8 @@ export default function AddressInput() {
                 name="postalCode"
                 placeholder="Postal code"
                 keyboardType="numeric"
-                maxLength={7}
+                maxLength={6}
+                description="Enter exactly 6 digits (e.g., 123456)"
                 control={control}
                 value={postalCodeField.value}
                 onChangeText={handlePostalCodeChange}
