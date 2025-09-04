@@ -154,11 +154,26 @@ export const individualRegSchema = z
             return false;
           }
           
+          // Check if user is at least 13 years old
+          const age = today.getFullYear() - date.getFullYear();
+          const monthDiff = today.getMonth() - date.getMonth();
+          const dayDiff = today.getDate() - date.getDate();
+          
+          // Calculate exact age considering month and day
+          let exactAge = age;
+          if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            exactAge = age - 1;
+          }
+          
+          if (exactAge < 13) {
+            return false;
+          }
+          
           return true;
         }
         return true; // Optional field, so empty is valid
       }, {
-        message: 'Date of birth must be in YYYY-MM-DD format and be a valid date (not in the future)',
+        message: 'You must be at least 13 years old to register',
       }),
     howDidYouFindUs: z.string().optional(),
     referral_code: z.string().optional(),

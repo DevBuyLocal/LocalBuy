@@ -57,7 +57,7 @@ export default function SignUp() {
         businessPhone: '',
         howDidYouFindUs: '',
       },
-      mode: 'onSubmit',
+      mode: 'onChange',
       reValidateMode: 'onChange',
     });
     
@@ -127,9 +127,11 @@ export default function SignUp() {
       }, [setValue]);
     
     const onSubmit = async (data: BusinessRegFormType) => {
-      console.log('Form submission started with data:', data);
-      console.log('Referral code value:', data.referral_code);
-      console.log('Form is valid, proceeding with submission...');
+      console.log('🚀 BUSINESS FORM SUBMISSION STARTED');
+      console.log('📋 Form data:', JSON.stringify(data, null, 2));
+      console.log('🔑 Referral code value:', data.referral_code);
+      console.log('✅ Form is valid, proceeding with submission...');
+      console.log('⏳ Setting loading to true...');
       setLoading(true);
       
       // Start progress bar animation
@@ -143,36 +145,58 @@ export default function SignUp() {
         }, 100);
       }
       
+      const registerPayload = {
+        email: data.email.toLowerCase(),
+        password: data.password,
+        type: role,
+        referal_code: data.referral_code || undefined, // Ensure undefined if empty string
+        fullName: data.fullName,
+        businessName: data.businessName,
+        businessPhone: data.businessPhone,
+        howDidYouFindUs: data.howDidYouFindUs,
+        ...(data.cac && data.cac.trim() && { cac: data.cac }),
+      };
+      
+      console.log('📤 REGISTER API CALL STARTING');
+      console.log('📦 Register payload:', JSON.stringify(registerPayload, null, 2));
+      console.log('🌐 API endpoint: api/auth/register');
+      
       Register(
-        {
-          email: data.email.toLowerCase(),
-          password: data.password,
-          type: role,
-          referal_code: data.referral_code || undefined, // Ensure undefined if empty string
-          fullName: data.fullName,
-          businessName: data.businessName,
-          businessPhone: data.businessPhone,
-          howDidYouFindUs: data.howDidYouFindUs,
-          ...(data.cac && data.cac.trim() && { cac: data.cac }),
-        },
+        registerPayload,
         {
           onSuccess(responseData) {
+            console.log('🎉 REGISTRATION SUCCESS!');
+            console.log('📨 Full response data:', JSON.stringify(responseData, null, 2));
+            
             // Complete progress bar
             if (progressRef.current) {
               progressRef.current.setProgress(100);
             }
+            
+            console.log('✅ Setting success message...');
             setSuccess('Account Created Successfully! Please check your email for verification.');
-            console.log('📍 Registration response:', responseData);
+            
             // Clear stored form data on successful submission
+            console.log('🗑️ Clearing stored form data...');
             AsyncStorage.removeItem('businessFormData').catch(console.log);
+            
             // Add a small delay to show the success message before redirecting
+            console.log('⏰ Setting timeout for navigation (1.5s)...');
             setTimeout(() => {
-              push(
-                `/verify?email=${encodeURIComponent(data.email)}&userType=${role}`
-              );
+              const verifyUrl = `/verify?email=${encodeURIComponent(data.email)}&userType=${role}` as const;
+              console.log('🧭 NAVIGATING TO VERIFY PAGE:', verifyUrl);
+              push(verifyUrl);
             }, 1500);
           },
           onError(error) {
+            console.log('❌ REGISTRATION ERROR OCCURRED!', error);
+            console.log('🔍 Error details:', {
+              status: error?.response?.status,
+              statusText: error?.response?.statusText,
+              data: error?.response?.data,
+              message: error?.message,
+              config: error?.config
+            });
             // Reset progress bar on error
             if (progressRef.current) {
               progressRef.current.setProgress(0);
@@ -222,8 +246,15 @@ export default function SignUp() {
             
             // Don't clear the form - let the user see their input and fix errors
             // The form will show validation errors for specific fields
+            
+            // Show a general error message if no specific field errors were set
+            if (!errorData || typeof errorData !== 'object' || Object.keys(errorData).length === 0) {
+              console.log('⚠️ No specific field errors found, showing general error');
+              setError((error?.response?.data as any)?.message || error?.message || 'Registration failed. Please try again.');
+            }
           },
           onSettled() {
+            console.log('🔄 BUSINESS REGISTRATION SETTLED - Setting loading to false');
             setLoading(false);
           },
         }
@@ -347,8 +378,10 @@ export default function SignUp() {
             <CustomButton
               label={loading ? "Creating account..." : "Create account"}
               onPress={async () => {
+                console.log('🔘 BUSINESS CREATE ACCOUNT BUTTON PRESSED');
                 // Get current form values
                 const currentValues = getValues();
+                console.log('📋 Current form values:', currentValues);
                 
                 // Validate referral code BEFORE triggering handleSubmit
                 if (currentValues.referral_code && currentValues.referral_code.trim()) {
@@ -392,9 +425,11 @@ export default function SignUp() {
                 }
                 
                 // If we get here, referral code is valid or empty, proceed with normal form submission
+                console.log('✅ Proceeding with form submission...');
                 handleSubmit(onSubmit, (formErrors) => {
-                  console.log('Form validation errors:', formErrors);
-                  console.log('Form validation failed, cannot submit');
+                  console.log('❌ FORM VALIDATION FAILED!');
+                  console.log('📋 Form validation errors:', formErrors);
+                  console.log('🚫 Form validation failed, cannot submit');
                   const firstError = Object.keys(formErrors)[0] as keyof BusinessRegFormType | undefined;
                   if (firstError) {
                     // focus the first invalid field
@@ -443,7 +478,7 @@ export default function SignUp() {
         dob: '',
         howDidYouFindUs: '',
       },
-      mode: 'onSubmit',
+      mode: 'onChange',
       reValidateMode: 'onChange',
     });
     
@@ -513,9 +548,11 @@ export default function SignUp() {
     }, [setValue]);
     
     const onSubmit = async (data: IndividualRegFormType) => {
-      console.log('Form submission started with data:', data);
-      console.log('Referral code value:', data.referral_code);
-      console.log('Form is valid, proceeding with submission...');
+      console.log('🚀 INDIVIDUAL FORM SUBMISSION STARTED');
+      console.log('📋 Form data:', JSON.stringify(data, null, 2));
+      console.log('🔑 Referral code value:', data.referral_code);
+      console.log('✅ Form is valid, proceeding with submission...');
+      console.log('⏳ Setting loading to true...');
       setLoading(true);
       
       // Start progress bar animation
@@ -529,34 +566,57 @@ export default function SignUp() {
         }, 100);
       }
       
+      const registerPayload = {
+        email: data.email.toLowerCase(),
+        password: data.password,
+        type: role,
+        referal_code: data.referral_code || undefined, // Ensure undefined if empty string
+        fullName: data.fullName,
+        phone: data.deliveryPhone, // Map deliveryPhone to phone for API
+        ...(data.dob && data.dob.trim() && { dob: data.dob }),
+        ...(data.howDidYouFindUs && data.howDidYouFindUs.trim() && { howDidYouFindUs: data.howDidYouFindUs }),
+      };
+      
+      console.log('📤 INDIVIDUAL REGISTER API CALL STARTING');
+      console.log('📦 Register payload:', JSON.stringify(registerPayload, null, 2));
+      console.log('🌐 API endpoint: api/auth/register');
+      
       Register(
-        {
-          email: data.email.toLowerCase(),
-          password: data.password,
-          type: role,
-          referal_code: data.referral_code || undefined, // Ensure undefined if empty string
-          fullName: data.fullName,
-          phone: data.deliveryPhone, // Map deliveryPhone to phone for API
-          ...(data.dob && data.dob.trim() && { dob: data.dob }),
-          ...(data.howDidYouFindUs && data.howDidYouFindUs.trim() && { howDidYouFindUs: data.howDidYouFindUs }),
-        },
+        registerPayload,
         {
           onSuccess(responseData) {
+            console.log('🎉 INDIVIDUAL REGISTRATION SUCCESS!');
+            console.log('📨 Full response data:', JSON.stringify(responseData, null, 2));
+            
             // Complete progress bar
             if (progressRef.current) {
               progressRef.current.setProgress(100);
             }
+            
+            console.log('✅ Setting success message...');
             setSuccess('Account Created Successfully! Please check your email for verification.');
+            
             // Clear stored form data on successful submission
+            console.log('🗑️ Clearing stored form data...');
             AsyncStorage.removeItem('individualFormData').catch(console.log);
+            
             // Add a small delay to show the success message before redirecting
+            console.log('⏰ Setting timeout for navigation (1.5s)...');
             setTimeout(() => {
-              push(
-                `/verify?email=${encodeURIComponent(data.email)}&userType=${role}`
-              );
+              const verifyUrl = `/verify?email=${encodeURIComponent(data.email)}&userType=${role}` as const;
+              console.log('🧭 NAVIGATING TO VERIFY PAGE:', verifyUrl);
+              push(verifyUrl);
             }, 1500);
           },
           onError(error) {
+            console.log('❌ REGISTRATION ERROR OCCURRED!', error);
+            console.log('🔍 Error details:', {
+              status: error?.response?.status,
+              statusText: error?.response?.statusText,
+              data: error?.response?.data,
+              message: error?.message,
+              config: error?.config
+            });
             // Reset progress bar on error
             if (progressRef.current) {
               progressRef.current.setProgress(0);
@@ -567,6 +627,14 @@ export default function SignUp() {
             // Handle field-specific validation errors from server
             if (errorData && typeof errorData === 'object' && errorData !== null) {
               const errorObj = errorData as Record<string, any>;
+              
+              console.log('🔍 Processing server error object:', errorObj);
+              
+              // Check for specific field errors from server response (new format)
+              if (errorObj.field && errorObj.message) {
+                console.log(`📝 Setting ${errorObj.field} field error:`, errorObj.message);
+                setFieldError(errorObj.field as any, { type: 'server', message: errorObj.message });
+              }
               
               // Check for password-related errors (do not clear fields to preserve inputs)
               if (errorObj.password || errorObj.confirmPassword) {
@@ -603,8 +671,15 @@ export default function SignUp() {
             
             // Don't clear the form - let the user see their input and fix errors
             // The form will show validation errors for specific fields
+            
+            // Show a general error message if no specific field errors were set
+            if (!errorData || typeof errorData !== 'object' || Object.keys(errorData).length === 0) {
+              console.log('⚠️ No specific field errors found, showing general error');
+              setError((error?.response?.data as any)?.message || error?.message || 'Registration failed. Please try again.');
+            }
           },
           onSettled() {
+            console.log('🔄 BUSINESS REGISTRATION SETTLED - Setting loading to false');
             setLoading(false);
           },
         }
@@ -728,8 +803,10 @@ export default function SignUp() {
             <CustomButton
               label={loading ? "Creating account..." : "Create account"}
               onPress={async () => {
+                console.log('🔘 BUSINESS CREATE ACCOUNT BUTTON PRESSED');
                 // Get current form values
                 const currentValues = getValues();
+                console.log('📋 Current form values:', currentValues);
                 
                 // Validate referral code BEFORE triggering handleSubmit
                 if (currentValues.referral_code && currentValues.referral_code.trim()) {
@@ -773,9 +850,11 @@ export default function SignUp() {
                 }
                 
                 // If we get here, referral code is valid or empty, proceed with normal form submission
+                console.log('✅ Proceeding with form submission...');
                 handleSubmit(onSubmit, (formErrors) => {
-                  console.log('Form validation errors:', formErrors);
-                  console.log('Form validation failed, cannot submit');
+                  console.log('❌ FORM VALIDATION FAILED!');
+                  console.log('📋 Form validation errors:', formErrors);
+                  console.log('🚫 Form validation failed, cannot submit');
                   const firstError = Object.keys(formErrors)[0] as keyof IndividualRegFormType | undefined;
                   if (firstError) {
                     setFocus(firstError as any);

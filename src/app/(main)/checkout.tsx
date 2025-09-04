@@ -6,7 +6,8 @@ import { WebView, type WebViewNavigation } from 'react-native-webview';
 
 import { useGetUser } from '@/api';
 import { useGeneratePaymentLink,useGetSingleOrder } from '@/api/order';
-import { useInitializePayment } from '@/api/order/use-initialize-payment';
+//import { useInitializePayment, useInitializeOrderPayment } from '@/api/order/use-initialize-payment';
+import { useInitializeOrderPayment } from '@/api/order/use-initialize-order-payment'; // ✅ New import
 import { useVerifyPayment } from '@/api/order/use-verify-payment';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
@@ -14,6 +15,7 @@ import LocationModal from '@/components/products/location-modal';
 import { colors, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import { useModal } from '@/components/ui/modal';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { accessToken } from '@/lib';
 
 // eslint-disable-next-line max-lines-per-function
 function Checkout() {
@@ -239,26 +241,20 @@ function Checkout() {
     // });
   }
 
-  const { mutate, isPending } = useInitializePayment({
+  const { mutate, isPending } = useInitializeOrderPayment({
     onSuccess: (data: any) => {
-      console.log('✅ Payment initialization success:', data);
-      setCheckoutUri(data?.data?.authorizationUrl);
+      console.log('🎯 SUCCESS - Full response:', JSON.stringify(data, null, 2));
+      console.log('🎯 Authorization URL:', data.data?.authorizationUrl);
+      console.log('🎯 Amount from response:', data.data?.amount);
+      setCheckoutUri(data.data.authorizationUrl);
       setShowModal(true);
     },
-    onError: (error: any) => {
-      console.log('❌ Payment initialization error:', error);
-      console.log('❌ Error response:', error?.response);
-      console.log('❌ Error data:', error?.response?.data);
-      console.log('❌ Error message:', error?.response?.data?.message);
-      console.log('❌ Error status:', error?.response?.status);
-      
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error ||
-                          error?.message ||
-                          'Failed to initialize payment';
-      
-      setError(errorMessage);
-      Alert.alert('Payment Error', errorMessage);
+    onError: (error) => {
+      console.log('❌ ERROR - Full error:', JSON.stringify(error.response?.data, null, 2));
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
     },
   });
   const { mutate: verifyMutate, isPending: verifyIsPending } = useVerifyPayment(
@@ -276,83 +272,48 @@ function Checkout() {
     }
   );
 
-  const handlePayment = () => {
-    if (!currentAddress) {
-      setError('Please select a delivery address before proceeding');
-      return;
-    }
+  // const handlePayment = () => {
+  //   setLoading(true);
+    
+  //   // Calculate correct amount based on order's payment type
+  //   const correctAmount = order?.order?.shippingPaymentType === 'PAY_ON_DELIVERY' 
+  //     ? order?.order?.shipping?.totalShippingFee || 0
+  //     : Number(price);
+      
+  //   mutate({
+  //     orderId: Number(orderId),
+  //     email: user?.email || '',
+  //     amount: correctAmount, // Send the correct amount
+  //   });
+  // };
 
-    if (!selectedPaymentMethod) {
-      setError('Please select a payment method and proceed with delivery fee');
-      return;
-    }
-
-    // Debug logging for split payment
-    console.log('🔍 Payment Debug Info:', {
-      selectedPaymentMethod,
-      isSplitPayment,
-      deliveryFee,
-      calculatedTotal,
-      amountToPayNow, // What customer pays now
-      orderId,
-      userEmail: user?.email,
-      orderData: order?.order,
-      shippingFee: order?.order?.shipping?.totalShippingFee,
-    });
-
-    const paymentData = {
-      orderId: Number(orderId),
-      email: user?.email || '',
-      amount: Number(amountToPayNow), // Delivery fee for split payment, full amount for regular payment
-      paymentMethod: ['bank', 'card', 'ussd', 'bank_transfer'],
-      paymentType: isSplitPayment ? 'DELIVERY_FEE' as const : 'FULL' as const,
-    };
-
-    console.log('💳 Sending payment initialization request:', paymentData);
-
-    // Validate required fields
-    if (!paymentData.orderId || isNaN(paymentData.orderId)) {
-      setError('Invalid order ID');
-      return;
-    }
-
-    if (!paymentData.email) {
-      setError('User email is required');
-      return;
-    }
-
-    if (!paymentData.amount || isNaN(paymentData.amount) || paymentData.amount <= 0) {
-      setError(`Invalid payment amount: ${paymentData.amount}`);
-      return;
-    }
-
-    // Validate that we have a valid order total
-    if (!calculatedTotal || calculatedTotal <= 0) {
-      setError('Invalid order total. Please refresh and try again.');
-      return;
-    }
-
-    // Additional validation for split payment
-    if (isSplitPayment && deliveryFee <= 0) {
-      setError('Delivery fee must be greater than 0 for split payment');
-      return;
-    }
-
-    // Validate order exists and is loaded
-    if (orderLoading) {
-      setError('Order is still loading. Please wait and try again.');
-      return;
-    }
-
-    if (!order?.order) {
-      setError('Order data not found. Please try again.');
-      return;
-    }
-
+  const handlePayment = async () => {
     setLoading(true);
-    mutate(paymentData);
+    
+    try {
+      const response = await fetch(`/api/payment/orders/${orderId}/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken()?.access}`,
+        },
+        body: JSON.stringify({ paymentMethod: 'CARD' })
+      });
+      
+      const data = await response.json();
+      console.log('🎯 HARDCODED RESPONSE:', JSON.stringify(data, null, 2));
+      
+      if (data.success && data.data.authorizationUrl) {
+        setCheckoutUri(data.data.authorizationUrl);
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.log('❌ HARDCODED ERROR:', error);
+    }
+    
+    setLoading(false);
   };
-
+  
   const handleNavigationStateChange = React.useCallback(
     (state: WebViewNavigation) => {
       if (state.url === 'https://standard.paystack.co/close') {
