@@ -8,6 +8,7 @@ import { useGetAllOrders } from '@/api/order';
 import { useAuth, useIsFirstTime } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
 import { useLoader } from '@/lib/hooks/general/use-loader';
+import { usePaymentMonitor } from '@/hooks/use-payment-monitor';
 
 export default function MainLayout() {
   const { status, token, user } = useAuth();
@@ -27,6 +28,9 @@ export default function MainLayout() {
   const { isLoading: userLoading } = useGetUser();
   const { data } = useGetCartItems();
   useGetAllOrders();
+  
+  // Monitor payment status for all pending orders
+  usePaymentMonitor();
 
   const { mutateAsync: syncCartItems } = useAddCartItem({
     onError: (error) => {

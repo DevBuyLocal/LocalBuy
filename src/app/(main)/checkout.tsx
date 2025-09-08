@@ -5,7 +5,7 @@ import { ActivityIndicator, Alert,Modal, Pressable, Share } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 
 import { useGetUser } from '@/api';
-import { useGeneratePaymentLink,useGetSingleOrder } from '@/api/order';
+import { useGeneratePaymentLink, useGetSingleOrder, usePollPaymentStatus } from '@/api/order';
 //import { useInitializePayment, useInitializeOrderPayment } from '@/api/order/use-initialize-payment';
 import { useInitializeOrderPayment } from '@/api/order/use-initialize-order-payment'; // ✅ New import
 import { useVerifyPayment } from '@/api/order/use-verify-payment';
@@ -15,7 +15,6 @@ import LocationModal from '@/components/products/location-modal';
 import { colors, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import { useModal } from '@/components/ui/modal';
 import { useLoader } from '@/lib/hooks/general/use-loader';
-import { accessToken } from '@/lib';
 
 // eslint-disable-next-line max-lines-per-function
 function Checkout() {
@@ -45,6 +44,14 @@ function Checkout() {
     orderNumber: string;
     remainingMinutes: number;
     shareMessage: string;
+  } | null>(null);
+  
+  // Payment Success Dialog state
+  const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = React.useState(false);
+  const [paymentSuccessData, setPaymentSuccessData] = React.useState<{
+    orderNumber: string;
+    amount: string;
+    paidAt: string;
   } | null>(null);
   
   // Countdown timer state
@@ -136,6 +143,57 @@ function Checkout() {
   const { data: order, isLoading: orderLoading } = useGetSingleOrder(
     Number(orderId)
   )();
+
+  // Poll payment status when payment link is active
+  const { data: paymentStatus, isLoading: paymentStatusLoading } = usePollPaymentStatus(
+    Number(orderId),
+    showPaymentLinkModal && paymentLinkData !== null
+  );
+
+  // Enhanced logging for payment status changes
+  React.useEffect(() => {
+    if (paymentStatus?.data?.paymentStatus) {
+      console.log('🔄 Payment status updated:', {
+        orderId,
+        status: paymentStatus.data.paymentStatus,
+        amount: paymentStatus.data.amount,
+        paidAt: paymentStatus.data.paidAt,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [paymentStatus, orderId]);
+
+  // Handle payment status updates
+  React.useEffect(() => {
+    if (paymentStatus?.data?.paymentStatus === 'PAID') {
+      console.log('🎉 Payment completed through shared link!');
+      
+      // Close the payment link modal immediately
+      setShowPaymentLinkModal(false);
+      setPaymentLinkData(null);
+      
+      // Set success data for the dialog
+      setPaymentSuccessData({
+        orderNumber: paymentLinkData?.orderNumber || orderId.toString(),
+        amount: paymentLinkData?.formattedAmount || `₦${paymentStatus.data.amount?.toLocaleString() || '0'}`,
+        paidAt: paymentStatus.data.paidAt || new Date().toISOString(),
+      });
+      
+      // Show success dialog after a brief delay to ensure modal is closed
+      setTimeout(() => {
+        setShowPaymentSuccessDialog(true);
+      }, 300);
+      
+    } else if (paymentStatus?.data?.paymentStatus === 'FAILED') {
+      console.log('❌ Payment failed through shared link');
+      setError('Payment failed. Please try again or contact support.');
+      // Don't close the modal for failed payments so user can try again
+    } else if (paymentStatus?.data?.paymentStatus === 'CANCELLED') {
+      console.log('🚫 Payment cancelled through shared link');
+      setError('Payment was cancelled. You can try again.');
+      // Don't close the modal for cancelled payments so user can try again
+    }
+  }, [paymentStatus, paymentLinkData, orderId, setError]);
 
   // Use order total price if available, otherwise use passed price
   const calculatedTotal = order?.order?.totalPrice || 0;
@@ -287,31 +345,13 @@ function Checkout() {
   //   });
   // };
 
-  const handlePayment = async () => {
+  const handlePayment = () => {
+    console.log('🎯 STARTING PAYMENT - Order ID:', orderId);
     setLoading(true);
-    
-    try {
-      const response = await fetch(`/api/payment/orders/${orderId}/pay`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken()?.access}`,
-        },
-        body: JSON.stringify({ paymentMethod: 'CARD' })
-      });
-      
-      const data = await response.json();
-      console.log('🎯 HARDCODED RESPONSE:', JSON.stringify(data, null, 2));
-      
-      if (data.success && data.data.authorizationUrl) {
-        setCheckoutUri(data.data.authorizationUrl);
-        setShowModal(true);
-      }
-    } catch (error) {
-      console.log('❌ HARDCODED ERROR:', error);
-    }
-    
-    setLoading(false);
+    mutate({
+      orderId: Number(orderId),
+      paymentMethod: 'CARD',
+    });
   };
   
   const handleNavigationStateChange = React.useCallback(
@@ -354,23 +394,47 @@ function Checkout() {
           
           // Extract and normalize API data
           const apiData: any = data?.data || {};
-          const rawExpiresAt = apiData.expiresAt || null;
+          
+          // Get expiration info from the correct structure
+          const expirationInfo = apiData.expirationInfo || {};
+          const rawExpiresAt = expirationInfo.expiresAt || apiData.expiresAt || null;
 
           // Compute amount and formatted amount
           const normalizedAmount = isSplitPayment
             ? Number(deliveryFee)
             : (typeof apiData.amount === 'number' ? apiData.amount : Number(calculatedTotal));
 
-          // Compute remaining minutes from expiresAt if present (fallback 15)
-          let remainingMinutes = 15;
-          if (rawExpiresAt) {
+          // Compute remaining minutes from backend data (prioritize expirationMinutes, then calculate from expiresAt)
+          let remainingMinutes = 15; // fallback
+          
+          // First, try to use the expirationMinutes directly from backend
+          if (expirationInfo.expirationMinutes && typeof expirationInfo.expirationMinutes === 'number') {
+            remainingMinutes = Math.max(0, expirationInfo.expirationMinutes);
+            console.log('🕒 Using backend expirationMinutes:', remainingMinutes);
+          }
+          // If not available, calculate from remainingSeconds
+          else if (expirationInfo.remainingSeconds && typeof expirationInfo.remainingSeconds === 'number') {
+            remainingMinutes = Math.max(0, Math.floor(expirationInfo.remainingSeconds / 60));
+            console.log('🕒 Calculated from remainingSeconds:', remainingMinutes);
+          }
+          // Fallback to calculating from expiresAt timestamp
+          else if (rawExpiresAt) {
             try {
               const expiryMs = new Date(rawExpiresAt).getTime();
               const nowMs = Date.now();
               const diffMs = Math.max(0, expiryMs - nowMs);
               remainingMinutes = Math.max(0, Math.floor(diffMs / 60000));
-            } catch {}
+              console.log('🕒 Calculated from expiresAt timestamp:', remainingMinutes);
+            } catch (error) {
+              console.log('❌ Error calculating from expiresAt:', error);
+            }
           }
+          
+          console.log('🕒 Final remainingMinutes:', remainingMinutes, 'from backend data:', {
+            expirationMinutes: expirationInfo.expirationMinutes,
+            remainingSeconds: expirationInfo.remainingSeconds,
+            expiresAt: rawExpiresAt
+          });
 
           const paymentData = {
             orderId: apiData.orderId || orderId || 'N/A',
@@ -904,6 +968,37 @@ function Checkout() {
                   Payment Link Generated
                 </Text>
                 
+                {/* Payment Status Indicator */}
+                {paymentStatus?.data?.paymentStatus && (
+                  <View className="mb-4 p-3 rounded-lg bg-gray-50">
+                    <Text className="text-sm font-medium text-center mb-1">Payment Status:</Text>
+                    <View className="flex-row items-center justify-center gap-2">
+                      <View className={`w-3 h-3 rounded-full ${
+                        paymentStatus.data.paymentStatus === 'PAID' ? 'bg-green-500' :
+                        paymentStatus.data.paymentStatus === 'FAILED' ? 'bg-red-500' :
+                        paymentStatus.data.paymentStatus === 'CANCELLED' ? 'bg-orange-500' :
+                        'bg-yellow-500'
+                      }`} />
+                      <Text className={`text-sm font-semibold ${
+                        paymentStatus.data.paymentStatus === 'PAID' ? 'text-green-700' :
+                        paymentStatus.data.paymentStatus === 'FAILED' ? 'text-red-700' :
+                        paymentStatus.data.paymentStatus === 'CANCELLED' ? 'text-orange-700' :
+                        'text-yellow-700'
+                      }`}>
+                        {paymentStatus.data.paymentStatus === 'PAID' ? '✅ Payment Completed' :
+                         paymentStatus.data.paymentStatus === 'FAILED' ? '❌ Payment Failed' :
+                         paymentStatus.data.paymentStatus === 'CANCELLED' ? '🚫 Payment Cancelled' :
+                         '⏳ Waiting for Payment...'}
+                      </Text>
+                    </View>
+                    {paymentStatus.data.paidAt && (
+                      <Text className="text-xs text-gray-600 text-center mt-1">
+                        Paid at: {new Date(paymentStatus.data.paidAt).toLocaleString()}
+                      </Text>
+                    )}
+                  </View>
+                )}
+                
                                   <View className="mb-4">
                     <Text className="text-sm text-gray-600 mb-2">Order Details:</Text>
                     <Text className="text-base font-medium">
@@ -971,6 +1066,81 @@ function Checkout() {
                   className="w-full border-orange-500"
                   textClassName="text-orange-500"
                 />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Payment Success Dialog */}
+      {showPaymentSuccessDialog && paymentSuccessData && (
+        <Modal
+          visible={showPaymentSuccessDialog}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={() => setShowPaymentSuccessDialog(false)}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 px-4">
+            <View className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+              <View className="items-center">
+                {/* Success Icon */}
+                <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                  <Text className="text-3xl">✅</Text>
+                </View>
+                
+                {/* Success Title */}
+                <Text className="mb-2 text-xl font-bold text-gray-900">
+                  Payment Successful!
+                </Text>
+                
+                {/* Success Message */}
+                <Text className="mb-4 text-center text-gray-600">
+                  Your payment has been completed successfully through the shared payment link.
+                </Text>
+                
+                {/* Order Details */}
+                <View className="mb-6 w-full rounded-lg bg-gray-50 p-4">
+                  <Text className="mb-2 text-sm font-medium text-gray-700">Payment Details:</Text>
+                  <View className="space-y-1">
+                    <View className="flex-row justify-between">
+                      <Text className="text-sm text-gray-600">Order Number:</Text>
+                      <Text className="text-sm font-medium">#{paymentSuccessData.orderNumber}</Text>
+                    </View>
+                    <View className="flex-row justify-between">
+                      <Text className="text-sm text-gray-600">Amount Paid:</Text>
+                      <Text className="text-sm font-bold text-green-600">{paymentSuccessData.amount}</Text>
+                    </View>
+                    <View className="flex-row justify-between">
+                      <Text className="text-sm text-gray-600">Payment Time:</Text>
+                      <Text className="text-sm text-gray-700">
+                        {new Date(paymentSuccessData.paidAt).toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                
+                {/* Action Buttons */}
+                <View className="w-full space-y-3">
+                  <CustomButton
+                    label="View Order Details"
+                    onPress={() => {
+                      setShowPaymentSuccessDialog(false);
+                      replace(`/order-success?orderId=${orderId}`);
+                    }}
+                    className="w-full"
+                  />
+                  
+                  <CustomButton
+                    label="Continue Shopping"
+                    onPress={() => {
+                      setShowPaymentSuccessDialog(false);
+                      replace('/(main)/(tabs)');
+                    }}
+                    variant="outline"
+                    className="w-full border-gray-300"
+                    textClassName="text-gray-700"
+                  />
+                </View>
               </View>
             </View>
           </View>
