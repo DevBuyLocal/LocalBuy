@@ -1,13 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert,Modal, Pressable, Share } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Share } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 
 import { useGetUser } from '@/api';
 import { useGeneratePaymentLink, useGetSingleOrder, usePollPaymentStatus } from '@/api/order';
-//import { useInitializePayment, useInitializeOrderPayment } from '@/api/order/use-initialize-payment';
-import { useInitializeOrderPayment } from '@/api/order/use-initialize-order-payment'; // ✅ New import
+import { useInitializeOrderPayment } from '@/api/order/use-initialize-order-payment';
+import { useUpdateOrderPayment } from '@/api/order/use-update-order-payment';
 import { useVerifyPayment } from '@/api/order/use-verify-payment';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
@@ -22,14 +22,14 @@ function Checkout() {
   const [showModal, setShowModal] = React.useState(false);
   const [checkoutUri, setCheckoutUri] = React.useState('');
   const [selectedAddress, setSelectedAddress] = React.useState<string>('');
+  
+  // ✅ Payment selection state
   const [selectedPaymentMethod, setSelectedPaymentMethod] = React.useState<
     'payNow' | 'payOnDelivery'
   >('payNow');
-  const [showDeliveryFeePopup, setShowDeliveryFeePopup] = React.useState(false);
-  // const [deliveryFeeApplied, setDeliveryFeeApplied] = React.useState(false);
-  const [isPartialPayment, setIsPartialPayment] = React.useState(false);
   const [showDeliveryDropdown, setShowDeliveryDropdown] = React.useState(false);
   const [showCalculatingModal, setShowCalculatingModal] = React.useState(false);
+  const [showDeliveryFeePopup, setShowDeliveryFeePopup] = React.useState(false);
   
   // Payment Link states
   const [showPaymentLinkModal, setShowPaymentLinkModal] = React.useState(false);
@@ -75,74 +75,35 @@ function Checkout() {
 
   const webViewRef = React.useRef<WebView>(null);
   
+  // ✅ New hook for updating order payment type
+  const { mutate: updateOrderPayment, isPending: isUpdatingOrder } = useUpdateOrderPayment();
+  
   // Payment Link mutation
   const { mutate: generatePaymentLink, isPending: isGeneratingLink } = useGeneratePaymentLink();
-
-  // Countdown timer effect
-  React.useEffect(() => {
-    if (!showPaymentLinkModal || !paymentLinkData?.remainingMinutes) return;
-
-    // Initialize countdown with remaining minutes
-    setCountdown({
-      minutes: paymentLinkData.remainingMinutes,
-      seconds: 0,
-    });
-    setCountdownInitialized(true);
-
-    // Update countdown every second
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev.minutes === 0 && prev.seconds === 0) {
-          // Timer expired
-          clearInterval(interval);
-          return { minutes: 0, seconds: 0 };
-        }
-
-        if (prev.seconds === 0) {
-          // Move to next minute
-          return { minutes: prev.minutes - 1, seconds: 59 };
-        } else {
-          // Decrease seconds
-          return { minutes: prev.minutes, seconds: prev.seconds - 1 };
-        }
-      });
-    }, 1000);
-
-    // Cleanup interval on unmount or when modal closes
-    return () => {
-      clearInterval(interval);
-      setCountdownInitialized(false);
-    };
-  }, [showPaymentLinkModal, paymentLinkData?.remainingMinutes]);
-
-  // Handle timer expiration
-  React.useEffect(() => {
-    if (
-      countdownInitialized &&
-      countdown.minutes === 0 &&
-      countdown.seconds === 0 &&
-      showPaymentLinkModal &&
-      !isGeneratingNewLink
-    ) {
-      setShowPaymentLinkModal(false);
-    }
-  }, [countdownInitialized, countdown, showPaymentLinkModal, isGeneratingNewLink]);
 
   const {
     orderId,
     price,
     hasDeliveryFee,
-    // productPrice: passedProductPrice,
   }: {
     orderId: string;
     price: string;
     hasDeliveryFee?: string;
-    // productPrice?: string;
   } = useLocalSearchParams();
 
-  const { data: order, isLoading: orderLoading } = useGetSingleOrder(
+  const { data: order, isLoading: orderLoading, refetch: refetchOrder } = useGetSingleOrder(
     Number(orderId)
   )();
+
+  // ✅ Initialize payment method from order data
+  React.useEffect(() => {
+    if (order?.order?.shippingPaymentType) {
+      const paymentMethod = order.order.shippingPaymentType === 'PAY_ON_DELIVERY' 
+        ? 'payOnDelivery' 
+        : 'payNow';
+      setSelectedPaymentMethod(paymentMethod);
+    }
+  }, [order?.order?.shippingPaymentType]);
 
   // Poll payment status when payment link is active
   const { data: paymentStatus, isLoading: paymentStatusLoading } = usePollPaymentStatus(
@@ -150,78 +111,32 @@ function Checkout() {
     showPaymentLinkModal && paymentLinkData !== null
   );
 
-  // Enhanced logging for payment status changes
-  React.useEffect(() => {
-    if (paymentStatus?.data?.paymentStatus) {
-      console.log('🔄 Payment status updated:', {
-        orderId,
-        status: paymentStatus.data.paymentStatus,
-        amount: paymentStatus.data.amount,
-        paidAt: paymentStatus.data.paidAt,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [paymentStatus, orderId]);
-
   // Handle payment status updates
   React.useEffect(() => {
     if (paymentStatus?.data?.paymentStatus === 'PAID') {
       console.log('🎉 Payment completed through shared link!');
       
-      // Close the payment link modal immediately
       setShowPaymentLinkModal(false);
       setPaymentLinkData(null);
       
-      // Set success data for the dialog
       setPaymentSuccessData({
         orderNumber: paymentLinkData?.orderNumber || orderId.toString(),
         amount: paymentLinkData?.formattedAmount || `₦${paymentStatus.data.amount?.toLocaleString() || '0'}`,
         paidAt: paymentStatus.data.paidAt || new Date().toISOString(),
       });
       
-      // Show success dialog after a brief delay to ensure modal is closed
       setTimeout(() => {
         setShowPaymentSuccessDialog(true);
       }, 300);
-      
-    } else if (paymentStatus?.data?.paymentStatus === 'FAILED') {
-      console.log('❌ Payment failed through shared link');
-      setError('Payment failed. Please try again or contact support.');
-      // Don't close the modal for failed payments so user can try again
-    } else if (paymentStatus?.data?.paymentStatus === 'CANCELLED') {
-      console.log('🚫 Payment cancelled through shared link');
-      setError('Payment was cancelled. You can try again.');
-      // Don't close the modal for cancelled payments so user can try again
     }
   }, [paymentStatus, paymentLinkData, orderId, setError]);
 
-  // Use order total price if available, otherwise use passed price
-  const calculatedTotal = order?.order?.totalPrice || 0;
-  // order?.order?.items?.reduce(
-  //   (sum, item) => sum + item.price * item.quantity,
-  //   0
-  // ) || 0;
-
-  // Split payment calculation for Pay on Delivery
-  const isSplitPayment = selectedPaymentMethod === 'payOnDelivery';
-  const deliveryFee = order?.order?.shipping?.totalShippingFee || 1000; // Fallback to fixed delivery fee if shipping not calculated
-
-  const displayPrice =
-    (order?.order?.amountDue || Number(price) || 0) - deliveryFee;
-
-  // For split payment: use passed product price, otherwise calculate from order data
-  // const productPrice = isSplitPayment
-  //   ? Number(passedProductPrice) ||
-  //     calculatedTotal ||
-  //     order?.order?.totalPrice ||
-  //     0
-  //   : displayPrice;
-  // const totalOrderValue = isSplitPayment
-  //   ? productPrice + deliveryFee
-  //   : displayPrice;
-  // Amount to pay now - delivery fee for split payment, full amount for regular payment
-  const amountToPayNow = isSplitPayment ? deliveryFee : calculatedTotal;
-  // const remainingOnDelivery = isSplitPayment ? productPrice : 0;
+  // ✅ Calculate payment details from order
+  const isPartialPayment = order?.order?.shippingPaymentType === 'PAY_ON_DELIVERY';
+  const deliveryFee = order?.order?.shipping?.totalShippingFee || 0;
+  const totalOrderValue = order?.order?.totalPrice || 0;
+  const amountToPayNow = isPartialPayment ? deliveryFee : totalOrderValue;
+  const remainingOnDelivery = isPartialPayment ? (totalOrderValue - deliveryFee) : 0;
 
   // Get the current address to display
   const currentAddress = React.useMemo(() => {
@@ -229,7 +144,6 @@ function Checkout() {
       return selectedAddress;
     }
 
-    // Use the most recent address from addresses array, then fallback to default address
     const mostRecentAddress = user?.addresses && user.addresses.length > 0 
       ? user.addresses[user.addresses.length - 1]?.addressLine1 
       : null;
@@ -249,38 +163,60 @@ function Checkout() {
 
   // Handle address selection
   const handleAddressSaved = (address: string) => {
-    // console.log('📍 Address saved:', address);
     setSelectedAddress(address);
     dismissAddressModal();
   };
 
-  // Handle delivery fee selection
+  // ✅ Handle payment method changes
   const handlePayNowClick = () => {
     setSelectedPaymentMethod('payNow');
-    setIsPartialPayment(false);
     setShowCalculatingModal(true);
-
-    // Simulate calculation delay
-    setTimeout(() => {
-      setShowCalculatingModal(false);
-      setShowDeliveryFeePopup(true);
-    }, 2000);
+    
+    // Update the order payment type
+    updateOrderPayment(
+      {
+        orderId: Number(orderId),
+        shippingPaymentType: 'PAY_NOW'
+      },
+      {
+        onSuccess: () => {
+          setShowCalculatingModal(false);
+          setShowDeliveryFeePopup(true);
+          refetchOrder(); // Refresh order data
+        },
+        onError: (error: any) => {
+          setShowCalculatingModal(false);
+          setError(error?.response?.data?.message || 'Failed to update payment method');
+        }
+      }
+    );
   };
 
   const handlePayOnDeliveryClick = () => {
     setSelectedPaymentMethod('payOnDelivery');
-    setIsPartialPayment(true);
     setShowCalculatingModal(true);
-
-    // Simulate calculation delay
-    setTimeout(() => {
-      setShowCalculatingModal(false);
-      setShowDeliveryFeePopup(true);
-    }, 2000);
+    
+    // Update the order payment type
+    updateOrderPayment(
+      {
+        orderId: Number(orderId),
+        shippingPaymentType: 'PAY_ON_DELIVERY'
+      },
+      {
+        onSuccess: () => {
+          setShowCalculatingModal(false);
+          setShowDeliveryFeePopup(true);
+          refetchOrder(); // Refresh order data
+        },
+        onError: (error: any) => {
+          setShowCalculatingModal(false);
+          setError(error?.response?.data?.message || 'Failed to update payment method');
+        }
+      }
+    );
   };
 
   const handleDeliveryFeeProceed = () => {
-    // setDeliveryFeeApplied(true);
     setShowDeliveryFeePopup(false);
     setShowDeliveryDropdown(false);
   };
@@ -290,64 +226,48 @@ function Checkout() {
     setShowDeliveryDropdown(false);
   };
 
-  // Validate that we have a valid price
-  if (!displayPrice || Number(displayPrice) === 0) {
-    // console.log('⚠️ Warning: Invalid price detected:', {
-    //   displayPrice,
-    //   order,
-    //   price,
-    // });
-  }
-
   const { mutate, isPending } = useInitializeOrderPayment({
     onSuccess: (data: any) => {
-      console.log('🎯 SUCCESS - Full response:', JSON.stringify(data, null, 2));
-      console.log('🎯 Authorization URL:', data.data?.authorizationUrl);
-      console.log('🎯 Amount from response:', data.data?.amount);
+      console.log('🎯 Payment initialized:', {
+        amount: data.data?.amount,
+        isPartialPayment: data.meta?.isPartialPayment
+      });
       setCheckoutUri(data.data.authorizationUrl);
       setShowModal(true);
     },
     onError: (error) => {
-      console.log('❌ ERROR - Full error:', JSON.stringify(error.response?.data, null, 2));
+      console.log('❌ Payment error:', error.response?.data);
       setError(error?.response?.data);
     },
     onSettled: () => {
       setLoading(false);
     },
   });
-  const { mutate: verifyMutate, isPending: verifyIsPending } = useVerifyPayment(
-    {
-      onSuccess: () => {
-        setSuccess('Payment successful');
-        replace(`/order-success?orderId=${orderId}`);
-      },
-      onError: (error) => {
-        setError(error?.response?.data);
-      },
-      onSettled: () => {
-        setLoading(false);
-      },
-    }
-  );
 
-  // const handlePayment = () => {
-  //   setLoading(true);
-    
-  //   // Calculate correct amount based on order's payment type
-  //   const correctAmount = order?.order?.shippingPaymentType === 'PAY_ON_DELIVERY' 
-  //     ? order?.order?.shipping?.totalShippingFee || 0
-  //     : Number(price);
-      
-  //   mutate({
-  //     orderId: Number(orderId),
-  //     email: user?.email || '',
-  //     amount: correctAmount, // Send the correct amount
-  //   });
-  // };
+  const { mutate: verifyMutate, isPending: verifyIsPending } = useVerifyPayment({
+    onSuccess: () => {
+      setSuccess('Payment successful');
+      replace(`/order-success?orderId=${orderId}`);
+    },
+    onError: (error) => {
+      setError(error?.response?.data);
+    },
+    onSettled: () => {
+      setLoading(false);
+    },
+  });
 
+  // ✅ Payment handler
   const handlePayment = () => {
-    console.log('🎯 STARTING PAYMENT - Order ID:', orderId);
+    console.log('🎯 Starting payment:', {
+      orderId,
+      selectedPaymentMethod,
+      orderPaymentType: order?.order?.shippingPaymentType,
+      amountToPayNow
+    });
+    
     setLoading(true);
+    
     mutate({
       orderId: Number(orderId),
       paymentMethod: 'CARD',
@@ -378,99 +298,48 @@ function Checkout() {
       return;
     }
     
-    // Prevent premature expiry handling during generation
     setIsGeneratingNewLink(true);
     setCountdownInitialized(false);
-
-    // Close the modal to give a fresh start
     setShowPaymentLinkModal(false);
     
     generatePaymentLink(
-      { orderId, ...(isSplitPayment ? { amount: Number(deliveryFee), paymentType: 'DELIVERY_FEE' as const } : {}) },
+      { 
+        orderId, 
+        ...(isPartialPayment ? { 
+          amount: Number(deliveryFee), 
+          paymentType: 'DELIVERY_FEE' as const 
+        } : {}) 
+      },
       {
         onSuccess: (data) => {
-          console.log('🔍 Payment link success data:', data);
-          console.log('🔍 Setting payment link data:', data.data);
-          
-          // Extract and normalize API data
+          console.log('🔍 Payment link generated');
           const apiData: any = data?.data || {};
           
-          // Get expiration info from the correct structure
-          const expirationInfo = apiData.expirationInfo || {};
-          const rawExpiresAt = expirationInfo.expiresAt || apiData.expiresAt || null;
-
-          // Compute amount and formatted amount
-          const normalizedAmount = isSplitPayment
-            ? Number(deliveryFee)
-            : (typeof apiData.amount === 'number' ? apiData.amount : Number(calculatedTotal));
-
-          // Compute remaining minutes from backend data (prioritize expirationMinutes, then calculate from expiresAt)
-          let remainingMinutes = 15; // fallback
-          
-          // First, try to use the expirationMinutes directly from backend
-          if (expirationInfo.expirationMinutes && typeof expirationInfo.expirationMinutes === 'number') {
-            remainingMinutes = Math.max(0, expirationInfo.expirationMinutes);
-            console.log('🕒 Using backend expirationMinutes:', remainingMinutes);
-          }
-          // If not available, calculate from remainingSeconds
-          else if (expirationInfo.remainingSeconds && typeof expirationInfo.remainingSeconds === 'number') {
-            remainingMinutes = Math.max(0, Math.floor(expirationInfo.remainingSeconds / 60));
-            console.log('🕒 Calculated from remainingSeconds:', remainingMinutes);
-          }
-          // Fallback to calculating from expiresAt timestamp
-          else if (rawExpiresAt) {
-            try {
-              const expiryMs = new Date(rawExpiresAt).getTime();
-              const nowMs = Date.now();
-              const diffMs = Math.max(0, expiryMs - nowMs);
-              remainingMinutes = Math.max(0, Math.floor(diffMs / 60000));
-              console.log('🕒 Calculated from expiresAt timestamp:', remainingMinutes);
-            } catch (error) {
-              console.log('❌ Error calculating from expiresAt:', error);
-            }
-          }
-          
-          console.log('🕒 Final remainingMinutes:', remainingMinutes, 'from backend data:', {
-            expirationMinutes: expirationInfo.expirationMinutes,
-            remainingSeconds: expirationInfo.remainingSeconds,
-            expiresAt: rawExpiresAt
-          });
-
           const paymentData = {
             orderId: apiData.orderId || orderId || 'N/A',
-            amount: normalizedAmount,
+            amount: isPartialPayment ? Number(deliveryFee) : Number(totalOrderValue),
             paymentLink: apiData.paymentLink || 'N/A',
-            expiresAt: rawExpiresAt || 'N/A',
+            expiresAt: apiData.expiresAt || 'N/A',
             customerName: user?.profile?.fullName || user?.email || 'N/A',
-            formattedAmount: isSplitPayment ? `NGN ${deliveryFee}` : `NGN ${normalizedAmount}`,
-            orderNumber: (apiData.paymentLinkId || orderId || 'N/A') as string,
-            remainingMinutes,
-            shareMessage: isSplitPayment
-              ? `Please help me pay my delivery fee of NGN ${deliveryFee} for Order #${orderId}`
-              : `Please help me pay NGN ${normalizedAmount} for Order #${orderId}`,
+            formattedAmount: isPartialPayment ? `₦${deliveryFee}` : `₦${totalOrderValue}`,
+            orderNumber: orderId as string,
+            remainingMinutes: 15,
+            shareMessage: isPartialPayment
+              ? `Please help me pay my delivery fee of ₦${deliveryFee} for Order #${orderId}`
+              : `Please help me pay ₦${totalOrderValue} for Order #${orderId}`,
           };
-          
-          console.log('🔍 Extracted payment data:', paymentData);
-          console.log('🔍 Setting modal to show');
           
           setPaymentLinkData(paymentData);
           setShowPaymentLinkModal(true);
           setIsGeneratingNewLink(false);
-          
-          console.log('🔍 Modal state should now be true');
         },
         onError: (error: any) => {
-          console.log('❌ Payment link generation error:', error);
-          console.log('❌ Error response:', error?.response);
-          console.log('❌ Error data:', error?.response?.data);
-          console.log('❌ Error message:', error?.response?.data?.message);
+          console.log('❌ Payment link error:', error);
           setIsGeneratingNewLink(false);
-          Alert.alert('Error', error?.response?.data?.message || 'Failed to generate payment link');
+          Alert.alert('Error', 'Failed to generate payment link');
         },
       }
     );
-    
-    console.log('🔍 generatePaymentLink mutation called');
   };
 
   const handleSharePaymentLink = async () => {
@@ -485,8 +354,6 @@ function Checkout() {
       console.log('Error sharing payment link:', error);
     }
   };
-
-
 
   const handleMessageReceived = React.useCallback(
     (data: string) => {
@@ -507,7 +374,6 @@ function Checkout() {
           setShowModal(false);
           break;
         default:
-          // setShowModal(false);
           break;
       }
     },
@@ -536,38 +402,26 @@ function Checkout() {
                 </Text>
                 <Text className="mt-5 text-[16px] opacity-85">
                   {(() => {
-                    // Get phone number from the most recent address or default address
                     const phoneNumber = user?.defaultAddress?.phoneNumber || 
                                      (user?.addresses && user.addresses.length > 0 ? 
                                       user.addresses[user.addresses.length - 1]?.phoneNumber : null) ||
                                      (user?.type === 'individual' ? user?.profile?.deliveryPhone : user?.phoneNumber);
                     
-                    // If phone number already starts with +234, use it as is
                     if (phoneNumber?.startsWith('+234')) {
                       return phoneNumber;
                     }
-                    // If phone number starts with 0, replace with +234
                     if (phoneNumber?.startsWith('0')) {
                       return '+234' + phoneNumber.substring(1);
                     }
-                    // If phone number is 11 digits and doesn't start with 0, add +234
                     if (phoneNumber?.length === 11 && !phoneNumber.startsWith('0')) {
                       return '+234' + phoneNumber;
                     }
-                    // Default fallback
                     return phoneNumber ? `+234 ${phoneNumber}` : 'No phone number';
                   })()}
                 </Text>
               </View>
               <Pressable
-                onPress={() => {
-                  console.log(
-                    '📍 Change Address pressed, current address:',
-                    currentAddress
-                  );
-                  console.log('📍 Presenting address modal');
-                  presentAddressModal();
-                }}
+                onPress={() => presentAddressModal()}
                 disabled={userLoading}
                 className={`ml-4 rounded-lg px-3 py-2 ${
                   userLoading ? 'bg-gray-200' : 'bg-blue-50'
@@ -584,8 +438,7 @@ function Checkout() {
             </View>
           </View>
 
-          {/* ================================= */}
-          {/* Payment Method Selection */}
+          {/* ✅ Payment Method Selection */}
           <Text className="mt-8 text-[16px] font-medium">Payment Method</Text>
           <View className="mb-2 mt-4" style={{ position: 'relative', zIndex: 9999 }}>
             {/* Delivery Dropdown */}
@@ -607,10 +460,10 @@ function Checkout() {
               />
             </Pressable>
 
-            {/* Dropdown Options - Using Portal-like approach */}
+            {/* Dropdown Options */}
             {showDeliveryDropdown && (
               <>
-                {/* Backdrop overlay to cover bottom buttons */}
+                {/* Backdrop overlay */}
                 <View 
                   className="fixed inset-0 bg-transparent"
                   style={{ 
@@ -725,7 +578,7 @@ function Checkout() {
                           color="#f97316"
                         />
                         <Text className="text-[11px] text-gray-600">
-                          Pay Split Payment now; the remaining balance is due
+                          Pay delivery fee now; the remaining balance is due
                           upon delivery.
                         </Text>
                       </View>
@@ -750,7 +603,7 @@ function Checkout() {
           {/* ================================= */}
           <Text className="mt-8 text-[16px] font-medium">Order summary</Text>
           <View className="mt-4 rounded-lg bg-white p-5">
-            {isSplitPayment ? (
+            {isPartialPayment ? (
               // Split Payment Breakdown
               <>
                 <View className="flex-row items-center justify-between">
@@ -760,7 +613,7 @@ function Checkout() {
                   <Text className="text-[16px] font-medium">
                     {orderLoading
                       ? 'Loading...'
-                      : `N${Number(calculatedTotal)?.toLocaleString()}`}
+                      : `₦${totalOrderValue?.toLocaleString()}`}
                   </Text>
                 </View>
                 <View className="flex-row items-center justify-between py-3">
@@ -768,7 +621,7 @@ function Checkout() {
                     Amount to Pay Now (Delivery Fee)
                   </Text>
                   <Text className="text-[16px] font-medium text-green-600">
-                    N{deliveryFee?.toLocaleString()}
+                    ₦{deliveryFee?.toLocaleString()}
                   </Text>
                 </View>
                 <View className="flex-row items-center justify-between py-3">
@@ -776,7 +629,7 @@ function Checkout() {
                     Remaining Payment on Delivery
                   </Text>
                   <Text className="text-[16px] font-medium text-orange-600">
-                    N{(calculatedTotal - deliveryFee)?.toLocaleString()}
+                    ₦{remainingOnDelivery?.toLocaleString()}
                   </Text>
                 </View>
                 <View className="mt-4 flex-row items-center justify-between border-t border-gray-200 pt-4">
@@ -784,7 +637,7 @@ function Checkout() {
                     Amount Due Now
                   </Text>
                   <Text className="text-[18px] font-semibold text-green-600">
-                    N{amountToPayNow?.toLocaleString()}
+                    ₦{amountToPayNow?.toLocaleString()}
                   </Text>
                 </View>
               </>
@@ -793,26 +646,26 @@ function Checkout() {
               <>
                 <View className="flex-row items-center justify-between">
                   <Text className="text-[16px] opacity-65">
-                    {hasDeliveryFee === 'true' ? 'Total amount' : 'Subtotal'}
+                    Product Subtotal
                   </Text>
                   <Text className="text-[16px] font-medium">
                     {orderLoading
                       ? 'Loading...'
-                      : `N${Number(displayPrice)?.toLocaleString()}`}
+                      : `₦${(totalOrderValue - deliveryFee)?.toLocaleString()}`}
                   </Text>
                 </View>
                 <View className="flex-row items-center justify-between py-5">
                   <Text className="text-[16px] opacity-65">VAT</Text>
-                  <Text className="text-[16px] font-medium">N0.00</Text>
+                  <Text className="text-[16px] font-medium">₦0.00</Text>
                 </View>
                 <View className="flex-row items-center justify-between pb-5">
                   <Text className="text-[16px] opacity-65">Discount</Text>
-                  <Text className="text-[16px] font-medium">N0.00</Text>
+                  <Text className="text-[16px] font-medium">₦0.00</Text>
                 </View>
                 <View className="flex-row items-center justify-between">
                   <Text className="text-[16px] opacity-65">Shipping</Text>
                   <Text className="text-[16px] font-medium">
-                    N{deliveryFee?.toLocaleString()}
+                    ₦{deliveryFee?.toLocaleString()}
                   </Text>
                 </View>
 
@@ -821,7 +674,7 @@ function Checkout() {
                   <Text className="text-[18px] font-semibold">
                     {orderLoading
                       ? 'Loading...'
-                      : `N${Number(calculatedTotal)?.toLocaleString()}`}
+                      : `₦${totalOrderValue?.toLocaleString()}`}
                   </Text>
                 </View>
               </>
@@ -829,24 +682,25 @@ function Checkout() {
           </View>
         </Container.Box>
       </ScrollView>
+
       {!showDeliveryDropdown && (
         <View className="absolute bottom-12 w-[90%] self-center">
-        <CustomButton
-          label="Pay for Me"
-          onPress={handleGeneratePaymentLink}
-          loading={isGeneratingLink}
-          variant="outline"
-          className="mb-3 h-[55px] border-orange-500"
-          textClassName="text-orange-500"
-        />
-        <CustomButton
-          label="Continue"
-          onPress={handlePayment}
-          loading={loading || isPending || verifyIsPending}
-          disabled={
-            loading || isPending || verifyIsPending || !selectedPaymentMethod
-          }
-        />
+          <CustomButton
+            label="Pay for Me"
+            onPress={handleGeneratePaymentLink}
+            loading={isGeneratingLink}
+            variant="outline"
+            className="mb-3 h-[55px] border-orange-500"
+            textClassName="text-orange-500"
+          />
+          <CustomButton
+            label="Continue"
+            onPress={handlePayment}
+            loading={loading || isPending || verifyIsPending || isUpdatingOrder}
+            disabled={
+              loading || isPending || verifyIsPending || !selectedPaymentMethod || isUpdatingOrder
+            }
+          />
         </View>
       )}
 
@@ -895,9 +749,9 @@ function Checkout() {
         >
           <View className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
             <View className="items-center">
-              <View className="mb-4 size-12 rounded-full border-4 border-orange-500 border-t-transparent" />
+              <View className="mb-4 size-12 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" />
               <Text className="text-center text-[18px] font-bold text-gray-800">
-                Calculating...
+                Updating Payment Method...
               </Text>
             </View>
           </View>
@@ -917,7 +771,13 @@ function Checkout() {
 
             <View className="mb-6">
               <Text className="mb-4 text-center text-[24px] font-bold text-gray-800">
-                NGN {isPartialPayment ? deliveryFee : amountToPayNow}
+                ₦{amountToPayNow?.toLocaleString()}
+              </Text>
+              <Text className="text-center text-[14px] text-gray-600">
+                {isPartialPayment 
+                  ? `Delivery fee only. ₦${remainingOnDelivery?.toLocaleString()} will be paid on delivery.`
+                  : 'Full payment including products and delivery.'
+                }
               </Text>
             </View>
 
@@ -963,110 +823,42 @@ function Checkout() {
         >
           <View className="flex-1 items-center justify-center bg-black/50 px-4">
             <View className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-              <View className="p-4">
-                <Text className="text-lg font-semibold text-center mb-4">
-                  Payment Link Generated
+              <Text className="text-lg font-semibold text-center mb-4">
+                Payment Link Generated
+              </Text>
+              
+              <View className="mb-4">
+                <Text className="text-sm text-gray-600 mb-2">Order Details:</Text>
+                <Text className="text-base font-medium">
+                  Order #{paymentLinkData.orderNumber} - {paymentLinkData.customerName}
                 </Text>
-                
-                {/* Payment Status Indicator */}
-                {paymentStatus?.data?.paymentStatus && (
-                  <View className="mb-4 p-3 rounded-lg bg-gray-50">
-                    <Text className="text-sm font-medium text-center mb-1">Payment Status:</Text>
-                    <View className="flex-row items-center justify-center gap-2">
-                      <View className={`w-3 h-3 rounded-full ${
-                        paymentStatus.data.paymentStatus === 'PAID' ? 'bg-green-500' :
-                        paymentStatus.data.paymentStatus === 'FAILED' ? 'bg-red-500' :
-                        paymentStatus.data.paymentStatus === 'CANCELLED' ? 'bg-orange-500' :
-                        'bg-yellow-500'
-                      }`} />
-                      <Text className={`text-sm font-semibold ${
-                        paymentStatus.data.paymentStatus === 'PAID' ? 'text-green-700' :
-                        paymentStatus.data.paymentStatus === 'FAILED' ? 'text-red-700' :
-                        paymentStatus.data.paymentStatus === 'CANCELLED' ? 'text-orange-700' :
-                        'text-yellow-700'
-                      }`}>
-                        {paymentStatus.data.paymentStatus === 'PAID' ? '✅ Payment Completed' :
-                         paymentStatus.data.paymentStatus === 'FAILED' ? '❌ Payment Failed' :
-                         paymentStatus.data.paymentStatus === 'CANCELLED' ? '🚫 Payment Cancelled' :
-                         '⏳ Waiting for Payment...'}
-                      </Text>
-                    </View>
-                    {paymentStatus.data.paidAt && (
-                      <Text className="text-xs text-gray-600 text-center mt-1">
-                        Paid at: {new Date(paymentStatus.data.paidAt).toLocaleString()}
-                      </Text>
-                    )}
-                  </View>
-                )}
-                
-                                  <View className="mb-4">
-                    <Text className="text-sm text-gray-600 mb-2">Order Details:</Text>
-                    <Text className="text-base font-medium">
-                      Order #{paymentLinkData.orderNumber} - {paymentLinkData.customerName}
-                    </Text>
-                    <Text className="text-lg font-bold text-green-600">
-                      {isSplitPayment ? `NGN ${deliveryFee}` : paymentLinkData.formattedAmount}
-                    </Text>
-                  <View className="flex-row items-center space-x-2">
-                    <Text className="text-sm text-gray-500">
-                      Expires in {countdown.minutes} minutes
-                    </Text>
-                    <View className={`px-2 py-1 rounded ${
-                      countdown.minutes === 0 && countdown.seconds === 0 
-                        ? 'bg-red-200' 
-                        : countdown.minutes < 5 
-                        ? 'bg-orange-100' 
-                        : 'bg-red-100'
-                    }`}>
-                      <Text className={`text-sm font-mono ${
-                        countdown.minutes === 0 && countdown.seconds === 0 
-                          ? 'text-red-800' 
-                          : countdown.minutes < 5 
-                          ? 'text-orange-600' 
-                          : 'text-red-600'
-                      }`}>
-                        {countdown.minutes === 0 && countdown.seconds === 0 
-                          ? 'EXPIRED' 
-                          : `${countdown.minutes.toString().padStart(2, '0')}:${countdown.seconds.toString().padStart(2, '0')}`
-                        }
-                      </Text>
-                    </View>
-                  </View>
-                  {countdown.minutes < 5 && countdown.minutes > 0 && (
-                    <Text className="text-xs text-orange-600 mt-1">
-                      ⚠️ Payment link expires soon!
-                    </Text>
-                  )}
-                  {countdown.minutes === 0 && countdown.seconds === 0 && (
-                    <Text className="text-xs text-red-600 mt-1">
-                      ❌ Payment link has expired
-                    </Text>
-                  )}
-                </View>
-
-                <View className="mb-4">
-                  <Text className="text-sm text-gray-600 mb-2">Payment Link:</Text>
-                  <Text className="text-xs text-gray-700 bg-gray-100 p-2 rounded">
-                    {paymentLinkData.paymentLink}
-                  </Text>
-                </View>
-
-                <CustomButton
-                  label="Share Link"
-                  onPress={handleSharePaymentLink}
-                  className="w-full border-gray-300"
-                  textClassName="text-gray-700"
-                  variant="outline"
-                />
-
-                <CustomButton
-                  label="Close"
-                  onPress={() => setShowPaymentLinkModal(false)}
-                  variant="outline"
-                  className="w-full border-orange-500"
-                  textClassName="text-orange-500"
-                />
+                <Text className="text-lg font-bold text-green-600">
+                  {paymentLinkData.formattedAmount}
+                </Text>
               </View>
+
+              <View className="mb-4">
+                <Text className="text-sm text-gray-600 mb-2">Payment Link:</Text>
+                <Text className="text-xs text-gray-700 bg-gray-100 p-2 rounded">
+                  {paymentLinkData.paymentLink}
+                </Text>
+              </View>
+
+              <CustomButton
+                label="Share Link"
+                onPress={handleSharePaymentLink}
+                className="mb-3 w-full border-gray-300"
+                textClassName="text-gray-700"
+                variant="outline"
+              />
+
+              <CustomButton
+                label="Close"
+                onPress={() => setShowPaymentLinkModal(false)}
+                variant="outline"
+                className="w-full border-orange-500"
+                textClassName="text-orange-500"
+              />
             </View>
           </View>
         </Modal>
@@ -1083,43 +875,32 @@ function Checkout() {
           <View className="flex-1 items-center justify-center bg-black/50 px-4">
             <View className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
               <View className="items-center">
-                {/* Success Icon */}
                 <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-green-100">
                   <Text className="text-3xl">✅</Text>
                 </View>
                 
-                {/* Success Title */}
                 <Text className="mb-2 text-xl font-bold text-gray-900">
                   Payment Successful!
                 </Text>
                 
-                {/* Success Message */}
                 <Text className="mb-4 text-center text-gray-600">
-                  Your payment has been completed successfully through the shared payment link.
+                  Your payment has been completed successfully.
                 </Text>
                 
-                {/* Order Details */}
                 <View className="mb-6 w-full rounded-lg bg-gray-50 p-4">
                   <Text className="mb-2 text-sm font-medium text-gray-700">Payment Details:</Text>
                   <View className="space-y-1">
                     <View className="flex-row justify-between">
-                      <Text className="text-sm text-gray-600">Order Number:</Text>
+                      <Text className="text-sm text-gray-600">Order:</Text>
                       <Text className="text-sm font-medium">#{paymentSuccessData.orderNumber}</Text>
                     </View>
                     <View className="flex-row justify-between">
-                      <Text className="text-sm text-gray-600">Amount Paid:</Text>
+                      <Text className="text-sm text-gray-600">Amount:</Text>
                       <Text className="text-sm font-bold text-green-600">{paymentSuccessData.amount}</Text>
-                    </View>
-                    <View className="flex-row justify-between">
-                      <Text className="text-sm text-gray-600">Payment Time:</Text>
-                      <Text className="text-sm text-gray-700">
-                        {new Date(paymentSuccessData.paidAt).toLocaleString()}
-                      </Text>
                     </View>
                   </View>
                 </View>
                 
-                {/* Action Buttons */}
                 <View className="w-full space-y-3">
                   <CustomButton
                     label="View Order Details"

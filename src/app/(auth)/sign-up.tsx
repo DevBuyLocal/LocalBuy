@@ -33,6 +33,7 @@ export default function SignUp() {
   
   // Use conditional types based on user role
   const BusinessForm = () => {
+    const [serverError, setServerError] = React.useState<string | null>(null);
     const {
       handleSubmit,
       control,
@@ -187,6 +188,7 @@ export default function SignUp() {
               console.log('🧭 NAVIGATING TO VERIFY PAGE:', verifyUrl);
               push(verifyUrl);
             }, 1500);
+            setServerError(null);
           },
           onError(error) {
             console.log('❌ REGISTRATION ERROR OCCURRED!', error);
@@ -208,40 +210,54 @@ export default function SignUp() {
             if (errorData && typeof errorData === 'object' && errorData !== null) {
               const errorObj = errorData as Record<string, any>;
               
+              // New unified pattern (field + message)
+              if (errorObj.field && errorObj.message) {
+                setFieldError(errorObj.field as any, { type: 'server', message: errorObj.message });
+                setServerError(errorObj.message);
+              }
+
               // Check for password-related errors (do not clear fields to preserve inputs)
               if (errorObj.password || errorObj.confirmPassword) {
                 setFieldError('password', { type: 'server', message: errorObj.password || 'Password error occurred' });
                 setFieldError('confirmPassword', { type: 'server', message: errorObj.confirmPassword || 'Password confirmation error occurred' });
+                setServerError(errorObj.password || errorObj.confirmPassword);
               }
               
               // Check for other field validation errors
               if (errorObj.email) {
                 setFieldError('email', { type: 'server', message: errorObj.email });
+                setServerError(errorObj.email);
               }
               if (errorObj.fullName) {
                 setFieldError('fullName', { type: 'server', message: errorObj.fullName });
+                setServerError(errorObj.fullName);
               }
               if (errorObj.businessName) {
                 setFieldError('businessName', { type: 'server', message: errorObj.businessName });
+                setServerError(errorObj.businessName);
               }
               if (errorObj.businessPhone) {
                 setFieldError('businessPhone', { type: 'server', message: errorObj.businessPhone });
+                setServerError(errorObj.businessPhone);
               }
               if (errorObj.cac) {
                 setFieldError('cac', { type: 'server', message: errorObj.cac });
+                setServerError(errorObj.cac);
               }
               if (errorObj.howDidYouFindUs) {
                 setFieldError('howDidYouFindUs', { type: 'server', message: errorObj.howDidYouFindUs });
+                setServerError(errorObj.howDidYouFindUs);
               }
               
               // Handle general server errors (like "User already exists")
               if (errorObj.message && !Object.keys(errorObj).some(key => 
                 ['email', 'password', 'confirmPassword', 'fullName', 'businessName', 'businessPhone', 'cac', 'howDidYouFindUs'].includes(key)
               )) {
-                // Optionally map to a field if appropriate; otherwise ignore
+                setServerError(errorObj.message);
               }
             } else if (typeof errorData === 'string') {
               // Optionally show as a field-level error if we can infer a field, otherwise ignore
+              setServerError(errorData);
             }
             
             // Don't clear the form - let the user see their input and fix errors
@@ -251,6 +267,7 @@ export default function SignUp() {
             if (!errorData || typeof errorData !== 'object' || Object.keys(errorData).length === 0) {
               console.log('⚠️ No specific field errors found, showing general error');
               setError((error?.response?.data as any)?.message || error?.message || 'Registration failed. Please try again.');
+              setServerError((error?.response?.data as any)?.message || error?.message || 'Registration failed. Please try again.');
             }
           },
           onSettled() {
@@ -299,6 +316,11 @@ export default function SignUp() {
           <Text className="mt-2  text-[16px] opacity-75">
             Enter your business details to get started
           </Text>
+          {serverError && (
+            <View className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
+              <Text className="text-sm font-medium text-red-700">{serverError}</Text>
+            </View>
+          )}
           
           <MotiView
             from={{ opacity: 0, translateY: 20 }}
@@ -455,6 +477,7 @@ export default function SignUp() {
   
   // Individual form
   const IndividualForm = () => {
+    const [serverError, setServerError] = React.useState<string | null>(null);
     const {
       handleSubmit,
       control,
@@ -607,6 +630,7 @@ export default function SignUp() {
               console.log('🧭 NAVIGATING TO VERIFY PAGE:', verifyUrl);
               push(verifyUrl);
             }, 1500);
+            setServerError(null);
           },
           onError(error) {
             console.log('❌ REGISTRATION ERROR OCCURRED!', error);
@@ -634,39 +658,47 @@ export default function SignUp() {
               if (errorObj.field && errorObj.message) {
                 console.log(`📝 Setting ${errorObj.field} field error:`, errorObj.message);
                 setFieldError(errorObj.field as any, { type: 'server', message: errorObj.message });
+                setServerError(errorObj.message);
               }
               
               // Check for password-related errors (do not clear fields to preserve inputs)
               if (errorObj.password || errorObj.confirmPassword) {
                 setFieldError('password', { type: 'server', message: errorObj.password || 'Password error occurred' });
                 setFieldError('confirmPassword', { type: 'server', message: errorObj.confirmPassword || 'Password confirmation error occurred' });
+                setServerError(errorObj.password || errorObj.confirmPassword);
               }
               
               // Check for other field validation errors
               if (errorObj.email) {
                 setFieldError('email', { type: 'server', message: errorObj.email });
+                setServerError(errorObj.email);
               }
               if (errorObj.fullName) {
                 setFieldError('fullName', { type: 'server', message: errorObj.fullName });
+                setServerError(errorObj.fullName);
               }
               if (errorObj.deliveryPhone || errorObj.phone) {
                 setFieldError('deliveryPhone', { type: 'server', message: errorObj.deliveryPhone || errorObj.phone });
+                setServerError(errorObj.deliveryPhone || errorObj.phone);
               }
               if (errorObj.dob) {
                 setFieldError('dob', { type: 'server', message: errorObj.dob });
+                setServerError(errorObj.dob);
               }
               if (errorObj.howDidYouFindUs) {
                 setFieldError('howDidYouFindUs', { type: 'server', message: errorObj.howDidYouFindUs });
+                setServerError(errorObj.howDidYouFindUs);
               }
               
               // Handle general server errors (like "User already exists")
               if (errorObj.message && !Object.keys(errorObj).some(key => 
                 ['email', 'password', 'confirmPassword', 'fullName', 'deliveryPhone', 'phone', 'dob', 'howDidYouFindUs'].includes(key)
               )) {
-                // Optionally map to a field if appropriate; otherwise ignore
+                setServerError(errorObj.message);
               }
             } else if (typeof errorData === 'string') {
               // Optionally show as a field-level error if we can infer a field, otherwise ignore
+              setServerError(errorData);
             }
             
             // Don't clear the form - let the user see their input and fix errors
@@ -676,6 +708,7 @@ export default function SignUp() {
             if (!errorData || typeof errorData !== 'object' || Object.keys(errorData).length === 0) {
               console.log('⚠️ No specific field errors found, showing general error');
               setError((error?.response?.data as any)?.message || error?.message || 'Registration failed. Please try again.');
+              setServerError((error?.response?.data as any)?.message || error?.message || 'Registration failed. Please try again.');
             }
           },
           onSettled() {
@@ -724,6 +757,11 @@ export default function SignUp() {
           <Text className="mt-2  text-[16px] opacity-75">
             Enter your personal details to get started
           </Text>
+          {serverError && (
+            <View className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
+              <Text className="text-sm font-medium text-red-700">{serverError}</Text>
+            </View>
+          )}
           
           <MotiView
             from={{ opacity: 0, translateY: 20 }}

@@ -12,6 +12,7 @@ import { useGetSingleOrder } from '@/api/order/use-get-single-order';
 import Container from '@/components/general/container';
 import CustomButton from '@/components/general/custom-button';
 import FeedbackPopup from '@/components/feedback/feedback-popup';
+import { BalancePaymentModal } from '@/components/order/balance-payment-modal';
 import { Image, Text, View } from '@/components/ui';
 
 export default function TrackOrder() {
@@ -23,6 +24,7 @@ export default function TrackOrder() {
     useLocalSearchParams();
   const { push } = useRouter();
   const [showFeedbackPopup, setShowFeedbackPopup] = React.useState(false);
+  const [showBalancePaymentModal, setShowBalancePaymentModal] = React.useState(false);
 
   const {
     data: singleOrderData,
@@ -64,6 +66,28 @@ export default function TrackOrder() {
       : orderData?.totalPrice || 0;
   const paidAmount = isSplitPayment ? deliveryFee : totalOrderValue;
   const remainingAmount = isSplitPayment ? productPrice : 0;
+
+  // Determine if balance payment is needed and possible
+  const needsBalancePayment = isSplitPayment && remainingAmount > 0;
+  const orderTransactions = (orderData as any)?.transactions || [];
+  const hasFirstPayment = orderTransactions && orderTransactions.length > 0;
+  const firstPaymentReference = hasFirstPayment ? orderTransactions[0]?.reference : null;
+  
+  // Determine payment status
+  const getPaymentStatus = () => {
+    if (!isSplitPayment) return 'PAID';
+    
+    const totalTransactions = orderTransactions?.length || 0;
+    const totalPaid = orderTransactions?.reduce((sum: number, transaction: any) => 
+      sum + (transaction.amount || 0), 0) || 0;
+    
+    if (totalPaid >= totalOrderValue) return 'PAID';
+    if (totalTransactions === 1) return 'PARTIALLY_PAID';
+    return 'PENDING';
+  };
+  
+  const paymentStatus = getPaymentStatus();
+  const showPayBalanceButton = needsBalancePayment && paymentStatus === 'PARTIALLY_PAID' && firstPaymentReference;
 
   // Determine the current step based on backend tracking status (4 steps)
   const getCurrentStep = () => {
@@ -237,9 +261,31 @@ export default function TrackOrder() {
                     </Text>
                   </View>
                   <View className="mt-2 border-t border-gray-100 pt-2">
-                    <Text className="text-[12px] font-medium text-orange-600">
-                      Status: Awaiting Full Payment
-                    </Text>
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center">
+                        <View className={`px-2 py-1 rounded-full ${
+                          paymentStatus === 'PAID' ? 'bg-green-100' : 
+                          paymentStatus === 'PARTIALLY_PAID' ? 'bg-orange-100' : 'bg-red-100'
+                        }`}>
+                          <Text className={`text-[10px] font-bold ${
+                            paymentStatus === 'PAID' ? 'text-green-700' : 
+                            paymentStatus === 'PARTIALLY_PAID' ? 'text-orange-700' : 'text-red-700'
+                          }`}>
+                            {paymentStatus === 'PAID' ? 'PAID' : 
+                             paymentStatus === 'PARTIALLY_PAID' ? 'PARTIALLY PAID' : 'PENDING'}
+                          </Text>
+                        </View>
+                      </View>
+                      
+                      {showPayBalanceButton && (
+                        <CustomButton
+                          label="Pay Balance Now"
+                          onPress={() => setShowBalancePaymentModal(true)}
+                          containerClassname="bg-orange-600 border-orange-600 px-3 py-1"
+                          textClassName="text-white text-xs font-bold"
+                        />
+                      )}
+                    </View>
                   </View>
                 </>
               ) : (
@@ -394,6 +440,26 @@ export default function TrackOrder() {
           onClose={() => setShowFeedbackPopup(false)}
           orderNumber={orderId}
         />
+
+        {/* Balance Payment Modal */}
+        {showPayBalanceButton && firstPaymentReference && (
+          <BalancePaymentModal
+            visible={showBalancePaymentModal}
+            onClose={() => setShowBalancePaymentModal(false)}
+            orderId={orderId}
+            balanceAmount={remainingAmount}
+            firstPaymentReference={firstPaymentReference}
+            onPaymentSuccess={(data) => {
+              console.log('✅ Balance payment completed:', data);
+              setShowBalancePaymentModal(false);
+              // TODO: Implement proper data refresh
+              // Could use refetch from useGetSingleOrder or navigate back and forth
+            }}
+            onPaymentError={(error) => {
+              console.log('❌ Balance payment error:', error);
+            }}
+          />
+        )}
       </Container.Box>
     </Container.Page>
   );

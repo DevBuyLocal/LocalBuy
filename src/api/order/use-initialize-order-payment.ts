@@ -20,6 +20,9 @@ export interface InitializeOrderPaymentResponse {
 type Variables = {
   orderId: number;
   paymentMethod?: string;
+  isPartialPayment?: boolean;
+  amount?: number;
+  paymentType?: 'FULL' | 'SPLIT' | 'DELIVERY_FEE_ONLY';
 };
 
 export const useInitializeOrderPayment = createMutation<
@@ -29,7 +32,22 @@ export const useInitializeOrderPayment = createMutation<
 >({
   mutationFn: async (variables: Variables) => {
     const url = `api/payment/orders/${variables.orderId}/pay`;
-    const payload = { paymentMethod: variables.paymentMethod || 'CARD' };
+    const payload: any = { 
+      paymentMethod: variables.paymentMethod || 'CARD' 
+    };
+    
+    // Add split payment information if provided
+    if (variables.isPartialPayment !== undefined) {
+      payload.isPartialPayment = variables.isPartialPayment;
+    }
+    
+    if (variables.amount !== undefined) {
+      payload.amount = variables.amount;
+    }
+    
+    if (variables.paymentType !== undefined) {
+      payload.paymentType = variables.paymentType;
+    }
     
     console.log('🎯 HOOK - Making API call to:', url);
     console.log('🎯 HOOK - Payload:', JSON.stringify(payload, null, 2));
