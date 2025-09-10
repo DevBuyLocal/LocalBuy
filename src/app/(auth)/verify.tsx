@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 
 import { useVerify } from '@/api';
+import { useLogin } from '@/api/auth/use-login';
 import { useResendCode } from '@/api/auth/use-resend-code';
 import { OTPEmailService } from '@/api/email/use-otp-email';
 import Container from '@/components/general/container';
@@ -20,6 +22,7 @@ function Verify() {
   const [codeResent, setCodeResent] = React.useState(false);
   const { replace, push } = useRouter();
   const { mutate } = useVerify();
+  const { mutate: login } = useLogin();
   const { mutate: ResendCode } = useResendCode();
   const { setSuccess, setLoading, setError, loading } = useLoader({
     showLoadingPage: false,
@@ -39,34 +42,57 @@ function Verify() {
         email: decodeURIComponent(email as string),
       },
       {
-        onSuccess(responseData) {
+        async onSuccess(responseData) {
           console.log('📍 VERIFICATION SUCCESS HANDLER CALLED');
           setSuccess('Verification successful');
           console.log('📍 Verification successful, response:', responseData);
-          console.log('📍 Verification token from data:', responseData?.data?.token);
           
-          // Sign the user in with the token from verification
-          if (responseData?.data?.token) {
-            const tokenData = {
-              access: responseData.data.token,
-              refresh: responseData.data.token, // Use same token for refresh for now
-            };
-            console.log('📍 Signing in with token data:', tokenData);
-            signIn(tokenData);
-            console.log('📍 User signed in with verification token');
+          // Since verification doesn't return a token, auto-login with stored credentials
+          try {
+            console.log('📍 Starting auto-login after verification...');
             
-            // Wait a moment for the token to be set, then redirect
-            setTimeout(() => {
-              const currentToken = accessToken()?.access;
-              console.log('📍 Current access token after sign in:', currentToken ? 'Present' : 'Missing');
-              console.log('📍 Token value:', currentToken);
-              console.log('📍 Redirecting to address page with params:', { email, userType });
+            // Get stored password from AsyncStorage (saved during registration)
+            const storedPassword = await AsyncStorage.getItem(`signup_password_${email}`);
+            console.log('📍 Stored password found:', !!storedPassword);
+            
+            if (storedPassword && email) {
+              console.log('📍 Attempting auto-login with stored credentials');
+              
+              login({
+                email: decodeURIComponent(email as string),
+                password: storedPassword,
+              }, {
+                async onSuccess(loginData) {
+                  console.log('📍 Auto-login successful after verification');
+                  console.log('📍 Login token:', loginData?.data?.token);
+                  
+                  // Sign in with the token
+                  signIn({ access: loginData?.data?.token, refresh: '' });
+                  
+                  // Clean up stored password
+                  await AsyncStorage.removeItem(`signup_password_${email}`);
+                  
+                  // Wait for token to be persisted, then redirect
+                  setTimeout(() => {
+                    const currentToken = accessToken()?.access;
+                    console.log('📍 Current access token after auto-login:', currentToken ? 'Present' : 'Missing');
+                    console.log('📍 Redirecting to address page with token');
+                    push(`/address?email=${email}&userType=${userType}`);
+                  }, 300);
+                },
+                onError(loginError) {
+                  console.log('📍 Auto-login failed after verification:', loginError);
+                  // Fallback: redirect without token (user will need to login manually)
+                  console.log('📍 Redirecting to address page without token');
+                  push(`/address?email=${email}&userType=${userType}`);
+                }
+              });
+            } else {
+              console.log('📍 No stored password found, redirecting without auto-login');
               push(`/address?email=${email}&userType=${userType}`);
-            }, 200); // Increased timeout to ensure token is set
-          } else {
-            console.log('📍 No token in verification response');
-            console.log('📍 Response structure:', responseData);
-            console.log('📍 Redirecting to address page without token');
+            }
+          } catch (error) {
+            console.log('📍 Error during auto-login process:', error);
             push(`/address?email=${email}&userType=${userType}`);
           }
         },

@@ -19,14 +19,22 @@ import { type BusinessRegFormType, businessRegSchema, type IndividualRegFormType
 
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();
-  const { loading, setLoading, setError, setSuccess } = useLoader({
+  const { loading, setLoading, setError, setSuccess, error } = useLoader({
     showLoadingPage: false,
   });
+  
+  // Debug error state
+  React.useEffect(() => {
+    console.log('🔍 useLoader error changed:', error);
+  }, [error]);
   const { push, replace, canGoBack, back } = useRouter();
   const { mutate: Register } = useRegister();
   const { mutate: validateReferral } = useValidateReferral();
   
   const isBusinessOwner = role === 'business';
+  
+  // Debug logging
+  console.log('🔍 SignUp Debug:', { role, isBusinessOwner });
   
   // Note: Do not clear stored form data on unmount to preserve inputs between re-renders
   // We only clear saved data explicitly on successful submission
@@ -34,6 +42,18 @@ export default function SignUp() {
   // Use conditional types based on user role
   const BusinessForm = () => {
     const [serverError, setServerError] = React.useState<string | null>(null);
+    const [hasSubmissionError, setHasSubmissionError] = React.useState<boolean>(false);
+    const [persistentFieldErrors, setPersistentFieldErrors] = React.useState<{[key: string]: string}>({});
+    
+    // Debug serverError changes
+    React.useEffect(() => {
+      console.log('🔍 Business form serverError changed:', serverError);
+    }, [serverError]);
+    
+    // Debug persistent field errors
+    React.useEffect(() => {
+      console.log('🔍 Business persistent field errors changed:', persistentFieldErrors);
+    }, [persistentFieldErrors]);
     const {
       handleSubmit,
       control,
@@ -73,6 +93,7 @@ export default function SignUp() {
     
     // Progress bar ref for submission progress
     const progressRef = useRef<any>(null);
+    const businessPrevEmailRef = useRef<string>('');
     
     // Watch form values for persistence
     const formValues = watch();
@@ -124,8 +145,46 @@ export default function SignUp() {
           }
         };
         
-        restoreFormData();
-      }, [setValue]);
+        // Only restore if there's no server error and form is not submitting
+        if (!serverError && !isSubmitting && !hasSubmissionError) {
+          restoreFormData();
+        }
+      }, [setValue, serverError, isSubmitting, hasSubmissionError]);
+
+    // Restore persisted email field error (so it survives remounts)
+    useEffect(() => {
+      AsyncStorage.getItem('businessEmailError')
+        .then((msg) => {
+          if (msg) {
+            setPersistentFieldErrors((prev) => ({ ...prev, email: msg }));
+          }
+        })
+        .catch(console.log);
+    }, []);
+    
+    // Function to clear email errors when user starts editing
+    const clearEmailErrors = () => {
+      console.log('🔍 User interacted with email field, clearing email-related errors');
+      
+      // Clear persistent field errors for email
+      if (persistentFieldErrors.email) {
+        setPersistentFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.email;
+          return newErrors;
+        });
+      }
+      
+      // Clear form errors
+      clearErrors('email');
+      
+      // Clear submission states
+      setHasSubmissionError(false);
+      setServerError(null);
+      
+      // Clear from storage
+      AsyncStorage.removeItem('businessEmailError').catch(console.log);
+    };
     
     const onSubmit = async (data: BusinessRegFormType) => {
       console.log('🚀 BUSINESS FORM SUBMISSION STARTED');
@@ -165,7 +224,7 @@ export default function SignUp() {
       Register(
         registerPayload,
         {
-          onSuccess(responseData) {
+          async onSuccess(responseData) {
             console.log('🎉 REGISTRATION SUCCESS!');
             console.log('📨 Full response data:', JSON.stringify(responseData, null, 2));
             
@@ -176,6 +235,15 @@ export default function SignUp() {
             
             console.log('✅ Setting success message...');
             setSuccess('Account Created Successfully! Please check your email for verification.');
+            
+            // Store password temporarily for auto-login after verification
+            try {
+              console.log('💾 Storing password for auto-login after verification...');
+              await AsyncStorage.setItem(`signup_password_${data.email}`, data.password);
+              console.log('✅ Password stored successfully');
+            } catch (error) {
+              console.log('❌ Failed to store password:', error);
+            }
             
             // Clear stored form data on successful submission
             console.log('🗑️ Clearing stored form data...');
@@ -212,8 +280,22 @@ export default function SignUp() {
               
               // New unified pattern (field + message)
               if (errorObj.field && errorObj.message) {
+                console.log('🔍 Setting field error:', errorObj.field, errorObj.message);
                 setFieldError(errorObj.field as any, { type: 'server', message: errorObj.message });
                 setServerError(errorObj.message);
+                setHasSubmissionError(true);
+                
+                // Store in persistent field errors
+                setPersistentFieldErrors(prev => ({
+                  ...prev,
+                  [errorObj.field]: errorObj.message
+                }));
+                // Persist email error so it stays visible under the field
+                if (errorObj.field === 'email') {
+                  AsyncStorage.setItem('businessEmailError', errorObj.message).catch(console.log);
+                }
+                
+                console.log('🔍 Server error set to:', errorObj.message);
               }
 
               // Check for password-related errors (do not clear fields to preserve inputs)
@@ -316,11 +398,7 @@ export default function SignUp() {
           <Text className="mt-2  text-[16px] opacity-75">
             Enter your business details to get started
           </Text>
-          {serverError && (
-            <View className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
-              <Text className="text-sm font-medium text-red-700">{serverError}</Text>
-            </View>
-          )}
+          {/* Server errors will be shown under individual fields */}
           
           <MotiView
             from={{ opacity: 0, translateY: 20 }}
@@ -359,6 +437,8 @@ export default function SignUp() {
             containerClass="mt-5"
             keyboardType="email-address"
             control={control}
+            error={persistentFieldErrors.email}
+            onFocus={clearEmailErrors}
           />
           <ControlledCustomInput<BusinessRegFormType>
             name="password"
@@ -378,6 +458,11 @@ export default function SignUp() {
                 isPassword
                 placeholder="Confirm password"
                 description="Must contain at least 6 characters, include uppercase, lowercase letters, and a number."
+                control={control}
+              />
+              <ControlledCustomInput<BusinessRegFormType>
+                name="howDidYouFindUs"
+                placeholder="How did you find us? (optional)"
                 control={control}
               />
               <ControlledCustomInput<BusinessRegFormType>
@@ -401,54 +486,67 @@ export default function SignUp() {
               label={loading ? "Creating account..." : "Create account"}
               onPress={async () => {
                 console.log('🔘 BUSINESS CREATE ACCOUNT BUTTON PRESSED');
+                console.log('🔘 Button loading state:', loading);
+                console.log('🔘 Button disabled state:', loading);
                 // Get current form values
                 const currentValues = getValues();
                 console.log('📋 Current form values:', currentValues);
+                console.log('📋 Form errors:', errors);
+                console.log('📋 Form isSubmitting:', isSubmitting);
                 
                 // Validate referral code BEFORE triggering handleSubmit
                 if (currentValues.referral_code && currentValues.referral_code.trim()) {
                   console.log('Pre-validating referral code:', currentValues.referral_code.trim());
                   
-                  const isValid = await new Promise<boolean>((resolve) => {
-                    validateReferral(
-                      { referralCode: currentValues.referral_code!.trim() },
-                      {
-                        onSuccess: (response) => {
-                          if (!response.isValid) {
+                  try {
+                    const isValid = await new Promise<boolean>((resolve) => {
+                      validateReferral(
+                        { referralCode: currentValues.referral_code!.trim() },
+                        {
+                          onSuccess: (response) => {
+                            if (!response.isValid) {
+                              setFieldError('referral_code', { 
+                                type: 'server', 
+                                message: 'Invalid referral code, please try again' 
+                              });
+                              console.log('Referral code is invalid - blocking form submission');
+                              resolve(false);
+                            } else {
+                              clearErrors('referral_code');
+                              console.log('Referral code validated successfully');
+                              resolve(true);
+                            }
+                          },
+                          onError: (error) => {
+                            console.log('Referral validation API error:', error);
+                            // Treat API error as invalid for UX consistency
                             setFieldError('referral_code', { 
                               type: 'server', 
                               message: 'Invalid referral code, please try again' 
                             });
-                            console.log('Referral code is invalid - blocking form submission');
                             resolve(false);
-                          } else {
-                            clearErrors('referral_code');
-                            console.log('Referral code validated successfully');
-                            resolve(true);
                           }
-                        },
-                        onError: (error) => {
-                          console.log('Referral validation API error:', error);
-                          // Treat API error as invalid for UX consistency
-                          setFieldError('referral_code', { 
-                            type: 'server', 
-                            message: 'Invalid referral code, please try again' 
-                          });
-                          resolve(false);
                         }
-                      }
-                    );
-                  });
-                  
-                  if (!isValid) {
-                    console.log('Referral validation failed - not calling handleSubmit');
+                      );
+                    });
+                    
+                    if (!isValid) {
+                      console.log('Referral validation failed - not calling handleSubmit');
+                      return;
+                    }
+                  } catch (error) {
+                    console.log('Referral validation error:', error);
+                    setFieldError('referral_code', { 
+                      type: 'server', 
+                      message: 'Error validating referral code, please try again' 
+                    });
                     return;
                   }
                 }
                 
                 // If we get here, referral code is valid or empty, proceed with normal form submission
                 console.log('✅ Proceeding with form submission...');
-                handleSubmit(onSubmit, (formErrors) => {
+                await handleSubmit(onSubmit, (formErrors) => {
                   console.log('❌ FORM VALIDATION FAILED!');
                   console.log('📋 Form validation errors:', formErrors);
                   console.log('🚫 Form validation failed, cannot submit');
@@ -478,6 +576,18 @@ export default function SignUp() {
   // Individual form
   const IndividualForm = () => {
     const [serverError, setServerError] = React.useState<string | null>(null);
+    const [hasSubmissionError, setHasSubmissionError] = React.useState<boolean>(false);
+    const [persistentFieldErrors, setPersistentFieldErrors] = React.useState<{[key: string]: string}>({});
+    
+    // Debug serverError changes
+    React.useEffect(() => {
+      console.log('🔍 Individual form serverError changed:', serverError);
+    }, [serverError]);
+    
+    // Debug persistent field errors
+    React.useEffect(() => {
+      console.log('🔍 Persistent field errors changed:', persistentFieldErrors);
+    }, [persistentFieldErrors]);
     const {
       handleSubmit,
       control,
@@ -509,6 +619,9 @@ export default function SignUp() {
     useEffect(() => {
       console.log('Individual form errors:', errors);
       console.log('Individual form isSubmitting:', isSubmitting);
+      if (errors.email) {
+        console.log('🔍 Email field error:', errors.email);
+      }
       if (errors.referral_code) {
         console.log('Referral code error:', errors.referral_code);
       }
@@ -516,6 +629,7 @@ export default function SignUp() {
     
     // Progress bar ref for submission progress
     const progressRef = useRef<any>(null);
+    const individualPrevEmailRef = useRef<string>('');
     
     // Watch form values for persistence
     const formValues = watch();
@@ -567,8 +681,46 @@ export default function SignUp() {
         }
       };
       
-      restoreFormData();
-    }, [setValue]);
+      // Only restore if there's no server error and form is not submitting
+      if (!serverError && !isSubmitting && !hasSubmissionError) {
+        restoreFormData();
+      }
+    }, [setValue, serverError, isSubmitting, hasSubmissionError]);
+
+    // Restore persisted email field error (so it survives remounts)
+    useEffect(() => {
+      AsyncStorage.getItem('individualEmailError')
+        .then((msg) => {
+          if (msg) {
+            setPersistentFieldErrors((prev) => ({ ...prev, email: msg }));
+          }
+        })
+        .catch(console.log);
+    }, []);
+    
+    // Function to clear email errors when user starts editing
+    const clearEmailErrors = () => {
+      console.log('🔍 User interacted with email field, clearing email-related errors');
+      
+      // Clear persistent field errors for email
+      if (persistentFieldErrors.email) {
+        setPersistentFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.email;
+          return newErrors;
+        });
+      }
+      
+      // Clear form errors
+      clearErrors('email');
+      
+      // Clear submission states
+      setHasSubmissionError(false);
+      setServerError(null);
+      
+      // Clear from storage
+      AsyncStorage.removeItem('individualEmailError').catch(console.log);
+    };
     
     const onSubmit = async (data: IndividualRegFormType) => {
       console.log('🚀 INDIVIDUAL FORM SUBMISSION STARTED');
@@ -607,7 +759,7 @@ export default function SignUp() {
       Register(
         registerPayload,
         {
-          onSuccess(responseData) {
+          async onSuccess(responseData) {
             console.log('🎉 INDIVIDUAL REGISTRATION SUCCESS!');
             console.log('📨 Full response data:', JSON.stringify(responseData, null, 2));
             
@@ -618,6 +770,15 @@ export default function SignUp() {
             
             console.log('✅ Setting success message...');
             setSuccess('Account Created Successfully! Please check your email for verification.');
+            
+            // Store password temporarily for auto-login after verification
+            try {
+              console.log('💾 Storing password for auto-login after verification...');
+              await AsyncStorage.setItem(`signup_password_${data.email}`, data.password);
+              console.log('✅ Password stored successfully');
+            } catch (error) {
+              console.log('❌ Failed to store password:', error);
+            }
             
             // Clear stored form data on successful submission
             console.log('🗑️ Clearing stored form data...');
@@ -659,6 +820,19 @@ export default function SignUp() {
                 console.log(`📝 Setting ${errorObj.field} field error:`, errorObj.message);
                 setFieldError(errorObj.field as any, { type: 'server', message: errorObj.message });
                 setServerError(errorObj.message);
+                setHasSubmissionError(true);
+                
+                // Store in persistent field errors
+                setPersistentFieldErrors(prev => ({
+                  ...prev,
+                  [errorObj.field]: errorObj.message
+                }));
+                // Persist email error so it stays visible under the field
+                if (errorObj.field === 'email') {
+                  AsyncStorage.setItem('individualEmailError', errorObj.message).catch(console.log);
+                }
+                
+                console.log('🔍 Individual form server error set to:', errorObj.message);
               }
               
               // Check for password-related errors (do not clear fields to preserve inputs)
@@ -757,11 +931,7 @@ export default function SignUp() {
           <Text className="mt-2  text-[16px] opacity-75">
             Enter your personal details to get started
           </Text>
-          {serverError && (
-            <View className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
-              <Text className="text-sm font-medium text-red-700">{serverError}</Text>
-            </View>
-          )}
+          {/* Server errors will be shown under individual fields */}
           
           <MotiView
             from={{ opacity: 0, translateY: 20 }}
@@ -795,6 +965,8 @@ export default function SignUp() {
             containerClass="mt-5"
             keyboardType="email-address"
             control={control}
+            error={persistentFieldErrors.email}
+            onFocus={clearEmailErrors}
           />
           <ControlledCustomInput<IndividualRegFormType>
             name="password"
@@ -842,54 +1014,67 @@ export default function SignUp() {
               label={loading ? "Creating account..." : "Create account"}
               onPress={async () => {
                 console.log('🔘 BUSINESS CREATE ACCOUNT BUTTON PRESSED');
+                console.log('🔘 Button loading state:', loading);
+                console.log('🔘 Button disabled state:', loading);
                 // Get current form values
                 const currentValues = getValues();
                 console.log('📋 Current form values:', currentValues);
+                console.log('📋 Form errors:', errors);
+                console.log('📋 Form isSubmitting:', isSubmitting);
                 
                 // Validate referral code BEFORE triggering handleSubmit
                 if (currentValues.referral_code && currentValues.referral_code.trim()) {
                   console.log('Pre-validating referral code:', currentValues.referral_code.trim());
                   
-                  const isValid = await new Promise<boolean>((resolve) => {
-                    validateReferral(
-                      { referralCode: currentValues.referral_code!.trim() },
-                      {
-                        onSuccess: (response) => {
-                          if (!response.isValid) {
+                  try {
+                    const isValid = await new Promise<boolean>((resolve) => {
+                      validateReferral(
+                        { referralCode: currentValues.referral_code!.trim() },
+                        {
+                          onSuccess: (response) => {
+                            if (!response.isValid) {
+                              setFieldError('referral_code', { 
+                                type: 'server', 
+                                message: 'Invalid referral code, please try again' 
+                              });
+                              console.log('Referral code is invalid - blocking form submission');
+                              resolve(false);
+                            } else {
+                              clearErrors('referral_code');
+                              console.log('Referral code validated successfully');
+                              resolve(true);
+                            }
+                          },
+                          onError: (error) => {
+                            console.log('Referral validation API error:', error);
+                            // Treat API error as invalid for UX consistency
                             setFieldError('referral_code', { 
                               type: 'server', 
                               message: 'Invalid referral code, please try again' 
                             });
-                            console.log('Referral code is invalid - blocking form submission');
                             resolve(false);
-                          } else {
-                            clearErrors('referral_code');
-                            console.log('Referral code validated successfully');
-                            resolve(true);
                           }
-                        },
-                        onError: (error) => {
-                          console.log('Referral validation API error:', error);
-                          // Treat API error as invalid for UX consistency
-                          setFieldError('referral_code', { 
-                            type: 'server', 
-                            message: 'Invalid referral code, please try again' 
-                          });
-                          resolve(false);
                         }
-                      }
-                    );
-                  });
-                  
-                  if (!isValid) {
-                    console.log('Referral validation failed - not calling handleSubmit');
+                      );
+                    });
+                    
+                    if (!isValid) {
+                      console.log('Referral validation failed - not calling handleSubmit');
+                      return;
+                    }
+                  } catch (error) {
+                    console.log('Referral validation error:', error);
+                    setFieldError('referral_code', { 
+                      type: 'server', 
+                      message: 'Error validating referral code, please try again' 
+                    });
                     return;
                   }
                 }
                 
                 // If we get here, referral code is valid or empty, proceed with normal form submission
                 console.log('✅ Proceeding with form submission...');
-                handleSubmit(onSubmit, (formErrors) => {
+                await handleSubmit(onSubmit, (formErrors) => {
                   console.log('❌ FORM VALIDATION FAILED!');
                   console.log('📋 Form validation errors:', formErrors);
                   console.log('🚫 Form validation failed, cannot submit');

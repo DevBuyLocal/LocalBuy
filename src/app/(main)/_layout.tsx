@@ -169,8 +169,9 @@ export default function MainLayout() {
     return <Redirect href={`/address?email=${encodeURIComponent(userData.email)}&userType=${userData.type}`} />;
   }
 
-  // Redirect unverified users to login page (but not if they're on auth pages)
-  if (!token?.access && !pathname.includes('/(auth)')) {
+  // Redirect to login if no token, except allow auth pages and address flow
+  // This allows post-verification address collection without forcing login first
+  if (!token?.access && !pathname.includes('/(auth)') && !pathname.includes('/address')) {
     console.log('📍 Redirecting to login - no token');
     return <Redirect href="/login" />;
   }
