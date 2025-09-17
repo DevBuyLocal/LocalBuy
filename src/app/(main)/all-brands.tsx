@@ -1,8 +1,7 @@
 import { Entypo } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { View } from 'moti';
 import React from 'react';
-import { FlatList, Pressable } from 'react-native';
+import { FlatList, Pressable, View } from 'react-native';
 
 import { useGetManufacturers } from '@/api/manufacturers';
 import { type TSingleManufacturers } from '@/api/manufacturers/types';
@@ -14,22 +13,29 @@ function AllBrands() {
   const [search, setSearch] = React.useState<string>('');
   const { push } = useRouter();
 
-  const { data } = useGetManufacturers({ limit: 10, page: 1 })();
-  const brands = React.useMemo(() => data?.pages[0]?.data || [], [data]);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetManufacturers({ limit: 20, page: 1 })();
+  const brands = React.useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap(page => page.data || []);
+  }, [data]);
 
   const filteredBrands = brands.filter((brand) =>
     brand.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const BrandItem = ({ item }: { item: TSingleManufacturers }) => {
+  const BrandItem = React.memo(({ item }: { item: TSingleManufacturers }) => {
     const [imgSrc, setImgSrc] = React.useState(item.logo ? item.logo : null);
+
+    const handlePress = React.useCallback(() => {
+      console.log('Brand clicked:', item.name, 'ID:', item.id);
+      push(`/all-products?brand=${item.id}&title=${encodeURIComponent(item.name)}`);
+    }, [item.id, item.name, push]);
 
     return (
       <Pressable
         className="flex-row items-center justify-between border-b border-gray-200 p-4"
-        onPress={() => {
-          push(`/all-products?brand=${item.id}`);
-        }}
+        onPress={handlePress}
+        style={{ minHeight: 80 }}
       >
         <View className="flex-row items-center justify-center gap-5">
           <Image
@@ -48,14 +54,14 @@ function AllBrands() {
             contentFit="contain"
           />
           <Text className="text-[16px] opacity-75">
-            {item?.name} Brand name
+            {item?.name}
           </Text>
         </View>
 
         <Entypo name="chevron-right" size={18} color="black" />
       </Pressable>
     );
-  };
+  });
   return (
     <Container.Page showHeader headerTitle="All brands">
       <Container.Box>
@@ -70,6 +76,25 @@ function AllBrands() {
           <FlatList
             data={filteredBrands}
             renderItem={({ item }) => <BrandItem item={item} />}
+            keyExtractor={(item) => item.id.toString()}
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                console.log('Fetching next page...');
+                fetchNextPage();
+              }
+            }}
+            onEndReachedThreshold={0.3}
+            ListFooterComponent={() => 
+              isFetchingNextPage ? (
+                <View className="p-4">
+                  <Text className="text-center text-gray-500">Loading more brands...</Text>
+                </View>
+              ) : null
+            }
+            removeClippedSubviews={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={10}
           />
         </View>
       </Container.Box>

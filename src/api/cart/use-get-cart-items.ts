@@ -30,4 +30,7 @@ export const useGetCartItems = createQuery<Response, void, AxiosError>({
       });
   },
   enabled: !!accessToken()?.access,
+  staleTime: 0, // Always consider data stale for immediate refetch
+  refetchOnWindowFocus: true,
+  refetchOnMount: true,
 });

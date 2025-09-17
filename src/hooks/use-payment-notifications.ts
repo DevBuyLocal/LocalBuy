@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 
 interface PaymentNotificationProps {
   orderId: string | number;
-  paymentStatus: 'PAID' | 'FAILED' | 'CANCELLED' | 'PENDING';
+  paymentStatus: 'PAID' | 'FAILED' | 'CANCELLED' | 'PENDING' | 'PARTIALLY_PAID';
   orderNumber?: string;
   amount?: number;
 }
@@ -65,6 +65,22 @@ export const usePaymentNotifications = () => {
           [
             { text: 'Try Again', style: 'default' },
             { text: 'OK', style: 'cancel' },
+          ]
+        );
+        break;
+        
+      case 'PARTIALLY_PAID':
+        Alert.alert(
+          '💰 Partial Payment Complete!',
+          `Your delivery fee for Order #${orderNumber || orderId} has been paid successfully. The remaining balance will be collected on delivery.`,
+          [
+            {
+              text: 'View Order',
+              onPress: () => {
+                console.log('Navigate to order details');
+              },
+            },
+            { text: 'OK', style: 'default' },
           ]
         );
         break;

@@ -3,7 +3,7 @@ import React from 'react';
 import { type PressableProps } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
-import { type TProduct } from '@/api';
+import { type TProduct, queryClient, QueryKey } from '@/api';
 import { useAddCartItem, useGetCartItems } from '@/api/cart';
 import { useAuth } from '@/lib';
 import { CartSelector, useCart } from '@/lib/cart';
@@ -65,10 +65,57 @@ function ProductItem(props: ProductItemProps) {
   };
 
   const { mutate } = useAddCartItem({
-    onSuccess: () => {
-      setSuccess('Item added to cart');
+    onMutate: async (variables) => {
+      try {
+        await queryClient.cancelQueries({ queryKey: [QueryKey.CART] });
+        const previous = queryClient.getQueryData([QueryKey.CART]);
+
+        // Build an optimistic cart item using the selected option and product info
+        const optimisticItem = {
+          id: `optimistic-${Date.now()}`,
+          quantity: variables.quantity,
+          createdAt: new Date().toISOString(),
+          productOption: {
+            id: selectedOption?.id,
+            price: selectedOption?.price,
+            bulkPrice: (selectedOption as any)?.bulkPrice,
+            bulkMoq: (selectedOption as any)?.bulkMoq,
+            moq: selectedOption?.moq,
+            product: {
+              id: props.item.id,
+              name: props.item.name,
+            },
+          },
+        } as any;
+
+        const next = previous && (previous as any).data
+          ? {
+              ...(previous as any),
+              data: {
+                ...(previous as any).data,
+                items: [optimisticItem, ...(((previous as any).data?.items) || [])],
+              },
+            }
+          : { data: { items: [optimisticItem] } };
+
+        queryClient.setQueryData([QueryKey.CART], next);
+        return { previous } as any;
+      } catch (e) {
+        // no-op
+        return {} as any;
+      }
     },
-    onError: (error) => {
+    onSuccess: async () => {
+      setSuccess('Item added to cart');
+      // Force refresh cart data immediately and aggressively
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.CART] });
+      await queryClient.refetchQueries({ queryKey: [QueryKey.CART] });
+      console.log('🛒 Cart invalidated and refetched after adding item');
+    },
+    onError: (error, _variables, context: any) => {
+      if (context?.previous) {
+        queryClient.setQueryData([QueryKey.CART], context.previous);
+      }
       setError(error?.response?.data);
     },
     onSettled: () => {

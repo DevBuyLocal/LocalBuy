@@ -318,7 +318,7 @@ export default function Home() {
           <Container.Box containerClassName="bg-[#F7F7F7] dark:bg-[#282828] pb-5">
             <ProductCarousel title={'New Arrivals'} type="new" />
             <ProductCarousel title={'Trending Products'} type="trending" />
-            <ProductCarousel title={'Popular Groceries'} type="popular" />
+            <ProductCarousel title={'Products'} type="popular" />
           </Container.Box>
           <DealsSection />
 

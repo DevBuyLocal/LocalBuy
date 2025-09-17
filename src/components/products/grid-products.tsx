@@ -14,7 +14,9 @@ interface GridProductsProps extends Partial<FlatListProps<TProduct>> {
 }
 
 function GridProducts(props: GridProductsProps) {
-  if (props.isLoading) {
+  const { items, isLoading, ...flatListProps } = props;
+
+  if (isLoading && (!items || items.length === 0)) {
     return (
       <ScrollView horizontal contentContainerClassName="mt-5">
         {Array.from({ length: 2 }).map((_, i) => (
@@ -29,13 +31,12 @@ function GridProducts(props: GridProductsProps) {
   return (
     <View className="mt-3">
       <FlatList
-        data={props.items || []}
+        data={items || []}
         renderItem={({ item }) => (
           <ProductItem item={item} containerClassname=" w-[50%] max-w-[48%]" />
         )}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
         numColumns={2}
-        initialNumToRender={6}
         showsVerticalScrollIndicator={false}
         columnWrapperStyle={{
           justifyContent: 'space-between',
@@ -44,8 +45,8 @@ function GridProducts(props: GridProductsProps) {
         ListEmptyComponent={
           <Empty containerClassName="mt-10" desc="No product found" />
         }
-        // ListFooterComponent={<View className="pb-10" />}
-        {...props}
+        removeClippedSubviews={false}
+        {...flatListProps}
       />
       <View className="pb-10" />
     </View>

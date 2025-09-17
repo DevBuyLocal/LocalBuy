@@ -508,7 +508,7 @@ export default function DetailsModal({
             containerStyle={{ marginTop: 10 }}
           />
           <Text numberOfLines={1} className="mt-5 text-[16px]">
-            Minimum purchase: {selectedOption?.moq} {selectedOption?.unit}
+            MOQ: {selectedOption?.moq} {selectedOption?.unit}
           </Text>
 
           <View className="mt-5">

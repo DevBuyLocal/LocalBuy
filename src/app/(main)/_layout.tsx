@@ -117,16 +117,20 @@ export default function MainLayout() {
           }
           
           setSuccess('Cart items synced');
-          console.log('🗑️ Clearing local cart after sync...');
-          clearCart();
+          console.log('🔄 Cart sync completed - keeping local cart for immediate UI update');
           
-          // Refresh cart data
-          await queryClient.fetchQuery({
+          // Refresh cart data but don't clear local cart immediately
+          await queryClient.refetchQueries({
             queryKey: [QueryKey.CART],
           });
+          
+          // Clear local cart only after a short delay to ensure backend data is loaded
+          setTimeout(() => {
+            console.log('🗑️ Clearing local cart after backend sync confirmation...');
+            clearCart();
+          }, 1000);
         } else {
           console.log('✅ All local items already exist in backend - no sync needed');
-          // Don't clear local cart if no items to sync - user might be returning from checkout
         }
       } else {
         console.log('⏭️ Skipping cart sync - no local items or not logged in');

@@ -21,6 +21,7 @@ import CustomButton from '../general/custom-button';
 import CustomInput from '../general/custom-input';
 import { Image, Modal, Text, useModal, View } from '../ui';
 import QuantitySelect from './quantity-select';
+import DetailsModal from './details-modal';
 
 interface CartItemProps extends Partial<PressableProps> {
   item: TCartItem;
@@ -52,6 +53,12 @@ function CartItem(props: CartItemProps) {
     showLoadingPage: false,
   });
   const { ref, present, dismiss } = useModal();
+  const {
+    ref: productRef,
+    present: presentProduct,
+    dismiss: dismissProduct,
+  } = useModal();
+  const [isProductOpen, setIsProductOpen] = React.useState(false);
   const [note, setNote] = useState(cart_item?.note || '');
 
   const [quantity, setQuantity] = useState<number>(props?.item?.quantity);
@@ -152,27 +159,69 @@ function CartItem(props: CartItemProps) {
     }
   }
 
+  // Build minimal product object for details modal
+  const productForDetails: any = React.useMemo(() => {
+    const p = cart_item?.productOption?.product;
+    const opt = cart_item?.productOption;
+    if (!p || !opt) return null;
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      categoryId: p.categoryId,
+      manufacturerId: p.manufacturerId,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      options: [
+        {
+          id: opt.id,
+          value: opt.value,
+          price: opt.price,
+          moq: opt.moq,
+          image: opt.image,
+          productId: opt.productId,
+          unit: opt.unit,
+          createdAt: opt.createdAt,
+          updatedAt: opt.updatedAt,
+          bulkPrice: (opt as any)?.bulkPrice,
+          bulkMoq: (opt as any)?.bulkMoq,
+          bulkPricingDetails: (opt as any)?.bulkPricingDetails,
+        },
+      ],
+    };
+  }, [cart_item?.productOption]);
+
   return (
     <View
       className={twMerge('rounded-[2px]  py-[5px]', props.containerClassname)}
     >
       <View className="flex-row justify-between gap-5">
-        <Image
-          source={
-            imgSrc?.length
-              ? { uri: imgSrc[0] }
-              : require('../../../assets/images/img-p-holder.png')
-          }
-          className="h-[109px] w-[103px] overflow-hidden rounded-[8px]"
-          style={{
-            tintColor: imgSrc ? undefined : '#D5D5D580',
-            backgroundColor: '#F7F7F7',
+        <Pressable
+          onPress={() => {
+            if (productForDetails) {
+              setIsProductOpen(true);
+              presentProduct();
+            }
           }}
-          onError={() => {
-            setImgSrc(null);
-          }}
-          contentFit="contain"
-        />
+          disabled={!productForDetails}
+        >
+          <Image
+            source={
+              imgSrc?.length
+                ? { uri: imgSrc[0] }
+                : require('../../../assets/images/img-p-holder.png')
+            }
+            className="h-[109px] w-[103px] overflow-hidden rounded-[8px]"
+            style={{
+              tintColor: imgSrc ? undefined : '#D5D5D580',
+              backgroundColor: '#F7F7F7',
+            }}
+            onError={() => {
+              setImgSrc(null);
+            }}
+            contentFit="contain"
+          />
+        </Pressable>
         <View className="mb-1 justify-between" style={{ width: '65%' }}>
           <View>
             {/* Bulk Pricing Display */}
@@ -315,6 +364,28 @@ function CartItem(props: CartItemProps) {
             />
           </Container.Box>
         </BottomSheetScrollView>
+      </Modal>
+
+      {/* Product Details Modal - mirrors home product details behavior */}
+      <Modal
+        ref={productRef}
+        snapPoints={['90%']}
+        style={{ borderRadius: 16, overflow: 'hidden' }}
+        onDismiss={() => setIsProductOpen(false)}
+        padTheTop={false}
+      >
+        {isProductOpen && productForDetails && (
+          <DetailsModal
+            // @ts-ignore provide required props
+            dismiss={() => {
+              setIsProductOpen(false);
+              dismissProduct();
+            }}
+            isInCart={null}
+            addToCart={() => {}}
+            item={productForDetails}
+          />
+        )}
       </Modal>
     </View>
   );

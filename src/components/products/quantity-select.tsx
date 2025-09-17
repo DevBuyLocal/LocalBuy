@@ -51,6 +51,7 @@ function QuantitySelect(props: QuantitySelectProps) {
     : (foundItem?.quantity || 1);
   
   const [localQuantity, setLocalQuantity] = React.useState<number>(currentQuantity);
+  const [isUpdating, setIsUpdating] = React.useState<boolean>(false);
   
   // Update local quantity when props or found item changes
   React.useEffect(() => {
@@ -70,19 +71,22 @@ function QuantitySelect(props: QuantitySelectProps) {
     },
     onSettled: () => {
       setLoading(false);
+      setIsUpdating(false);
     },
   });
 
   const updateQuantityDebounce = React.useMemo(
     () =>
       debounce((itemId: number, quantity: number) => {
-        setLoading(true);
+        setIsUpdating(true);
         mutate({ cartItemId: itemId, quantity });
-      }, 500),
-    [mutate, setLoading]
+      }, 300),
+    [mutate]
   );
 
   const handleDecrease = React.useCallback(() => {
+    if (isUpdating) return; // Prevent rapid clicking
+    
     const newQuantity = localQuantity - 1;
     
     // Prevent going below 1
@@ -92,7 +96,7 @@ function QuantitySelect(props: QuantitySelectProps) {
     setLocalQuantity(newQuantity);
     
     if (token && props.cartItemId) {
-      // For logged-in users, update via API
+      // For logged-in users, update via API without loading indicator
       updateQuantityDebounce(props.cartItemId, newQuantity);
     } else if (props.useWithoutApi && props.setQuantity) {
       // For non-API usage (like product details modal)
@@ -101,16 +105,18 @@ function QuantitySelect(props: QuantitySelectProps) {
       // For offline cart
       decreaseQuantity(props.itemId, props.removeOnZero);
     }
-  }, [localQuantity, token, props, decreaseQuantity, updateQuantityDebounce]);
+  }, [localQuantity, isUpdating, token, props, decreaseQuantity, updateQuantityDebounce]);
 
   const handleIncrease = React.useCallback(() => {
+    if (isUpdating) return; // Prevent rapid clicking
+    
     const newQuantity = localQuantity + 1;
     
     // Update local state immediately for responsive UI
     setLocalQuantity(newQuantity);
     
     if (token && props.cartItemId) {
-      // For logged-in users, update via API
+      // For logged-in users, update via API without loading indicator
       updateQuantityDebounce(props.cartItemId, newQuantity);
     } else if (props.useWithoutApi && props.setQuantity) {
       // For non-API usage (like product details modal)
@@ -119,7 +125,7 @@ function QuantitySelect(props: QuantitySelectProps) {
       // For offline cart
       increaseQuantity(props.itemId);
     }
-  }, [localQuantity, token, props, increaseQuantity, updateQuantityDebounce]);
+  }, [localQuantity, isUpdating, token, props, increaseQuantity, updateQuantityDebounce]);
 
   // Determine if buttons should be disabled
   const isDecreaseDisabled = localQuantity <= 1;
@@ -151,13 +157,9 @@ function QuantitySelect(props: QuantitySelectProps) {
       </Pressable>
       
       <View className="flex-row items-center justify-center min-w-[40px]">
-      {loading ? (
-          <ActivityIndicator size="small" color="#374151" />
-      ) : (
-          <Text className="text-[18px] font-semibold text-gray-900">
+        <Text className="text-[18px] font-semibold text-gray-900">
           {localQuantity}
         </Text>
-      )}
       </View>
 
       <Pressable 

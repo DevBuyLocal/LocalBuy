@@ -18,11 +18,27 @@ const LOADER_COUNT = 3;
 function ProductCarousel(props: ProductCarouselProps) {
   const { push } = useRouter();
 
-  const { data, isFetching } = useGetProducts({
+  // Primary query: filtered by type when provided
+  const { data: typedData, isFetching: isFetchingTyped } = useGetProducts({
     type: props.type || undefined,
     limit: 5,
   })();
-  const products = React.useMemo(() => data?.pages?.[0]?.data || [], [data]);
+  const typedProducts = React.useMemo(
+    () => typedData?.pages?.[0]?.data || [],
+    [typedData]
+  );
+
+  // Fallback query: no type filter, only used when typedProducts is empty
+  const { data: fallbackData, isFetching: isFetchingFallback } = useGetProducts({
+    limit: 5,
+  })();
+  const fallbackProducts = React.useMemo(
+    () => fallbackData?.pages?.[0]?.data || [],
+    [fallbackData]
+  );
+
+  const isFetching = isFetchingTyped && (!typedProducts.length || !!props.type);
+  const products = typedProducts.length ? typedProducts : fallbackProducts;
 
   if (!isFetching && !Boolean(products.length)) return <View />;
 
@@ -43,9 +59,19 @@ function ProductCarousel(props: ProductCarouselProps) {
       <>
         <ViewAll
           title={props.title}
-          onPress={() =>
-            push(`/(main)/all-products?type=${props.type}&title=${props.title}`)
-          }
+          onPress={() => {
+            const safeTitle = props.title || 'All Products';
+            // Preserve type only for New Arrivals; others should show all
+            if (props.type === 'new') {
+              push(
+                `/(main)/all-products?type=${encodeURIComponent(
+                  props.type
+                )}&title=${encodeURIComponent(safeTitle)}`
+              );
+            } else {
+              push(`/(main)/all-products?title=${encodeURIComponent(safeTitle)}`);
+            }
+          }}
         />
         <ScrollView
           horizontal

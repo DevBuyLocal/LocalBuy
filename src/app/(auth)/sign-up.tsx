@@ -10,6 +10,7 @@ import { useValidateReferral } from '@/api/auth/use-validate-referral';
 import Container from '@/components/general/container';
 import ControlledCustomInput from '@/components/general/controlled-custom-input';
 import CustomButton from '@/components/general/custom-button';
+import DatePickerInput from '@/components/general/date-picker-input';
 import InputView from '@/components/general/input-view';
 import { Pressable, ProgressBar,Text, View } from '@/components/ui';
 import { type UserType } from '@/lib/constants';
@@ -19,14 +20,9 @@ import { type BusinessRegFormType, businessRegSchema, type IndividualRegFormType
 
 export default function SignUp() {
   const { role }: { role: UserType } = useLocalSearchParams();
-  const { loading, setLoading, setError, setSuccess, error } = useLoader({
+  const { loading, setLoading, setError, setSuccess } = useLoader({
     showLoadingPage: false,
   });
-  
-  // Debug error state
-  React.useEffect(() => {
-    console.log('🔍 useLoader error changed:', error);
-  }, [error]);
   const { push, replace, canGoBack, back } = useRouter();
   const { mutate: Register } = useRegister();
   const { mutate: validateReferral } = useValidateReferral();
@@ -951,11 +947,12 @@ export default function SignUp() {
               description="Enter 11-digit phone number (e.g., 08012345678)"
               control={control}
             />
-            <ControlledCustomInput<IndividualRegFormType>
+            <DatePickerInput<IndividualRegFormType>
               name="dob"
-              placeholder="Date of birth (optional)"
-              description="Use format: YYYY-MM-DD (e.g., 1990-12-25)"
               control={control}
+              placeholder="Date of birth (optional)"
+              description="Tap to select your date of birth"
+              error={errors.dob?.message}
             />
           </MotiView>
           

@@ -139,7 +139,11 @@ export default function SupportRequestDetail() {
               )}
               <View className="ml-3 flex-1">
                 <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {(request.title || request.category || 'Support Request') + ' Support Request'}
+                  {(() => {
+                    const rawTitle = String(request.title || request.category || 'Support Request').trim();
+                    const normalized = rawTitle.toLowerCase();
+                    return normalized.includes('support request') ? rawTitle : `${rawTitle} Support Request`;
+                  })()}
                 </Text>
                 <Text className="text-sm text-gray-600 dark:text-gray-400">
                   Ticket ID: {request.supportId || request.ticketId}

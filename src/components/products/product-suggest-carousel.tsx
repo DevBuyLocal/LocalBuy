@@ -48,9 +48,16 @@ function ProductSuggestCarousel(props: ProductSuggestCarouselProps) {
           title={props.title}
           onPress={() => {
             dismissAll();
-            push(
-              `/(main)/all-products?type=${props.type}&title=${props.title}`
-            );
+            const safeTitle = props.title || 'All Products';
+            if (props.type === 'new') {
+              push(
+                `/(main)/all-products?type=${encodeURIComponent(
+                  props.type
+                )}&title=${encodeURIComponent(safeTitle)}`
+              );
+            } else {
+              push(`/(main)/all-products?title=${encodeURIComponent(safeTitle)}`);
+            }
           }}
         />
         <ScrollView

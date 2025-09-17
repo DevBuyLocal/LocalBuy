@@ -19,7 +19,7 @@ function ViewAll(props: Props) {
           className="rounded-full bg-[#FFFFFF] p-2 px-4 text-[16px] font-medium dark:text-black"
           style={{ backgroundColor: props.seeAllBg || '#FFFFFF' }}
         >
-          See all
+          View all
         </Text>
       </Pressable>
     </View>

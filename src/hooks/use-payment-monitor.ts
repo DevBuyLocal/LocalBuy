@@ -14,11 +14,12 @@ export const usePaymentMonitor = () => {
   const { mutate: checkPaymentStatus } = useCheckPaymentStatus();
   const { showPaymentNotification } = usePaymentNotifications();
 
-  // Get all orders with pending payment status
+  // Get all orders with pending payment status (including partially paid for split payments)
   const pendingOrders = ordersData?.orders?.orders?.filter((order: any) => 
     order.paymentStatus === 'PENDING' || 
     order.paymentStatus === 'PROCESSING' ||
-    order.paymentStatus === 'INITIATED'
+    order.paymentStatus === 'INITIATED' ||
+    order.paymentStatus === 'PARTIALLY_PAID' // Include split payment orders awaiting balance payment
   ) || [];
 
   useEffect(() => {
@@ -26,20 +27,26 @@ export const usePaymentMonitor = () => {
 
     // Check payment status for all pending orders
     const checkAllPendingPayments = () => {
-      console.log(`🔍 Checking payment status for ${pendingOrders.length} pending orders`);
+      console.log(`🔍 Checking payment status for ${pendingOrders.length} pending orders (including split payments)`);
       
       pendingOrders.forEach((order: any) => {
+        console.log(`🔍 Monitoring order ${order.id} - Current status: ${order.paymentStatus}, Payment type: ${order.shippingPaymentType || 'FULL'}`);
+        
         checkPaymentStatus(
           { orderId: order.id },
           {
             onSuccess: (data) => {
-              console.log(`✅ Payment status updated for order ${order.id}:`, data.data.paymentStatus);
+              const newStatus = data.data.paymentStatus;
+              const oldStatus = order.paymentStatus;
               
-              // Show notification if payment status changed
-              if (data.data.paymentStatus !== 'PENDING') {
+              console.log(`✅ Payment status for order ${order.id}: ${oldStatus} → ${newStatus}`);
+              
+              // Show notification if payment status changed from the original status
+              if (newStatus !== oldStatus && newStatus !== 'PENDING') {
+                console.log(`🔔 Showing notification for order ${order.id} status change: ${oldStatus} → ${newStatus}`);
                 showPaymentNotification({
                   orderId: order.id,
-                  paymentStatus: data.data.paymentStatus,
+                  paymentStatus: newStatus,
                   orderNumber: order.orderNumber,
                   amount: data.data.amount,
                 });

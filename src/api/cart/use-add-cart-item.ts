@@ -29,10 +29,9 @@ export const useAddCartItem = createMutation<
       },
     }).then(async (response) => {
       if (response.status === 200) {
+        // Invalidate and refetch cart data immediately
         await queryClient.invalidateQueries({ queryKey: [QueryKey.CART] });
-        await queryClient.fetchQuery({
-          queryKey: [QueryKey.CART],
-        });
+        await queryClient.refetchQueries({ queryKey: [QueryKey.CART] });
         return response.data;
       }
     });
